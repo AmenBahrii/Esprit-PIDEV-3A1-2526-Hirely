@@ -1,0 +1,37 @@
+{{ form_start(form) }}
+
+<div>
+    <label>Email</label>
+    {{ form_widget(form.email) }}
+</div>
+
+<div>
+    <label>Phone</label>
+    {{ form_widget(form.phone) }}
+</div>
+
+<div>
+    <label>Status</label>
+    {{ form_widget(form.currentStatus) }}
+</div>
+
+<div>
+    <label>Expected Salary</label>
+    {{ form_widget(form.expectedSalary) }}
+</div>
+
+<div>
+    <label>Experience Years</label>
+    {{ form_widget(form.experienceYears) }}
+</div>
+
+<div>
+    <label>Job Offer</label>
+    {{ form_widget(form.jobOffer) }}
+</div>
+
+<br>
+
+<button class="btn btn-primary">Save</button>
+
+{{ form_end(form) }}

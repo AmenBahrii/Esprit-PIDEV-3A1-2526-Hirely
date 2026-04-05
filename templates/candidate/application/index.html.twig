@@ -1,0 +1,77 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Applications{% endblock %}
+
+{% block body %}
+
+<div class="header">Hirely Dashboard</div>
+<div class="sub-header">My Applications</div>
+
+<div class="card">
+
+    <div class="top-bar">
+        <h3>My Applications</h3>
+    </div>
+
+    <table>
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Status</th>
+            <th>Salary</th>
+            <th>Experience</th>
+            <th>Job Offer</th>
+            <th>Score</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for application in applications %}
+        <tr>
+
+            <td>
+                {{ application.applicationDate ? application.applicationDate|date('Y-m-d') : '' }}
+            </td>
+
+            <td>{{ application.email }}</td>
+
+            <td>{{ application.phone }}</td>
+
+            <td>
+                {% if application.currentStatus == 'Accepted' %}
+                    <span class="status status-accepted">Accepted</span>
+                {% elseif application.currentStatus == 'pending' %}
+                    <span class="status status-pending">Pending</span>
+                {% else %}
+                    <span class="status status-rejected">
+                        {{ application.currentStatus }}
+                    </span>
+                {% endif %}
+            </td>
+
+            <td>{{ application.expectedSalary }}</td>
+
+            <td>{{ application.experienceYears }} yrs</td>
+
+            <td>
+                {{ application.jobOffer ? application.jobOffer.title : 'N/A' }}
+            </td>
+
+            <td>
+                {{ application.score is not null ? application.score : '—' }}
+            </td>
+
+        </tr>
+    {% else %}
+        <tr>
+            <td colspan="8">No applications found</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+</div>
+
+{% endblock %}

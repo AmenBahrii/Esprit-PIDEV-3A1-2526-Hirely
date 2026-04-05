@@ -1,0 +1,101 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Applications{% endblock %}
+
+{% block body %}
+
+<div class="header">Hirely Dashboard</div>
+<div class="sub-header">Applications Management</div>
+
+<div class="card">
+
+    <div class="top-bar">
+        <h3>Applications List</h3>
+
+        
+    </div>
+
+    <table>
+    <thead>
+        <tr>
+            
+            <th>Date</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Status</th>
+            <th>Salary</th>
+            <th>Experience</th>
+            <th>Job Offer</th>
+            <th>Score</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for application in applications %}
+        <tr>
+            
+
+            <td>
+                {{ application.applicationDate ? application.applicationDate|date('Y-m-d') : '' }}
+            </td>
+
+            <td>{{ application.email }}</td>
+
+            <td>{{ application.phone }}</td>
+
+            <td>
+                {% if application.currentStatus == 'Accepted' %}
+                    <span class="status status-accepted">Accepted</span>
+                {% elseif application.currentStatus == 'pending' %}
+                    <span class="status status-pending">Pending</span>
+                {% else %}
+                    <span class="status status-rejected">
+                        {{ application.currentStatus }}
+                    </span>
+                {% endif %}
+            </td>
+
+            <td>{{ application.expectedSalary }}</td>
+
+            <td>{{ application.experienceYears }} yrs</td>
+
+            <td>
+                {{ application.jobOffer ? application.jobOffer.title : 'N/A' }}
+            </td>
+
+            <td>
+                {{ application.score is not null ? application.score : '—' }}
+            </td>
+
+            <td>
+                
+               {% if application.currentStatus == 'pending' %}
+
+    <a class="btn btn-success"
+       href="{{ path('app_application_accept', {'applicationId': application.applicationId}) }}">
+        Accept
+    </a>
+
+    <a class="btn btn-danger"
+       href="{{ path('app_application_reject', {'applicationId': application.applicationId}) }}">
+        Reject
+    </a>
+
+{% else %}
+    <span style="color: gray;">Processed</span>
+{% endif %}
+                
+            </td>
+        </tr>
+    {% else %}
+        <tr>
+            <td colspan="10">No applications found</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+</div>
+
+{% endblock %}

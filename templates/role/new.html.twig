@@ -1,0 +1,56 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Add Role{% endblock %}
+
+{% block body %}
+
+<div class="header">Hirely Dashboard</div>
+<div class="sub-header">Create New Role</div>
+
+<div class="card">
+
+    <div class="top-bar">
+        <h3>Role Form</h3>
+
+        <a href="{{ path('app_role_index') }}" class="btn btn-secondary">
+            ← Back
+        </a>
+    </div>
+
+    {{ form_start(form) }}
+
+    <div class="form-grid">
+
+        <div class="form-group">
+            <label>Role Name</label>
+            {{ form_widget(form.name, {'attr': {'class': 'form-input'}}) }}
+        </div>
+
+        <div class="form-group">
+            <label>Status</label>
+            {{ form_widget(form.status, {'attr': {'class': 'form-input'}}) }}
+        </div>
+
+        <div class="form-group full">
+            <label>Description</label>
+            {{ form_widget(form.description, {'attr': {'class': 'form-input'}}) }}
+        </div>
+
+        <div class="form-group full">
+            <label>Default Dashboard</label>
+            {{ form_widget(form.defaultDashboard, {'attr': {'class': 'form-input'}}) }}
+        </div>
+
+    </div>
+
+    <br>
+
+    <button class="btn btn-primary">
+        Create Role
+    </button>
+
+    {{ form_end(form) }}
+
+</div>
+
+{% endblock %}
