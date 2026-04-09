@@ -6,9 +6,9 @@
     <h1>Candidate Applications</h1>
 
     <div class="card">
-        <div style="margin-bottom: 1.5rem;">
-            <a href="{{ path('app_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
-            <a href="{{ path('app_application_new') }}" class="btn" style="background-color: #27ae60;">New Application</a>
+        <div style="margin-bottom: 1.5rem; display: flex; gap: 1rem;">
+            <a href="{{ path('app_dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>
+            <a href="{{ path('app_application_new') }}" class="btn" style="background: linear-gradient(135deg, #ff9500 0%, #e68a00 100%); box-shadow: 0 2px 8px rgba(255, 149, 0, 0.2);">+ New Application</a>
         </div>
 
         {% if applications %}
@@ -27,13 +27,23 @@
                         <tr>
                             <td>{{ application.candidate_name }}</td>
                             <td>{{ application.job_id | default('N/A') }}</td>
-                            <td>{{ application.status | capitalize | replace({'_': ' '}) }}</td>
-                            <td>{% if application.created_at %}{{ application.created_at | date('M d, Y') }}{% else %}N/A{% endif %}</td>
                             <td>
-                                <a href="{{ path('app_application_show', {id: application.id}) }}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem;">View</a>
-                                <a href="{{ path('app_application_edit', {id: application.id}) }}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; background-color: #3498db;">Edit</a>
-                                <form method="POST" action="{{ path('app_application_delete', {id: application.id}) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this application?');">
-                                    <button type="submit" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; background-color: #e74c3c;">Delete</button>
+                                <span style="display: inline-block; padding: 0.4rem 0.9rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600;
+                                    {% if application.status == 'applied' %}background: #e3f2fd; color: #1565c0;
+                                    {% elseif application.status == 'in_progress' %}background: #fff3e0; color: #e65100;
+                                    {% elseif application.status == 'completed' %}background: #e8f5e9; color: #2e7d32;
+                                    {% elseif application.status == 'rejected' %}background: #ffebee; color: #c62828;
+                                    {% elseif application.status == 'accepted' %}background: #f3e5f5; color: #6a1b9a;
+                                    {% endif %}">
+                                    {{ application.status | capitalize | replace({'_': ' '}) }}
+                                </span>
+                            </td>
+                            <td>{% if application.created_at %}{{ application.created_at | date('M d, Y') }}{% else %}N/A{% endif %}</td>
+                            <td style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                                <a href="{{ path('app_application_show', {id: application.id}) }}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.85rem; background: #ecf0f1; color: #2c3e50; box-shadow: none;">View</a>
+                                <a href="{{ path('app_application_edit', {id: application.id}) }}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.85rem; background: #3498db;">Edit</a>
+                                <form method="POST" action="{{ path('app_application_delete', {id: application.id}) }}" style="display: inline; margin: 0;" onsubmit="return confirm('Are you sure you want to delete this application?');">
+                                    <button type="submit" class="btn" style="padding: 0.5rem 1rem; font-size: 0.85rem; background: #e74c3c;">Delete</button>
                                 </form>
                             </td>
                         </tr>

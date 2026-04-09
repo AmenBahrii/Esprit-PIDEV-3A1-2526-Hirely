@@ -7,8 +7,8 @@
 
     <div class="card">
         <div style="margin-bottom: 1.5rem; display: flex; gap: 1rem;">
-            <a href="{{ path('app_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
-            <a href="{{ path('app_interview_new') }}" class="btn" style="background: #27ae60;">✚ Create Interview</a>
+            <a href="{{ path('app_dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>
+            <a href="{{ path('app_interview_new') }}" class="btn" style="background: linear-gradient(135deg, #ff9500 0%, #e68a00 100%); box-shadow: 0 2px 8px rgba(255, 149, 0, 0.2);">✚ New Interview</a>
         </div>
 
         {% if interviews %}
@@ -31,26 +31,26 @@
                             <td>{{ interview.schedule_date | date('M d, Y H:i') }}</td>
                             <td>{{ interview.format | capitalize }}</td>
                             <td>
-                                <span style="padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.85rem; font-weight: 500;
-                                    {% if interview.status == 'scheduled' %}background: #d4efdf; color: #1e5631;
-                                    {% elseif interview.status == 'completed' %}background: #d4efdf; color: #1e5631;
-                                    {% else %}background: #fadbd8; color: #922b21;
+                                <span style="display: inline-block; padding: 0.4rem 0.9rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600;
+                                    {% if interview.status == 'scheduled' %}background: #e3f2fd; color: #1565c0;
+                                    {% elseif interview.status == 'completed' %}background: #e8f5e9; color: #2e7d32;
+                                    {% else %}background: #fce4ec; color: #c2185b;
                                     {% endif %}">
                                     {{ interview.status | capitalize }}
                                 </span>
                             </td>
-                            <td style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                                <a href="{{ path('app_interview_show', {id: interview.id}) }}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; white-space: nowrap;">View</a>
+                            <td style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                                <a href="{{ path('app_interview_show', {id: interview.id}) }}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.85rem; white-space: nowrap; background: #ecf0f1; color: #2c3e50; box-shadow: none; margin-bottom: 0;">View</a>
                                 {% if interview.status != 'completed' %}
-                                    <a href="{{ path('app_interview_edit', {id: interview.id}) }}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: #3498db; white-space: nowrap;">Edit</a>
-                                    <form method="POST" action="{{ path('app_interview_complete', {id: interview.id}) }}" style="display: inline;">
-                                        <button type="submit" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: #27ae60; color: white; border: none; cursor: pointer; white-space: nowrap;">✓ Complete</button>
+                                    <a href="{{ path('app_interview_edit', {id: interview.id}) }}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.85rem; background: #3498db; white-space: nowrap; margin-bottom: 0;">Edit</a>
+                                    <form method="POST" action="{{ path('app_interview_complete', {id: interview.id}) }}" style="display: inline; margin: 0;">
+                                        <button type="submit" class="btn" style="padding: 0.5rem 1rem; font-size: 0.85rem; background: #27ae60; color: white; border: none; cursor: pointer; white-space: nowrap; margin-bottom: 0;">✓ Complete</button>
                                     </form>
                                 {% else %}
-                                    <a href="{{ path('app_evaluation_form', {interviewId: interview.id}) }}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: #f39c12; white-space: nowrap;">+ Evaluate</a>
+                                    <a href="{{ path('app_evaluation_form', {interviewId: interview.id}) }}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.85rem; background: #ff9500; white-space: nowrap; margin-bottom: 0;">+ Evaluate</a>
                                 {% endif %}
-                                <form method="POST" action="{{ path('app_interview_delete', {id: interview.id}) }}" style="display: inline;" onsubmit="return confirm('Are you sure?');">
-                                    <button type="submit" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: #e74c3c; color: white; border: none; cursor: pointer; white-space: nowrap;">Delete</button>
+                                <form method="POST" action="{{ path('app_interview_delete', {id: interview.id}) }}" style="display: inline; margin: 0;" onsubmit="return confirm('Are you sure?');">
+                                    <button type="submit" class="btn" style="padding: 0.5rem 1rem; font-size: 0.85rem; background: #e74c3c; color: white; border: none; cursor: pointer; white-space: nowrap; margin-bottom: 0;">Delete</button>
                                 </form>
                             </td>
                         </tr>
