@@ -12,12 +12,32 @@ use Symfony\Component\Routing\Attribute\Route;
 class InterviewController
 {
     #[Route('', name: 'app_interviews')]
-    public function list(): Response
+    public function list(Request $request): Response
     {
         $db = new DatabaseService();
         $renderer = new TemplateRenderer();
         
         $interviews = $db->getInterviews();
+        
+        // Search filter
+        $search = $request->query->get('search', '');
+        if ($search) {
+            $interviews = array_filter($interviews, function($interview) use ($search) {
+                return stripos($interview['candidate_name'], $search) !== false;
+            });
+        }
+        
+        // Sort
+        $sort = $request->query->get('sort', '');
+        if ($sort === 'date_asc') {
+            usort($interviews, fn($a, $b) => strtotime($a['schedule_date']) - strtotime($b['schedule_date']));
+        } elseif ($sort === 'date_desc') {
+            usort($interviews, fn($a, $b) => strtotime($b['schedule_date']) - strtotime($a['schedule_date']));
+        } elseif ($sort === 'name_asc') {
+            usort($interviews, fn($a, $b) => strcasecmp($a['candidate_name'], $b['candidate_name']));
+        } elseif ($sort === 'name_desc') {
+            usort($interviews, fn($a, $b) => strcasecmp($b['candidate_name'], $a['candidate_name']));
+        }
         
         $html = $renderer->render('interview/list.html.twig', [
             'interviews' => $interviews,

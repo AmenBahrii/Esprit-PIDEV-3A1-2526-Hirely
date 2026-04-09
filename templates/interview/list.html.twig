@@ -6,9 +6,27 @@
     <h1>Interviews</h1>
 
     <div class="card">
+        <!-- Search and Filter Section -->
+        <div style="margin-bottom: 1.5rem; background: #f8f9fa; padding: 1.25rem; border-radius: 8px;">
+            <form method="GET" action="{{ path('app_interviews') }}" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                <input type="text" name="search" placeholder="Search by candidate name..." value="{{ app.request.get('search') }}" style="flex: 1; min-width: 250px; padding: 0.8rem; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 1rem;">
+                
+                <select name="sort" style="padding: 0.8rem; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 1rem; background: white; cursor: pointer;">
+                    <option value="">Sort By</option>
+                    <option value="date_asc" {% if app.request.get('sort') == 'date_asc' %}selected{% endif %}>Date (Oldest)</option>
+                    <option value="date_desc" {% if app.request.get('sort') == 'date_desc' %}selected{% endif %}>Date (Newest)</option>
+                    <option value="name_asc" {% if app.request.get('sort') == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
+                    <option value="name_desc" {% if app.request.get('sort') == 'name_desc' %}selected{% endif %}>Name (Z-A)</option>
+                </select>
+                
+                <button type="submit" class="btn" style="padding: 0.8rem 1.5rem;">🔍 Filter</button>
+                <a href="{{ path('app_interviews') }}" class="btn btn-secondary" style="padding: 0.8rem 1.5rem;">Clear</a>
+            </form>
+        </div>
+
         <div style="margin-bottom: 1.5rem; display: flex; gap: 1rem;">
             <a href="{{ path('app_dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>
-            <a href="{{ path('app_interview_new') }}" class="btn" style="background: linear-gradient(135deg, #ff9500 0%, #e68a00 100%); box-shadow: 0 2px 8px rgba(255, 149, 0, 0.2);">✚ New Interview</a>
+            <a href="{{ path('app_interview_new') }}" class="btn" style="background: linear-gradient(135deg, #d98123 0%, #b86318 100%); box-shadow: 0 2px 8px rgba(217, 129, 35, 0.2);">✚ New Interview</a>
         </div>
 
         {% if interviews %}

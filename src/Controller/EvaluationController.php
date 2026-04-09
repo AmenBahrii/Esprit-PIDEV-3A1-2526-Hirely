@@ -12,12 +12,36 @@ use Symfony\Component\Routing\Attribute\Route;
 class EvaluationController
 {
     #[Route('', name: 'app_evaluations')]
-    public function list(): Response
+    public function list(Request $request): Response
     {
         $db = new DatabaseService();
         $renderer = new TemplateRenderer();
         
         $evaluations = $db->getEvaluations();
+        
+        // Search filter
+        $search = $request->query->get('search', '');
+        if ($search) {
+            $evaluations = array_filter($evaluations, function($evaluation) use ($search) {
+                return stripos($evaluation['candidate_name'], $search) !== false;
+            });
+        }
+        
+        // Sort
+        $sort = $request->query->get('sort', '');
+        if ($sort === 'rating_high') {
+            usort($evaluations, fn($a, $b) => ($b['overall_rating'] ?? 0) - ($a['overall_rating'] ?? 0));
+        } elseif ($sort === 'rating_low') {
+            usort($evaluations, fn($a, $b) => ($a['overall_rating'] ?? 0) - ($b['overall_rating'] ?? 0));
+        } elseif ($sort === 'date_asc') {
+            usort($evaluations, fn($a, $b) => strtotime($a['schedule_date']) - strtotime($b['schedule_date']));
+        } elseif ($sort === 'date_desc') {
+            usort($evaluations, fn($a, $b) => strtotime($b['schedule_date']) - strtotime($a['schedule_date']));
+        } elseif ($sort === 'name_asc') {
+            usort($evaluations, fn($a, $b) => strcasecmp($a['candidate_name'], $b['candidate_name']));
+        } elseif ($sort === 'name_desc') {
+            usort($evaluations, fn($a, $b) => strcasecmp($b['candidate_name'], $a['candidate_name']));
+        }
         
         $html = $renderer->render('evaluation/list.html.twig', [
             'evaluations' => $evaluations,
