@@ -14,15 +14,15 @@
         <table style="margin-top: 1rem;">
             <tr>
                 <td style="font-weight: 600; width: 30%;">Candidate:</td>
-                <td>{{ evaluation.interview.application.candidateName }}</td>
+                <td>{{ evaluation.candidate_name }}</td>
             </tr>
             <tr>
                 <td style="font-weight: 600;">Interview Date:</td>
-                <td>{{ evaluation.interview.scheduleDate | date('l, F j, Y \a\t g:i A') }}</td>
+                <td>{{ evaluation.schedule_date | date('l, F j, Y \a\t g:i A') }}</td>
             </tr>
             <tr>
                 <td style="font-weight: 600;">Interview Type:</td>
-                <td>{{ evaluation.interview.interviewType.name }}</td>
+                <td>{{ evaluation.interview_type_name }}</td>
             </tr>
         </table>
     </div>
@@ -38,9 +38,9 @@
                 </tr>
             </thead>
             <tbody>
-                {% for score in evaluation.scores %}
+                {% for score in evaluation.scores_full %}
                     <tr>
-                        <td>{{ score.criteria.name }}</td>
+                        <td>{{ score.name }}</td>
                         <td style="font-weight: 600;">{{ score.score }}/10</td>
                         <td>{{ score.comment | default('—') }}</td>
                     </tr>
@@ -48,7 +48,7 @@
             </tbody>
         </table>
         <p style="margin-top: 1rem; font-size: 1.1rem;">
-            <strong>Overall Rating:</strong> {{ evaluation.overallRating | round(2) }}/10
+            <strong>Overall Rating:</strong> {{ evaluation.overall_rating }}/10
         </p>
     </div>
 
@@ -70,25 +70,16 @@
         <h3>Detailed Comments</h3>
         <div style="margin-top: 1rem;">
             <h4 style="margin-bottom: 0.5rem;">Strengths</h4>
-            <p style="background: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">{{ evaluation.strengths | nl2br }}</p>
+            <p style="background: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">{{ evaluation.strengths | default('N/A') }}</p>
             
             <h4 style="margin-bottom: 0.5rem;">Weaknesses</h4>
-            <p style="background: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">{{ evaluation.weaknesses | nl2br }}</p>
-            
-            <h4 style="margin-bottom: 0.5rem;">General Comments</h4>
-            <p style="background: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">{{ evaluation.comments | nl2br }}</p>
-            
-            <h4 style="margin-bottom: 0.5rem;">Next Steps</h4>
-            <p style="background: #f8f9fa; padding: 1rem; border-radius: 4px;">{{ evaluation.nextSteps | nl2br }}</p>
+            <p style="background: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">{{ evaluation.weaknesses | default('N/A') }}</p>
         </div>
     </div>
 
     <div class="card">
         <p style="color: #7f8c8d; font-size: 0.9rem;">
-            Created: {{ evaluation.createdAt | date('M d, Y H:i') }}
-            {% if evaluation.updatedAt %}
-                | Updated: {{ evaluation.updatedAt | date('M d, Y H:i') }}
-            {% endif %}
+            Created: {{ evaluation.created_at | date('M d, Y H:i') if evaluation.created_at else 'N/A' }}
         </p>
     </div>
 {% endblock %}

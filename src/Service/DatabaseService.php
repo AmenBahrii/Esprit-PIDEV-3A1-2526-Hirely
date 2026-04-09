@@ -289,7 +289,20 @@ class DatabaseService
                 WHERE es.interview_evaluation_id = :id
             ");
             $scoreStmt->execute([':id' => $id]);
-            $evaluation['scores'] = $scoreStmt->fetchAll(PDO::FETCH_ASSOC);
+            $scores = $scoreStmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Transform scores into associative array keyed by criteria_id for template access
+            $scoresMap = [];
+            $commentsMap = [];
+            foreach ($scores as $scoreRow) {
+                $criteriaId = $scoreRow['evaluation_criteria_id'];
+                $scoresMap[$criteriaId] = $scoreRow['score'];
+                $commentsMap[$criteriaId] = $scoreRow['comment'] ?? '';
+            }
+            
+            $evaluation['scores'] = $scoresMap;
+            $evaluation['comments'] = $commentsMap;
+            $evaluation['scores_full'] = $scores; // Keep full scores for show template
         }
 
         return $evaluation ?: [];
