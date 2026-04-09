@@ -19,65 +19,10 @@
             padding: 0;
         }
         
-        /* Sidebar Navigation */
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 250px;
-            height: 100vh;
-            background: #ffffff;
-            border-right: 3px solid #f0f0f0;
-            box-shadow: 2px 0 12px rgba(0,0,0,0.1);
-            padding: 2rem 0;
-            z-index: 1000;
-            overflow-y: auto;
-        }
-        
-        .sidebar-links {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .sidebar-links li {
-            margin: 0;
-        }
-        
-        .sidebar-links a {
-            display: block;
-            padding: 1.2rem 1.5rem;
-            color: #2c3e50;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1rem;
-            border-left: 4px solid transparent;
-            transition: all 0.3s ease;
-        }
-        
-        .sidebar-links a:hover {
-            background: #f8f9fa;
-            border-left-color: #ff9500;
-            padding-left: 2rem;
-            color: #ff9500;
-        }
-        
-        .sidebar-links a.active {
-            background: #f0f0f0;
-            border-left-color: #ff9500;
-            color: #ff9500;
-            font-weight: 700;
-        }
-        
         .container {
-            margin-left: 270px;
-            margin-top: 2.5rem;
-            margin-right: 0;
-            margin-bottom: 2.5rem;
+            max-width: 1200px;
+            margin: 2.5rem auto;
             padding: 0 1.5rem;
-            max-width: calc(100% - 270px);
         }
         
         .card {
@@ -409,16 +354,6 @@
     {% block styles %}{% endblock %}
 </head>
 <body>
-    <!-- Sidebar Navigation -->
-    <aside class="sidebar">
-        <ul class="sidebar-links">
-            {% if app.user %}
-                <li><a href="{{ path('app_interviews') }}" class="sidebar-nav-link">📋 Interviews</a></li>
-                <li><a href="{{ path('app_evaluations') }}" class="sidebar-nav-link">⭐ Evaluations</a></li>
-            {% endif %}
-        </ul>
-    </aside>
-
     <div class="container">
         {% for message in app.flashes('error') %}
             <div class="alert alert-error">{{ message }}</div>
@@ -438,27 +373,10 @@
     {% block scripts %}
     <!-- Smooth Page Transitions -->
     <script>
-        // Function to mark active nav link
-        function updateActiveNavLink() {
-            const currentPath = window.location.pathname;
-            const navLinks = document.querySelectorAll('.sidebar-nav-link');
-            
-            navLinks.forEach(link => {
-                link.classList.remove('active');
-                const href = link.getAttribute('href');
-                if (href && currentPath.includes(href.split('/').filter(p => p).pop())) {
-                    link.classList.add('active');
-                }
-            });
-        }
-
         // Create loading indicator HTML
         const pageLoading = document.createElement('div');
         pageLoading.className = 'page-loading';
         document.body.appendChild(pageLoading);
-
-        // Update active link on initial load
-        updateActiveNavLink();
 
         // Intercept all navigation links (except buttons, anchors, and external links)
         document.addEventListener('click', (e) => {
@@ -512,12 +430,6 @@
                         
                         // Update browser history
                         window.history.pushState({ url: targetUrl }, '', targetUrl);
-                        
-                        // Update active nav link
-                        updateActiveNavLink();
-                        
-                        // Re-attach event listeners to new content
-                        attachSmoothTransitions();
                     })
                     .catch(() => {
                         // Fallback to regular navigation on error
@@ -525,11 +437,6 @@
                     });
             }, 300);
         });
-
-        // Function to re-attach event listeners after content updates
-        function attachSmoothTransitions() {
-            // Listener re-attachment happens automatically with event delegation
-        }
 
         // Handle browser back/forward buttons
         window.addEventListener('popstate', (e) => {
