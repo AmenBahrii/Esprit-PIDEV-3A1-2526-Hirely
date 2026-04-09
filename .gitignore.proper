@@ -1,0 +1,46 @@
+# .gitignore for Symfony
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Composer
+vendor/
+composer.phar
+composer.lock
+
+# Symfony
+/bin/
+/var/
+/build/
+.env.local
+.env.*.local
+.env.test
+.env.test.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+
+# Node (if using frontend build tools)
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# OS
+.DS_Store
+Thumbs.db
+.gitkeep
+
+# Project specific
+*.log
+cache/
+.php-version
