@@ -1,0 +1,12 @@
+when@test:
+  framework:
+    test: true
+    session:
+      storage_factory_id: session.storage.factory.mock_file
+
+doctrine:
+  dbal:
+    url: '%env(TEST_DATABASE_URL)%'
+
+services:
+  App\Security\AppAuthenticator: ~

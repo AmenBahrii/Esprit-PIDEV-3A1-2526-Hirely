@@ -1,0 +1,12 @@
+app/
+bin/
+config/
+migrations/
+public/
+src/
+templates/
+vendor/
+.env
+.env.local
+.env.*.local
+.gitignore

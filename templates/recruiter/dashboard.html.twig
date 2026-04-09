@@ -1,0 +1,97 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Recruiter Dashboard - Hirely{% endblock %}
+
+{% block content %}
+    <h1>Recruiter Dashboard</h1>
+    
+    {% if app.user.recruiterProfile %}
+        <p style="margin-top: 1rem; color: #7f8c8d;">Welcome, {{ app.user.recruiterProfile.name }}</p>
+    {% endif %}
+
+    <div class="stats">
+        <div class="stat-box">
+            <h3>Total Interviews</h3>
+            <div class="number">{{ total_interviews }}</div>
+        </div>
+        <div class="stat-box" style="border-left-color: #e74c3c;">
+            <h3>Today's Interviews</h3>
+            <div class="number">{{ today_count }}</div>
+        </div>
+        <div class="stat-box" style="border-left-color: #f39c12;">
+            <h3>Pending Evaluations</h3>
+            <div class="number">{{ pending_evaluations_count }}</div>
+        </div>
+    </div>
+
+    {% if unread_notifications %}
+        <div class="card" style="background: #fef9e7; border-left: 4px solid #f39c12;">
+            <h3>Notifications</h3>
+            <ul style="margin-top: 1rem; list-style: none;">
+                {% for notification in unread_notifications %}
+                    <li style="padding: 0.5rem 0; border-bottom: 1px solid #f0db4f;">{{ notification.message }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <div class="card">
+        <h3>Upcoming Interviews</h3>
+        {% if upcoming_interviews %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Candidate</th>
+                        <th>Type</th>
+                        <th>Date & Time</th>
+                        <th>Duration</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for interview in upcoming_interviews %}
+                        <tr>
+                            <td>{{ interview.candidate_name }}</td>
+                            <td>{{ interview.interview_type }}</td>
+                            <td>{{ interview.schedule_date | date('M d, Y H:i') }}</td>
+                            <td>30 min</td>
+                            <td>
+                                <a href="{{ path('app_interview_show', {id: interview.id}) }}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem;">View</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p style="color: #7f8c8d; margin-top: 1rem;">No upcoming interviews.</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h3>Pending Evaluations</h3>
+        {% if pending_evaluations %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Candidate</th>
+                        <th>Interview Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for evaluation in pending_evaluations %}
+                        <tr>
+                            <td>{{ evaluation.interview.application.candidateName }}</td>
+                            <td>{{ evaluation.interview.scheduleDate | date('M d, Y') }}</td>
+                            <td>
+                                <a href="{{ path('app_evaluation_show', {id: evaluation.id}) }}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Complete</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p style="color: #7f8c8d; margin-top: 1rem;">No pending evaluations.</p>
+        {% endif %}
+    </div>
+{% endblock %}

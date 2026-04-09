@@ -1,0 +1,34 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  App\:
+    resource: '../src/'
+    exclude:
+      - '../src/DependencyInjection/'
+      - '../src/Entity/'
+      - '../src/Kernel.php'
+      - '../src/Tests/'
+      - '../src/Controller/'
+
+  App\Service\:
+    resource: '../src/Service'
+    autowire: true
+    public: true
+
+  App\Repository\:
+    resource: '../src/Repository'
+    autowire: true
+
+  App\Controller\:
+    resource: '../src/Controller'
+    autowire: true
+    autoconfigure: true
+    public: true
+
+  App\Security\AppAuthenticator:
+    arguments:
+      $entityManager: '@doctrine.orm.entity_manager'
+      $router: '@router'

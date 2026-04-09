@@ -1,0 +1,47 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Applications - Hirely{% endblock %}
+
+{% block content %}
+    <h1>Candidate Applications</h1>
+
+    <div class="card">
+        <div style="margin-bottom: 1.5rem;">
+            <a href="{{ path('app_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+            <a href="{{ path('app_application_new') }}" class="btn" style="background-color: #27ae60;">New Application</a>
+        </div>
+
+        {% if applications %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Candidate Name</th>
+                        <th>Job ID</th>
+                        <th>Status</th>
+                        <th>Applied Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for application in applications %}
+                        <tr>
+                            <td>{{ application.candidate_name }}</td>
+                            <td>{{ application.job_id | default('N/A') }}</td>
+                            <td>{{ application.status | capitalize | replace({'_': ' '}) }}</td>
+                            <td>{% if application.created_at %}{{ application.created_at | date('M d, Y') }}{% else %}N/A{% endif %}</td>
+                            <td>
+                                <a href="{{ path('app_application_show', {id: application.id}) }}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem;">View</a>
+                                <a href="{{ path('app_application_edit', {id: application.id}) }}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; background-color: #3498db;">Edit</a>
+                                <form method="POST" action="{{ path('app_application_delete', {id: application.id}) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this application?');">
+                                    <button type="submit" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; background-color: #e74c3c;">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p style="color: #7f8c8d;">No applications found.</p>
+        {% endif %}
+    </div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Interviews - Hirely{% endblock %}
+
+{% block content %}
+    <h1>Interviews</h1>
+
+    <div class="card">
+        <div style="margin-bottom: 1.5rem; display: flex; gap: 1rem;">
+            <a href="{{ path('app_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+            <a href="{{ path('app_interview_new') }}" class="btn" style="background: #27ae60;">✚ Create Interview</a>
+        </div>
+
+        {% if interviews %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Candidate</th>
+                        <th>Type</th>
+                        <th>Date & Time</th>
+                        <th>Format</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for interview in interviews %}
+                        <tr>
+                            <td>{{ interview.candidate_name }}</td>
+                            <td>{{ interview.interview_type }}</td>
+                            <td>{{ interview.schedule_date | date('M d, Y H:i') }}</td>
+                            <td>{{ interview.format | capitalize }}</td>
+                            <td>
+                                <span style="padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.85rem; font-weight: 500;
+                                    {% if interview.status == 'scheduled' %}background: #d4efdf; color: #1e5631;
+                                    {% elseif interview.status == 'completed' %}background: #d4efdf; color: #1e5631;
+                                    {% else %}background: #fadbd8; color: #922b21;
+                                    {% endif %}">
+                                    {{ interview.status | capitalize }}
+                                </span>
+                            </td>
+                            <td style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <a href="{{ path('app_interview_show', {id: interview.id}) }}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; white-space: nowrap;">View</a>
+                                {% if interview.status != 'completed' %}
+                                    <a href="{{ path('app_interview_edit', {id: interview.id}) }}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: #3498db; white-space: nowrap;">Edit</a>
+                                    <form method="POST" action="{{ path('app_interview_complete', {id: interview.id}) }}" style="display: inline;">
+                                        <button type="submit" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: #27ae60; color: white; border: none; cursor: pointer; white-space: nowrap;">✓ Complete</button>
+                                    </form>
+                                {% else %}
+                                    <a href="{{ path('app_evaluation_form', {interviewId: interview.id}) }}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: #f39c12; white-space: nowrap;">+ Evaluate</a>
+                                {% endif %}
+                                <form method="POST" action="{{ path('app_interview_delete', {id: interview.id}) }}" style="display: inline;" onsubmit="return confirm('Are you sure?');">
+                                    <button type="submit" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: #e74c3c; color: white; border: none; cursor: pointer; white-space: nowrap;">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p style="color: #7f8c8d;">No interviews found.</p>
+        {% endif %}
+    </div>
+{% endblock %}

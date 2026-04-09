@@ -1,0 +1,40 @@
+{% extends "base.html.twig" %}
+
+{% block title %}{{ application ? 'Edit' : 'New' }} Application - Hirely{% endblock %}
+
+{% block content %}
+    <h1>{{ application ? 'Edit' : 'New' }} Application</h1>
+
+    <div class="card" style="max-width: 600px; margin: 0 auto;">
+        <form method="POST">
+            <div style="margin-bottom: 1.5rem;">
+                <label for="candidate_name" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Candidate Name *</label>
+                <input type="text" id="candidate_name" name="candidate_name" required style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;" value="{{ application.candidate_name | default('') }}">
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label for="job_id" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Job ID</label>
+                <input type="text" id="job_id" name="job_id" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;" value="{{ application.job_id | default('') }}">
+                <small style="color: #7f8c8d;">Optional - Enter the job position ID or reference number</small>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label for="status" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Status *</label>
+                <select id="status" name="status" required style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;">
+                    <option value="applied" {% if application.status == 'applied' %}selected{% endif %}>Applied</option>
+                    <option value="in_progress" {% if application.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                    <option value="completed" {% if application.status == 'completed' %}selected{% endif %}>Completed</option>
+                    <option value="rejected" {% if application.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                    <option value="accepted" {% if application.status == 'accepted' %}selected{% endif %}>Accepted</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button type="submit" class="btn" style="flex: 1; background-color: #27ae60;">
+                    {{ application ? 'Update Application' : 'Create Application' }}
+                </button>
+                <a href="{{ path('app_applications') }}" class="btn btn-secondary" style="flex: 1; text-align: center; text-decoration: none;">Cancel</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}

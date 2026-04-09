@@ -1,0 +1,93 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Interview Details - Hirely{% endblock %}
+
+{% block content %}
+    <div style="margin-bottom: 1.5rem;">
+        <a href="{{ path('app_interviews') }}" class="btn btn-secondary">← Back to Interviews</a>
+    </div>
+
+    <h1>Interview Details</h1>
+
+    <div class="card">
+        <h3>Candidate Information</h3>
+        <table style="margin-top: 1rem;">
+            <tr>
+                <td style="font-weight: 600; width: 30%;">Name:</td>
+                <td>{{ interview.application.candidateName }}</td>
+            </tr>
+            <tr>
+                <td style="font-weight: 600;">Job ID:</td>
+                <td>{{ interview.application.jobId | default('N/A') }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="card">
+        <h3>Interview Details</h3>
+        <table style="margin-top: 1rem;">
+            <tr>
+                <td style="font-weight: 600; width: 30%;">Type:</td>
+                <td>{{ interview.interviewType.name }}</td>
+            </tr>
+            <tr>
+                <td style="font-weight: 600;">Date & Time:</td>
+                <td>{{ interview.scheduleDate | date('l, F j, Y \a\t g:i A') }}</td>
+            </tr>
+            <tr>
+                <td style="font-weight: 600;">Duration:</td>
+                <td>{{ interview.duration }} minutes</td>
+            </tr>
+            <tr>
+                <td style="font-weight: 600;">Format:</td>
+                <td>{{ interview.format | capitalize }}</td>
+            </tr>
+            <tr>
+                <td style="font-weight: 600;">Status:</td>
+                <td>
+                    <span style="padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.85rem; font-weight: 500;
+                        {% if interview.status == 'scheduled' %}background: #d4efdf; color: #1e5631;
+                        {% elseif interview.status == 'completed' %}background: #d4efdf; color: #1e5631;
+                        {% else %}background: #fadbd8; color: #922b21;
+                        {% endif %}">
+                        {{ interview.status | capitalize }}
+                    </span>
+                </td>
+            </tr>
+            {% if interview.format == 'virtual' and interview.meetingLink %}
+                <tr>
+                    <td style="font-weight: 600;">Meeting Link:</td>
+                    <td><a href="{{ interview.meetingLink }}" target="_blank">{{ interview.meetingLink }}</a></td>
+                </tr>
+            {% elseif interview.format == 'in-person' and interview.location %}
+                <tr>
+                    <td style="font-weight: 600;">Location:</td>
+                    <td>{{ interview.location }}</td>
+                </tr>
+            {% endif %}
+            {% if interview.notes %}
+                <tr>
+                    <td style="font-weight: 600;">Notes:</td>
+                    <td>{{ interview.notes }}</td>
+                </tr>
+            {% endif %}
+        </table>
+    </div>
+
+    <div class="card">
+        <h3>Actions</h3>
+        <div style="margin-top: 1rem;">
+            {% if interview.status == 'scheduled' %}
+                <form method="POST" action="{{ path('app_interview_complete', {id: interview.id}) }}" style="display: inline;">
+                    <button type="submit" class="btn btn-success">Mark as Completed</button>
+                </form>
+            {% endif %}
+            
+            {% if interview.evaluations | length == 0 %}
+                <a href="{{ path('app_evaluation_form', {interviewId: interview.id}) }}" class="btn">Create Evaluation</a>
+            {% else %}
+                <p style="margin-top: 1rem; color: #27ae60;">✓ Evaluation already created</p>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
