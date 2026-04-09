@@ -275,6 +275,118 @@
             font-size: 1.25rem;
             margin-bottom: 1rem;
         }
+        
+        /* Page Transition Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+        }
+        
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        body {
+            animation: fadeIn 0.4s ease-out;
+        }
+        
+        .container {
+            animation: slideInRight 0.5s ease-out;
+        }
+        
+        .card {
+            animation: fadeIn 0.6s ease-out backwards;
+        }
+        
+        .card:nth-child(1) { animation-delay: 0s; }
+        .card:nth-child(2) { animation-delay: 0.1s; }
+        .card:nth-child(3) { animation-delay: 0.2s; }
+        .card:nth-child(4) { animation-delay: 0.3s; }
+        .card:nth-child(5) { animation-delay: 0.4s; }
+        
+        .stat-box {
+            animation: fadeIn 0.6s ease-out backwards;
+        }
+        
+        .stat-box:nth-child(1) { animation-delay: 0.1s; }
+        .stat-box:nth-child(2) { animation-delay: 0.2s; }
+        .stat-box:nth-child(3) { animation-delay: 0.3s; }
+        
+        /* Loading Indicator */
+        .page-loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #ff9500, #e68a00, #ff9500);
+            background-size: 200% 100%;
+            animation: loading 1.5s ease-in-out infinite;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 9999;
+        }
+        
+        .page-loading.active {
+            opacity: 1;
+        }
+        
+        @keyframes loading {
+            0% {
+                background-position: 200% 0;
+            }
+            50% {
+                background-position: 0 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+        
+        /* Link Hover Effects */
+        a {
+            transition: color 0.3s ease;
+        }
+        
+        a:not(.btn):hover {
+            color: #ff9500;
+        }
+        
+        /* Smooth Table Row Animations */
+        tbody tr {
+            animation: fadeIn 0.5s ease-out backwards;
+        }
+        
+        tbody tr:nth-child(1) { animation-delay: 0.05s; }
+        tbody tr:nth-child(2) { animation-delay: 0.1s; }
+        tbody tr:nth-child(3) { animation-delay: 0.15s; }
+        tbody tr:nth-child(4) { animation-delay: 0.2s; }
+        tbody tr:nth-child(5) { animation-delay: 0.25s; }
+        tbody tr:nth-child(n+6) { animation-delay: 0.3s; }
     </style>
     {% block styles %}{% endblock %}
 </head>
@@ -314,6 +426,92 @@
         <p>&copy; 2024 Hirely - Interview Evaluation System</p>
     </footer>
 
-    {% block scripts %}{% endblock %}
+    {% block scripts %}
+    <!-- Smooth Page Transitions -->
+    <script>
+        // Create loading indicator HTML
+        const pageLoading = document.createElement('div');
+        pageLoading.className = 'page-loading';
+        document.body.appendChild(pageLoading);
+
+        // Intercept all navigation links (except buttons, anchors, and external links)
+        document.addEventListener('click', (e) => {
+            const link = e.target.closest('a');
+            
+            // Skip if not a link, is a button style, is an anchor, or is external
+            if (!link || link.classList.contains('btn') || link.hasAttribute('data-no-smooth') || 
+                link.href.indexOf(window.location.origin) !== 0 || link.target === '_blank') {
+                return;
+            }
+
+            // Prevent default navigation
+            e.preventDefault();
+
+            // Get the target URL
+            const targetUrl = link.href;
+            
+            // Show loading indicator
+            pageLoading.classList.add('active');
+
+            // Fade out current content
+            const container = document.querySelector('.container');
+            container.style.opacity = '0';
+            container.style.transition = 'opacity 0.3s ease-out';
+
+            // Wait for fade out, then fetch new page
+            setTimeout(() => {
+                fetch(targetUrl)
+                    .then(response => response.text())
+                    .then(html => {
+                        // Parse the new HTML
+                        const parser = new DOMParser();
+                        const newDoc = parser.parseFromString(html, 'text/html');
+                        
+                        // Get the new container content
+                        const newContainer = newDoc.querySelector('.container');
+                        const newContent = newContainer ? newContainer.innerHTML : '<p>Page not found</p>';
+                        
+                        // Replace content
+                        container.innerHTML = newContent;
+                        
+                        // Reset styles
+                        container.style.opacity = '1';
+                        container.style.transition = 'opacity 0.6s ease-out';
+                        
+                        // Remove loading indicator
+                        pageLoading.classList.remove('active');
+                        
+                        // Scroll to top with smooth animation
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        
+                        // Update browser history
+                        window.history.pushState({ url: targetUrl }, '', targetUrl);
+                        
+                        // Re-attach event listeners to new content
+                        attachSmoothTransitions();
+                    })
+                    .catch(() => {
+                        // Fallback to regular navigation on error
+                        window.location.href = targetUrl;
+                    });
+            }, 300);
+        });
+
+        // Function to re-attach event listeners after content updates
+        function attachSmoothTransitions() {
+            // Listener re-attachment happens automatically with event delegation
+        }
+
+        // Handle browser back/forward buttons
+        window.addEventListener('popstate', (e) => {
+            if (e.state && e.state.url) {
+                location.href = e.state.url;
+            }
+        });
+
+        // Enable smooth scroll behavior
+        document.documentElement.style.scrollBehavior = 'smooth';
+    </script>
+    {% endblock %}
 </body>
 </html>
