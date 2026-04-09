@@ -1,0 +1,157 @@
+{% extends "base.html.twig" %}
+
+{% block title %}{% if evaluation %}Edit{% else %}Create{% endif %} Evaluation - Hirely{% endblock %}
+
+{% block content %}
+    <h1>{% if evaluation %}Edit{% else %}Create{% endif %} Evaluation</h1>
+
+    {% if interview %}
+    <div class="card" style="background: #ecf0f1; margin-bottom: 2rem;">
+        <h3>Interview Details</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div>
+                <strong>Candidate:</strong> {{ interview.candidate_name }}<br>
+                <strong>Interview Type:</strong> {{ interview.interview_type_name }}<br>
+                <strong>Date:</strong> {{ interview.schedule_date | date('M d, Y H:i') }}<br>
+            </div>
+            <div>
+                <strong>Format:</strong> {{ interview.format | capitalize }}<br>
+                <strong>Location:</strong> {{ interview.location | default('N/A') }}<br>
+                <strong>Status:</strong> {{ interview.status | capitalize }}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card" style="max-width: 800px;">
+        <form method="POST" style="display: flex; flex-direction: column; gap: 1.5rem;">
+            
+            <fieldset style="border: 1px solid #bdc3c7; padding: 1rem; border-radius: 4px;">
+                <legend style="padding: 0 0.5rem; font-weight: 600;">Evaluation Criteria Scores</legend>
+                
+                {% for criterion in criteria %}
+                <div style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #ecf0f1;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+                        {{ criterion.name }}
+                        <span style="font-size: 0.85rem; color: #7f8c8d;">(Weight: {{ criterion.weight }})</span>
+                    </label>
+                    <p style="margin: 0.5rem 0; color: #7f8c8d; font-size: 0.9rem;">
+                        {{ criterion.description | default('') }}
+                    </p>
+                    
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        {% for score in range(1, 10) %}
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="radio" name="score_{{ criterion.id }}" value="{{ score }}" 
+                                   {% if evaluation and evaluation.scores[criterion.id|default('')] == score %}checked{% endif %}
+                                   style="margin-right: 0.25rem;">
+                            <span style="font-weight: 500;">{{ score }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    
+                    <textarea name="comment_{{ criterion.id }}" placeholder="Add comments for this criterion..." 
+                              style="width: 100%; padding: 0.5rem; border: 1px solid #bdc3c7; border-radius: 4px; font-family: inherit; min-height: 60px;">{% if evaluation and evaluation.comments[criterion.id|default('')] %}{{ evaluation.comments[criterion.id|default('')]}}{% endif %}</textarea>
+                </div>
+                {% endfor %}
+            </fieldset>
+
+            <div class="form-group">
+                <label for="overall_rating">Overall Rating (Auto-calculated from criterion scores)</label>
+                <input type="number" id="overall_rating" name="overall_rating" min="1" max="10" required readonly
+                       value="{{ evaluation.overall_rating | default('') }}"
+                       style="padding: 0.5rem; border: 1px solid #bdc3c7; border-radius: 4px; width: 100%; max-width: 150px; background-color: #ecf0f1; color: #2c3e50; cursor: not-allowed;">
+                <small style="color: #7f8c8d; margin-top: 0.5rem; display: block;">This score is automatically calculated as a weighted average of your criterion ratings.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="strengths">Strengths</label>
+                <textarea id="strengths" name="strengths" placeholder="List key strengths..." required
+                          style="padding: 0.5rem; border: 1px solid #bdc3c7; border-radius: 4px; width: 100%; min-height: 100px; font-family: inherit;">{{ evaluation.strengths | default('') }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="weaknesses">Weaknesses/Areas for Improvement</label>
+                <textarea id="weaknesses" name="weaknesses" placeholder="List areas to improve..."
+                          style="padding: 0.5rem; border: 1px solid #bdc3c7; border-radius: 4px; width: 100%; min-height: 100px; font-family: inherit;">{{ evaluation.weaknesses | default('') }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="recommendation">Recommendation</label>
+                <select id="recommendation" name="recommendation" required style="padding: 0.5rem; border: 1px solid #bdc3c7; border-radius: 4px; width: 100%;">
+                    <option value="">-- Select Recommendation --</option>
+                    <option value="move_forward" {% if evaluation.recommendation == 'move_forward' %}selected{% endif %}>Move Forward</option>
+                    <option value="reconsider" {% if evaluation.recommendation == 'reconsider' %}selected{% endif %}>Reconsider</option>
+                    <option value="reject" {% if evaluation.recommendation == 'reject' %}selected{% endif %}>Reject</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="hire_decision">Hire Decision</label>
+                <select id="hire_decision" name="hire_decision" style="padding: 0.5rem; border: 1px solid #bdc3c7; border-radius: 4px; width: 100%;">
+                    <option value="pending" {% if evaluation.hire_decision == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="hire" {% if evaluation.hire_decision == 'hire' %}selected{% endif %}>Hire</option>
+                    <option value="no_hire" {% if evaluation.hire_decision == 'no_hire' %}selected{% endif %}>No Hire</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                <button type="submit" class="btn" style="flex: 1;">{% if evaluation %}Update{% else %}Submit{% endif %} Evaluation</button>
+                <a href="{{ path('app_evaluations') }}" class="btn btn-secondary" style="flex: 1; text-align: center; padding: 0.75rem;">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Criteria data for weighted calculation
+        const criteria = {
+            {% for criterion in criteria %}
+            '{{ criterion.id }}': { name: '{{ criterion.name }}', weight: {{ criterion.weight | default(1) }} },
+            {% endfor %}
+        };
+
+        function calculateOverallRating() {
+            let totalWeightedScore = 0;
+            let totalWeight = 0;
+            let scoredCriteria = 0;
+
+            // Iterate through all criteria and get selected scores
+            for (const criteriaId in criteria) {
+                const selectedScore = document.querySelector('input[name="score_' + criteriaId + '"]:checked');
+                if (selectedScore) {
+                    const score = parseInt(selectedScore.value);
+                    const weight = criteria[criteriaId].weight;
+                    totalWeightedScore += score * weight;
+                    totalWeight += weight;
+                    scoredCriteria++;
+                }
+            }
+
+            // Calculate weighted average and round to nearest integer
+            if (scoredCriteria > 0) {
+                const overallRating = Math.round((totalWeightedScore / totalWeight) * 10) / 10;
+                document.getElementById('overall_rating').value = overallRating;
+            }
+        }
+
+        // Add event listeners to all score radio buttons
+        document.querySelectorAll('input[type="radio"][name^="score_"]').forEach(input => {
+            input.addEventListener('change', calculateOverallRating);
+        });
+
+        // Calculate on page load if editing existing evaluation
+        document.addEventListener('DOMContentLoaded', calculateOverallRating);
+    </script>
+
+    <style>
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+    </style>
+{% endblock %}
