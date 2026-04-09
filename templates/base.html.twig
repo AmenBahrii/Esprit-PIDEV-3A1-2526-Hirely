@@ -17,70 +17,68 @@
             color: #2c3e50;
         }
         
-        .navbar {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            color: white;
-            padding: 1.25rem 2rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            display: block !important;
-            width: 100% !important;
-            position: relative;
+        /* Sidebar Navigation */
+        .sidebar {
+            position: fixed;
+            left: 0;
             top: 0;
-            z-index: 1000;
-            min-height: 70px;
-            opacity: 1 !important;
-            animation: none !important;
-            visibility: visible;
+            width: 250px;
+            height: 100vh;
+            background: #ffffff;
+            border-right: 2px solid #f0f0f0;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.08);
+            padding: 2rem 0;
+            z-index: 100;
         }
         
-        .navbar-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            height: 100%;
-        }
-        
-        .navbar h1 {
-            font-size: 1.75rem;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            margin: 0;
-            color: white !important;
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: 2.5rem;
-            align-items: center;
+        .sidebar-links {
             list-style: none;
-            margin: 0;
             padding: 0;
+            margin: 0;
         }
         
-        .nav-links li {
-            display: inline-block;
+        .sidebar-links li {
+            margin: 0;
         }
         
-        .nav-links a {
-            color: white !important;
+        .sidebar-links a {
+            display: block;
+            padding: 1.2rem 1.5rem;
+            color: #2c3e50;
             text-decoration: none;
-            font-weight: 500;
-            font-size: 0.95rem;
-            transition: opacity 0.3s ease;
-            display: inline-block;
-            padding: 0.5rem 0;
+            font-weight: 600;
+            font-size: 1rem;
+            border-left: 4px solid transparent;
+            transition: all 0.3s ease;
         }
         
-        .nav-links a:hover {
-            opacity: 0.8;
+        .sidebar-links a:hover {
+            background: #f8f9fa;
+            border-left-color: #ff9500;
+            padding-left: 2rem;
+        }
+        
+        .sidebar-links a.active {
+            background: #f0f0f0;
+            border-left-color: #ff9500;
+            color: #ff9500;
+            font-weight: 700;
+        }
+        
+        /* Main content area with sidebar */
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .main-wrapper {
+            display: flex;
+            margin-top: 0;
         }
         
         .container {
-            max-width: 1200px;
-            margin: 2.5rem auto;
+            max-width: calc(100% - 250px);
+            margin: 2.5rem 0 2.5rem 270px;
             padding: 0 1.5rem;
         }
         
@@ -413,24 +411,15 @@
     {% block styles %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar">
-        <div class="navbar-content">
-            <h1>Hirely</h1>
-            <ul class="nav-links">
-                {% if app.user %}
-                    {% if 'ROLE_RECRUITER' in app.user.roles %}
-                        <li><a href="{{ path('app_dashboard') }}">Dashboard</a></li>
-                        <li><a href="{{ path('app_interviews') }}">Interviews</a></li>
-                        <li><a href="{{ path('app_evaluations') }}">Evaluations</a></li>
-                        <li><a href="{{ path('app_applications') }}">Applications</a></li>
-                    {% endif %}
-                    <li><a href="{{ path('app_logout') }}">Logout</a></li>
-                {% else %}
-                    <li><a href="{{ path('app_login') }}">Login</a></li>
-                {% endif %}
-            </ul>
-        </div>
-    </nav>
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <ul class="sidebar-links">
+            {% if app.user %}
+                <li><a href="{{ path('app_interviews') }}" class="sidebar-nav-link">📋 Interviews</a></li>
+                <li><a href="{{ path('app_evaluations') }}" class="sidebar-nav-link">⭐ Evaluations</a></li>
+            {% endif %}
+        </ul>
+    </aside>
 
     <div class="container">
         {% for message in app.flashes('error') %}
@@ -451,10 +440,27 @@
     {% block scripts %}
     <!-- Smooth Page Transitions -->
     <script>
+        // Function to mark active nav link
+        function updateActiveNavLink() {
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.sidebar-nav-link');
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                const href = link.getAttribute('href');
+                if (href && currentPath.includes(href.split('/').filter(p => p).pop())) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
         // Create loading indicator HTML
         const pageLoading = document.createElement('div');
         pageLoading.className = 'page-loading';
         document.body.appendChild(pageLoading);
+
+        // Update active link on initial load
+        updateActiveNavLink();
 
         // Intercept all navigation links (except buttons, anchors, and external links)
         document.addEventListener('click', (e) => {
@@ -508,6 +514,9 @@
                         
                         // Update browser history
                         window.history.pushState({ url: targetUrl }, '', targetUrl);
+                        
+                        // Update active nav link
+                        updateActiveNavLink();
                         
                         // Re-attach event listeners to new content
                         attachSmoothTransitions();
