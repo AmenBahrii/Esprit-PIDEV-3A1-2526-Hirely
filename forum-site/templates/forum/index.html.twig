@@ -1,0 +1,81 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Forum Feed | Hirely{% endblock %}
+
+{% block body %}
+    <section class="page-head">
+        <div>
+            <p class="eyebrow">Community</p>
+            <h1>Forum feed</h1>
+        </div>
+        <a class="button primary" href="{{ path('forum_post_new') }}">
+            <span class="icon" aria-hidden="true">&#x2795;</span>
+            <span>New Post</span>
+        </a>
+    </section>
+
+    <section class="toolbar card">
+        <form method="get" class="toolbar-form js-auto-submit" data-auto-submit="true">
+            <label class="field-with-icon">
+                <span class="icon" aria-hidden="true">&#x1F50D;</span>
+                <input type="search" name="q" placeholder="Search title, content, tag..." value="{{ search }}" data-auto-submit-input="true">
+            </label>
+            <label class="field-with-icon">
+                <span class="icon" aria-hidden="true">&#x1F3F7;</span>
+                <select name="tag">
+                    <option value="ALL" {{ selected_tag == 'ALL' ? 'selected' : '' }}>All tags</option>
+                    {% for tag in tags %}
+                        <option value="{{ tag }}" {{ selected_tag == tag ? 'selected' : '' }}>{{ tag }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="field-with-icon">
+                <span class="icon" aria-hidden="true">&#x21C5;</span>
+                <select name="sort">
+                    <option value="new" {{ sort == 'new' ? 'selected' : '' }}>Newest</option>
+                    <option value="old" {{ sort == 'old' ? 'selected' : '' }}>Oldest</option>
+                </select>
+            </label>
+            <noscript><button class="button secondary" type="submit">Filter</button></noscript>
+        </form>
+    </section>
+
+    <section class="feed-stack">
+        {% for post in posts %}
+            <article class="post-card card">
+                <div class="post-card-head">
+                    <div>
+                        <span class="status-chip {{ post.status|lower }}">{{ post.status }}</span>
+                        {% if post.pinned %}<span class="status-chip pinned">Pinned</span>{% endif %}
+                    </div>
+                    {% if post.tag %}
+                        <span class="tag-chip">{{ post.tag }}</span>
+                    {% endif %}
+                </div>
+
+                <h2><a href="{{ path('forum_post_show', {id: post.id}) }}">{{ post.title }}</a></h2>
+                <p class="meta">
+                    <a class="text-link" href="{{ path('profile_show', {id: post.author.id}) }}">{{ post.author.displayName }}</a>
+                    • {{ post.createdAt|date('d M Y - H:i') }}
+                </p>
+                <p class="excerpt">{{ post.content|length > 180 ? post.content|slice(0, 180) ~ '...' : post.content }}</p>
+
+                <div class="post-card-foot">
+                    <span><span class="icon" aria-hidden="true">&#x2665;</span> {{ post.likeCount }} likes</span>
+                    <span><span class="icon" aria-hidden="true">&#x1F4AC;</span> {{ post.commentCount }} comments</span>
+                    {% if app.user.id == post.author.id or is_granted('ROLE_ADMIN') %}
+                        <a class="text-link" href="{{ path('forum_post_edit', {id: post.id}) }}">
+                            <span class="icon" aria-hidden="true">&#x270E;</span>
+                            <span>Edit</span>
+                        </a>
+                    {% endif %}
+                </div>
+            </article>
+        {% else %}
+            <div class="empty-state card">
+                <h3>No posts found</h3>
+                <p>Try a different search term or create the first discussion.</p>
+            </div>
+        {% endfor %}
+    </section>
+{% endblock %}

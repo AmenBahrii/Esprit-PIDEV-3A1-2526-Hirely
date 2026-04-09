@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ page_title }} | Hirely{% endblock %}
+
+{% block body %}
+    <section class="form-wrap card">
+        <div class="page-head compact">
+            <div>
+                <p class="eyebrow">Forum</p>
+                <h1>{{ page_title }}</h1>
+            </div>
+            <a class="button ghost js-go-back" href="{{ post.id ? path('forum_post_show', {id: post.id}) : path('forum_index') }}" data-go-back="true" data-fallback="{{ post.id ? path('forum_post_show', {id: post.id}) : path('forum_index') }}">
+                <span class="icon" aria-hidden="true">&#x2190;</span>
+                <span>Back</span>
+            </a>
+        </div>
+
+        {{ form_start(form, {attr: {class: 'stack-form'}}) }}
+            {{ form_errors(form) }}
+            {{ form_row(form.title) }}
+            {{ form_row(form.content) }}
+            {{ form_row(form.tag) }}
+            <button class="button primary" type="submit">
+                <span class="icon" aria-hidden="true">&#x2714;</span>
+                <span>{{ submit_label }}</span>
+            </button>
+        {{ form_end(form) }}
+    </section>
+{% endblock %}

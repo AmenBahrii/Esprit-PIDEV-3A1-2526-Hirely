@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Login | Hirely Forum{% endblock %}
+{% block body_class %}login-shell{% endblock %}
+
+{% block body %}
+    <section class="auth-layout">
+        <div class="auth-hero">
+            <img src="{{ asset('images/hirely-logo-light.png') }}" alt="Hirely logo" class="auth-logo">
+            <p class="eyebrow">Hirely Forum</p>
+            <h1>Welcome back</h1>
+            <p class="auth-copy">Sign in with your existing desktop account.</p>
+        </div>
+
+        <div class="auth-panel">
+            <h2>Login</h2>
+
+            {% if error %}
+                <div class="flash flash-error">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+            {% endif %}
+
+            <form method="post" class="stack-form">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                <label for="email">Email</label>
+                <input id="email" name="email" type="email" value="{{ last_username }}" required autofocus>
+
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password" required>
+
+                <button class="button primary wide" type="submit">
+                    <span class="icon" aria-hidden="true">&#x1F511;</span>
+                    <span>Sign in</span>
+                </button>
+            </form>
+        </div>
+    </section>
+{% endblock %}

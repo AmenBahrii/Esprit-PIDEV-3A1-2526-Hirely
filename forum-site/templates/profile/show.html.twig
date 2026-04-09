@@ -1,0 +1,99 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Profile | {{ profile_user.displayName }}{% endblock %}
+
+{% block body %}
+    <section class="page-head">
+        <div>
+            <p class="eyebrow">Profile</p>
+            <h1>{{ profile_user.displayName }}</h1>
+        </div>
+        <a class="button ghost js-go-back" href="{{ path('app_home') }}" data-go-back="true" data-fallback="{{ path('app_home') }}">
+            <span class="icon" aria-hidden="true">&#x2190;</span>
+            <span>Go back</span>
+        </a>
+    </section>
+
+    <section class="home-grid">
+        <article class="home-card card">
+            <p class="eyebrow">User Info</p>
+            <h2>{{ profile_user.displayName }}</h2>
+            <p><strong>Email:</strong> {{ profile_user.email ?: 'Not available' }}</p>
+            <p><strong>Role:</strong> {{ profile_is_admin ? 'Admin' : 'User' }}</p>
+            <p><strong>Status:</strong> {{ profile_user.status ?: 'active' }}</p>
+            <p><strong>Posts:</strong> {{ post_count }} • <strong>Comments:</strong> {{ comment_count }}</p>
+        </article>
+    </section>
+
+    <section class="page-head compact">
+        <div>
+            <p class="eyebrow">Contributions</p>
+            <h2>Created Posts</h2>
+        </div>
+    </section>
+
+    <section class="feed-stack">
+        {% for post in posts %}
+            <article class="post-card card">
+                <div class="post-card-head">
+                    <div>
+                        <span class="status-chip {{ post.status|lower }}">{{ post.status }}</span>
+                        {% if post.pinned %}<span class="status-chip pinned">Pinned</span>{% endif %}
+                    </div>
+                    {% if post.tag %}
+                        <span class="tag-chip">{{ post.tag }}</span>
+                    {% endif %}
+                </div>
+
+                <h3><a href="{{ path('forum_post_show', {id: post.id}) }}">{{ post.title }}</a></h3>
+                <p class="meta">{{ post.createdAt|date('d M Y - H:i') }}</p>
+                <p class="excerpt">{{ post.content|length > 180 ? post.content|slice(0, 180) ~ '...' : post.content }}</p>
+
+                <div class="post-card-foot">
+                    <span><span class="icon" aria-hidden="true">&#x2665;</span> {{ post.likeCount }} likes</span>
+                    <span><span class="icon" aria-hidden="true">&#x1F4AC;</span> {{ post.commentCount }} comments</span>
+                    {% if is_owner or is_granted('ROLE_ADMIN') %}
+                        <a class="text-link" href="{{ path('forum_post_edit', {id: post.id}) }}">
+                            <span class="icon" aria-hidden="true">&#x270E;</span>
+                            <span>Edit</span>
+                        </a>
+                    {% endif %}
+                </div>
+            </article>
+        {% else %}
+            <div class="empty-state card">
+                <h3>No posts yet</h3>
+                <p>This user has not published any visible posts.</p>
+            </div>
+        {% endfor %}
+    </section>
+
+    <section class="page-head compact">
+        <div>
+            <p class="eyebrow">Recent Activity</p>
+            <h2>Recent Comments</h2>
+        </div>
+    </section>
+
+    <section class="comments-list">
+        {% for comment in comments %}
+            <article class="comment-card">
+                <div class="comment-head">
+                    <span class="status-chip {{ comment.status|lower }}">{{ comment.status }}</span>
+                    <span class="meta">{{ comment.createdAt|date('d M Y - H:i') }}</span>
+                </div>
+                <p>{{ comment.content|nl2br }}</p>
+                {% if comment.post %}
+                    <a class="text-link" href="{{ path('forum_post_show', {id: comment.post.id}) }}">
+                        <span class="icon" aria-hidden="true">&#x1F4CC;</span>
+                        <span>Open related post</span>
+                    </a>
+                {% endif %}
+            </article>
+        {% else %}
+            <div class="empty-state subtle">
+                <p>No comments yet.</p>
+            </div>
+        {% endfor %}
+    </section>
+{% endblock %}

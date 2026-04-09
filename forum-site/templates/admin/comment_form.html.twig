@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Moderate Comment | Hirely{% endblock %}
+
+{% block body %}
+    <section class="form-wrap card">
+        <div class="page-head compact">
+            <div>
+                <p class="eyebrow">Admin</p>
+                <h1>Moderate comment</h1>
+            </div>
+            <a class="button ghost js-go-back" href="{{ path('admin_forum_post_show', {id: comment.post.id}) }}" data-go-back="true" data-fallback="{{ path('admin_forum_post_show', {id: comment.post.id}) }}">
+                <span class="icon" aria-hidden="true">&#x2190;</span>
+                <span>Back</span>
+            </a>
+        </div>
+
+        {{ form_start(form, {attr: {class: 'stack-form'}}) }}
+            {{ form_row(form.content) }}
+            {{ form_row(form.status) }}
+            {{ form_row(form.isPinned) }}
+            {{ form_row(form.moderationNote) }}
+            <button class="button primary" type="submit">
+                <span class="icon" aria-hidden="true">&#x2714;</span>
+                <span>Save moderation</span>
+            </button>
+        {{ form_end(form) }}
+    </section>
+{% endblock %}

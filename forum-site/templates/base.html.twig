@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>
+        (function () {
+            const storageKey = 'hirely-theme';
+            let theme = 'dark';
+
+            try {
+                const stored = localStorage.getItem(storageKey);
+                if (stored === 'light' || stored === 'dark') {
+                    theme = stored;
+                } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+                    theme = 'light';
+                }
+            } catch (e) {
+                theme = 'dark';
+            }
+
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+    <title>{% block title %}Hirely Forum{% endblock %}</title>
+    <link rel="stylesheet" href="{{ asset('styles/forum.css') }}">
+</head>
+<body class="{% block body_class %}app-shell{% endblock %}">
+    {% if app.user %}
+        {% set notificationMenu = forum_notification_menu_data(12) %}
+        <header class="topbar">
+            <div class="brand-block">
+                <a href="{{ path('app_home') }}" class="brand-link">
+                    <img src="{{ asset('images/hirely-logo-light.png') }}" alt="Hirely" class="brand-logo">
+                    <span>HIRELY</span>
+                </a>
+            </div>
+
+            <nav class="top-actions">
+                <a class="nav-pill {{ app.request.attributes.get('_route') == 'app_home' ? 'active' : '' }}" href="{{ path('app_home') }}">
+                    <span class="icon" aria-hidden="true">&#x2302;</span>
+                    <span>Home</span>
+                </a>
+                <a class="nav-pill {{ app.request.attributes.get('_route') starts with 'forum_' ? 'active' : '' }}" href="{{ path('forum_index') }}">
+                    <span class="icon" aria-hidden="true">&#x1F4AC;</span>
+                    <span>Forum</span>
+                </a>
+                {% if is_granted('ROLE_ADMIN') %}
+                    <a class="nav-pill {{ app.request.attributes.get('_route') starts with 'admin_forum_' ? 'active' : '' }}" href="{{ path('admin_forum_dashboard') }}">
+                        <span class="icon" aria-hidden="true">&#x1F6E1;</span>
+                        <span>Admin</span>
+                    </a>
+                {% endif %}
+                <a class="nav-pill {{ app.request.attributes.get('_route') starts with 'profile_' ? 'active' : '' }}" href="{{ path('profile_me') }}">
+                    <span class="icon" aria-hidden="true">&#x1F464;</span>
+                    <span>Profile</span>
+                </a>
+                <div class="notification-wrap" data-notification-wrap="true">
+                    <button class="button ghost icon-only-btn notification-toggle" type="button" data-notification-toggle="true" aria-label="Notifications">
+                        <span class="icon icon-lg" aria-hidden="true">&#x1F514;</span>
+                        {% if notificationMenu.unread_count > 0 %}
+                            <span class="notification-badge">{{ notificationMenu.unread_count > 99 ? '99+' : notificationMenu.unread_count }}</span>
+                        {% endif %}
+                    </button>
+                    <div class="notification-menu" data-notification-menu="true" hidden>
+                        <div class="notification-menu-head">
+                            <h3>Notifications</h3>
+                            <form method="post" action="{{ path('notification_mark_all_read') }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('mark_all_notifications_read') }}">
+                                <button class="text-link" type="submit">Mark all read</button>
+                            </form>
+                        </div>
+                        <div class="notification-list">
+                            {% for item in notificationMenu.notifications %}
+                                <a class="notification-item {{ item.is_read ? 'read' : 'unread' }}" href="{{ item.open_url }}">
+                                    <span class="icon" aria-hidden="true">&#x1F4CC;</span>
+                                    <span class="notification-content">
+                                        <span class="notification-message">{{ item.message }}</span>
+                                        {% if item.created_at %}
+                                            <span class="notification-time">{{ item.created_at|date('d M - H:i') }}</span>
+                                        {% endif %}
+                                    </span>
+                                </a>
+                            {% else %}
+                                <div class="notification-empty">
+                                    <span class="icon" aria-hidden="true">&#x1F514;</span>
+                                    <span>No notifications yet.</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <span class="user-chip">
+                    <span class="icon" aria-hidden="true">&#x1F464;</span>
+                    <span>{{ app.user.displayName }}</span>
+                </span>
+                <a class="button ghost" href="{{ path('app_logout') }}">
+                    <span class="icon" aria-hidden="true">&#x21AA;</span>
+                    <span>Logout</span>
+                </a>
+            </nav>
+        </header>
+    {% endif %}
+
+    <button class="theme-toggle button ghost" type="button" data-theme-toggle="true" aria-label="Toggle light and dark mode">
+        <span class="icon" data-theme-icon="true" aria-hidden="true">&#x2600;</span>
+        <span data-theme-label="true">Light mode</span>
+    </button>
+
+    <main class="page-shell">
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="flash flash-{{ label }}">{{ message }}</div>
+            {% endfor %}
+        {% endfor %}
+
+        {% block body %}{% endblock %}
+    </main>
+    <script>
+        (function () {
+            const storageKey = 'hirely-theme';
+            const themeToggle = document.querySelector('[data-theme-toggle="true"]');
+            const themeIcon = document.querySelector('[data-theme-icon="true"]');
+            const themeLabel = document.querySelector('[data-theme-label="true"]');
+
+            const setThemeUi = function (theme) {
+                if (themeIcon) {
+                    themeIcon.innerHTML = theme === 'dark' ? '&#x2600;' : '&#x263D;';
+                }
+                if (themeLabel) {
+                    themeLabel.textContent = theme === 'dark' ? 'Light mode' : 'Dark mode';
+                }
+            };
+
+            const applyTheme = function (theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+                setThemeUi(theme);
+                try {
+                    localStorage.setItem(storageKey, theme);
+                } catch (e) {
+                }
+            };
+
+            setThemeUi(document.documentElement.getAttribute('data-theme') || 'dark');
+
+            if (themeToggle) {
+                themeToggle.addEventListener('click', function () {
+                    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+                    applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+                });
+            }
+
+            const forms = document.querySelectorAll('form[data-auto-submit="true"]');
+            forms.forEach(function (form) {
+                const selects = form.querySelectorAll('select');
+                selects.forEach(function (select) {
+                    select.addEventListener('change', function () {
+                        form.requestSubmit();
+                    });
+                });
+
+                const inputs = form.querySelectorAll('input[data-auto-submit-input="true"]');
+                inputs.forEach(function (input) {
+                    let timeoutId = null;
+                    input.addEventListener('input', function () {
+                        window.clearTimeout(timeoutId);
+                        timeoutId = window.setTimeout(function () {
+                            form.requestSubmit();
+                        }, 350);
+                    });
+                });
+            });
+
+            const backTriggers = document.querySelectorAll('[data-go-back="true"]');
+            backTriggers.forEach(function (trigger) {
+                trigger.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    const fallback = trigger.getAttribute('data-fallback') || '/home';
+                    const hasHistory = window.history.length > 1;
+                    let sameOriginReferrer = false;
+
+                    if (document.referrer) {
+                        try {
+                            sameOriginReferrer = new URL(document.referrer).origin === window.location.origin;
+                        } catch (e) {
+                            sameOriginReferrer = false;
+                        }
+                    }
+
+                    if (hasHistory && sameOriginReferrer) {
+                        window.history.back();
+                        return;
+                    }
+
+                    window.location.assign(fallback);
+                });
+            });
+
+            const notificationWrap = document.querySelector('[data-notification-wrap="true"]');
+            const notificationToggle = document.querySelector('[data-notification-toggle="true"]');
+            const notificationMenu = document.querySelector('[data-notification-menu="true"]');
+
+            if (notificationWrap && notificationToggle && notificationMenu) {
+                notificationToggle.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                    const isHidden = notificationMenu.hasAttribute('hidden');
+                    if (isHidden) {
+                        notificationMenu.removeAttribute('hidden');
+                    } else {
+                        notificationMenu.setAttribute('hidden', 'hidden');
+                    }
+                });
+
+                document.addEventListener('click', function (event) {
+                    if (!notificationWrap.contains(event.target)) {
+                        notificationMenu.setAttribute('hidden', 'hidden');
+                    }
+                });
+
+                document.addEventListener('keydown', function (event) {
+                    if (event.key === 'Escape') {
+                        notificationMenu.setAttribute('hidden', 'hidden');
+                    }
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

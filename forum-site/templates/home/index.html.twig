@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Home | Hirely Forum{% endblock %}
+
+{% block body %}
+    <section class="home-hero card">
+        <p class="eyebrow">Hirely</p>
+        <h1>Welcome back, {{ app.user.displayName }}</h1>
+        <p class="hero-copy">
+            Continue with the same forum workspace used in the desktop app.
+            Choose your forum area below.
+        </p>
+    </section>
+
+    <section class="home-grid">
+        <article class="home-card card">
+            <p class="eyebrow">Forum</p>
+            <h2>User Forum</h2>
+            <p>Browse approved posts, open discussions, and manage your own content.</p>
+            <div class="home-actions">
+                <a class="button primary" href="{{ path('forum_index') }}">
+                    <span class="icon" aria-hidden="true">&#x1F4AC;</span>
+                    <span>Open user forum</span>
+                </a>
+                <a class="button ghost" href="{{ path('forum_post_new') }}">
+                    <span class="icon" aria-hidden="true">&#x2795;</span>
+                    <span>Create post</span>
+                </a>
+                <a class="button ghost" href="{{ path('profile_me') }}">
+                    <span class="icon" aria-hidden="true">&#x1F464;</span>
+                    <span>My profile</span>
+                </a>
+            </div>
+        </article>
+
+        {% if is_granted('ROLE_ADMIN') %}
+            <article class="home-card card">
+                <p class="eyebrow">Moderation</p>
+                <h2>Admin Forum</h2>
+                <p>Review posts/comments, update statuses, pin or lock content, and moderate fast.</p>
+                <div class="home-actions">
+                    <a class="button primary" href="{{ path('admin_forum_dashboard') }}">
+                        <span class="icon" aria-hidden="true">&#x1F6E1;</span>
+                        <span>Open admin dashboard</span>
+                    </a>
+                </div>
+            </article>
+        {% endif %}
+    </section>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin Forum | Hirely{% endblock %}
+
+{% block body %}
+    <section class="page-head">
+        <div>
+            <p class="eyebrow">Admin</p>
+            <h1>Forum moderation dashboard</h1>
+            <p class="meta">
+                <span class="icon" aria-hidden="true">&#x1F514;</span>
+                <span>Pending posts: {{ pending_posts }} • Pending comments: {{ pending_comments }}</span>
+            </p>
+        </div>
+    </section>
+
+    <section class="toolbar card">
+        <form method="get" class="toolbar-form js-auto-submit" data-auto-submit="true">
+            <label class="field-with-icon">
+                <span class="icon" aria-hidden="true">&#x1F50D;</span>
+                <input type="search" name="q" placeholder="Search posts..." value="{{ search }}" data-auto-submit-input="true">
+            </label>
+            <label class="field-with-icon">
+                <span class="icon" aria-hidden="true">&#x2699;</span>
+                <select name="status">
+                    <option value="ALL" {{ status == 'ALL' ? 'selected' : '' }}>All statuses</option>
+                    <option value="APPROVED" {{ status == 'APPROVED' ? 'selected' : '' }}>Approved</option>
+                    <option value="PENDING" {{ status == 'PENDING' ? 'selected' : '' }}>Pending</option>
+                    <option value="REJECTED" {{ status == 'REJECTED' ? 'selected' : '' }}>Rejected</option>
+                </select>
+            </label>
+            <label class="field-with-icon">
+                <span class="icon" aria-hidden="true">&#x21C5;</span>
+                <select name="sort">
+                    <option value="new" {{ sort == 'new' ? 'selected' : '' }}>Newest</option>
+                    <option value="old" {{ sort == 'old' ? 'selected' : '' }}>Oldest</option>
+                </select>
+            </label>
+            <noscript><button class="button secondary" type="submit">Apply</button></noscript>
+        </form>
+    </section>
+
+    <section class="feed-stack">
+        {% for post in posts %}
+            <article class="post-card card admin-card">
+                <div class="post-card-head">
+                    <div>
+                        <span class="status-chip {{ post.status|lower }}">{{ post.status }}</span>
+                        {% if post.pinned %}<span class="status-chip pinned">Pinned</span>{% endif %}
+                        {% if post.locked %}<span class="status-chip locked">Locked</span>{% endif %}
+                    </div>
+                    {% if post.tag %}<span class="tag-chip">{{ post.tag }}</span>{% endif %}
+                </div>
+
+                <h2><a href="{{ path('admin_forum_post_show', {id: post.id}) }}">{{ post.title }}</a></h2>
+                <p class="meta">
+                    <a class="text-link" href="{{ path('profile_show', {id: post.author.id}) }}">{{ post.author.displayName }}</a>
+                    • {{ post.createdAt|date('d M Y - H:i') }}
+                </p>
+                <p class="excerpt">{{ post.content|length > 160 ? post.content|slice(0, 160) ~ '...' : post.content }}</p>
+
+                <div class="post-card-foot">
+                    <span><span class="icon" aria-hidden="true">&#x2665;</span> {{ post.likeCount }} likes</span>
+                    <span><span class="icon" aria-hidden="true">&#x1F4AC;</span> {{ post.commentCount }} comments</span>
+                    <a class="text-link" href="{{ path('admin_forum_post_edit', {id: post.id}) }}">
+                        <span class="icon" aria-hidden="true">&#x1F6E1;</span>
+                        <span>Moderate</span>
+                    </a>
+                </div>
+            </article>
+        {% else %}
+            <div class="empty-state card">
+                <h3>No posts found</h3>
+                <p>Adjust the filters or moderation status selection.</p>
+            </div>
+        {% endfor %}
+    </section>
+{% endblock %}

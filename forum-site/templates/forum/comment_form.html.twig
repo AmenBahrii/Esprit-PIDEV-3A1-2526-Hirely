@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Comment | Hirely{% endblock %}
+
+{% block body %}
+    <section class="form-wrap card">
+        <div class="page-head compact">
+            <div>
+                <p class="eyebrow">Forum</p>
+                <h1>Edit Comment</h1>
+            </div>
+            <a class="button ghost js-go-back" href="{{ path('forum_post_show', {id: comment.post.id}) }}" data-go-back="true" data-fallback="{{ path('forum_post_show', {id: comment.post.id}) }}">
+                <span class="icon" aria-hidden="true">&#x2190;</span>
+                <span>Back</span>
+            </a>
+        </div>
+
+        {{ form_start(form, {attr: {class: 'stack-form'}}) }}
+            {{ form_row(form.content) }}
+            <button class="button primary" type="submit">
+                <span class="icon" aria-hidden="true">&#x2714;</span>
+                <span>Save comment</span>
+            </button>
+        {{ form_end(form) }}
+    </section>
+{% endblock %}
