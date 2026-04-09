@@ -21,7 +21,7 @@
         
         /* Top Navigation Bar */
         .top-navbar {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            background: linear-gradient(135deg, #360094 0%, #d98123 100%);
             color: white;
             padding: 1rem 0;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -66,14 +66,14 @@
         }
         
         .nav-btn:hover {
-            background: rgba(255, 149, 0, 0.9);
-            border-color: #ff9500;
+            background: rgba(217, 129, 35, 0.9);
+            border-color: #d98123;
             transform: translateY(-2px);
         }
         
         .nav-btn.active {
-            background: #ff9500;
-            border-color: #ff9500;
+            background: #d98123;
+            border-color: #d98123;
             font-weight: 700;
         }
         
@@ -100,7 +100,7 @@
         .btn {
             display: inline-block;
             padding: 0.9rem 1.8rem;
-            background: #ff9500;
+            background: #d98123;
             color: white;
             text-decoration: none;
             border: none;
@@ -109,12 +109,12 @@
             font-size: 0.95rem;
             font-weight: 600;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(255, 149, 0, 0.2);
+            box-shadow: 0 2px 8px rgba(217, 129, 35, 0.2);
         }
         
         .btn:hover {
-            background: #e68a00;
-            box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3);
+            background: #b86318;
+            box-shadow: 0 4px 12px rgba(217, 129, 35, 0.3);
             transform: translateY(-2px);
         }
         
@@ -190,7 +190,7 @@
             padding: 2rem;
             border-radius: 12px;
             box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-            border-left: 5px solid #ff9500;
+            border-left: 5px solid #d98123;
             transition: transform 0.3s ease;
         }
         
@@ -210,7 +210,7 @@
         .stat-box .number {
             font-size: 2.5rem;
             font-weight: 700;
-            color: #ff9500;
+            color: #d98123;
         }
         
         .alert {
@@ -256,7 +256,7 @@
         
         input:focus, textarea:focus, select:focus {
             outline: none;
-            border-color: #ff9500;
+            border-color: #d98123;
             box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.1);
         }
         
@@ -364,7 +364,7 @@
             left: 0;
             right: 0;
             height: 3px;
-            background: linear-gradient(90deg, #ff9500, #e68a00, #ff9500);
+            background: linear-gradient(90deg, #d98123, #b86318, #d98123);
             background-size: 200% 100%;
             animation: loading 1.5s ease-in-out infinite;
             opacity: 0;
@@ -394,7 +394,7 @@
         }
         
         a:not(.btn):hover {
-            color: #ff9500;
+            color: #d98123;
         }
         
         /* Smooth Table Row Animations */
@@ -417,10 +417,8 @@
         <div class="navbar-container">
             <h1 class="navbar-title">Hirely</h1>
             <div class="navbar-buttons">
-                {% if app.user %}
-                    <a href="{{ path('app_interviews') }}" class="nav-btn">📋 Interviews</a>
-                    <a href="{{ path('app_evaluations') }}" class="nav-btn">⭐ Evaluations</a>
-                {% endif %}
+                <a href="{{ path('app_interviews') }}" class="nav-btn">📋 Interviews</a>
+                <a href="{{ path('app_evaluations') }}" class="nav-btn">⭐ Evaluations</a>
             </div>
         </div>
     </nav>
