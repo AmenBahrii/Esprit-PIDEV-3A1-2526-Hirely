@@ -19,6 +19,64 @@
             padding: 0;
         }
         
+        /* Top Navigation Bar */
+        .top-navbar {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+        
+        .navbar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 1.5rem;
+        }
+        
+        .navbar-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin: 0;
+            color: white;
+        }
+        
+        .navbar-buttons {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+        
+        .nav-btn {
+            display: inline-block;
+            padding: 0.65rem 1.2rem;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border-radius: 6px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(255, 149, 0, 0.9);
+            border-color: #ff9500;
+            transform: translateY(-2px);
+        }
+        
+        .nav-btn.active {
+            background: #ff9500;
+            border-color: #ff9500;
+            font-weight: 700;
+        }
+        
         .container {
             max-width: 1200px;
             margin: 2.5rem auto;
@@ -354,6 +412,19 @@
     {% block styles %}{% endblock %}
 </head>
 <body>
+    <!-- Top Navigation Bar -->
+    <nav class="top-navbar">
+        <div class="navbar-container">
+            <h1 class="navbar-title">Hirely</h1>
+            <div class="navbar-buttons">
+                {% if app.user %}
+                    <a href="{{ path('app_interviews') }}" class="nav-btn">📋 Interviews</a>
+                    <a href="{{ path('app_evaluations') }}" class="nav-btn">⭐ Evaluations</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
     <div class="container">
         {% for message in app.flashes('error') %}
             <div class="alert alert-error">{{ message }}</div>
@@ -373,6 +444,23 @@
     {% block scripts %}
     <!-- Smooth Page Transitions -->
     <script>
+        // Function to mark active nav button
+        function updateActiveNavButton() {
+            const currentPath = window.location.pathname;
+            const navButtons = document.querySelectorAll('.nav-btn');
+            
+            navButtons.forEach(btn => {
+                btn.classList.remove('active');
+                const href = btn.getAttribute('href');
+                if (href && currentPath.includes(href.split('/').filter(p => p).pop())) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // Update active button on page load
+        updateActiveNavButton();
+
         // Create loading indicator HTML
         const pageLoading = document.createElement('div');
         pageLoading.className = 'page-loading';
@@ -430,6 +518,9 @@
                         
                         // Update browser history
                         window.history.pushState({ url: targetUrl }, '', targetUrl);
+                        
+                        // Update active nav button
+                        updateActiveNavButton();
                     })
                     .catch(() => {
                         // Fallback to regular navigation on error
