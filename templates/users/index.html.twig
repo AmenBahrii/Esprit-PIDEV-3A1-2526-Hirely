@@ -1,0 +1,90 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Users{% endblock %}
+
+{% block body %}
+
+<div class="header">Hirely Dashboard</div>
+<div class="sub-header">Users Management</div>
+
+<div class="card">
+
+    <div class="top-bar">
+        <h3>Users List</h3>
+
+        <a href="{{ path('app_users_new') }}" class="btn btn-primary">
+            + Add User
+        </a>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Role</th>
+                <th>Profile</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for user in users %}
+            <tr>
+                <td>#{{ user.id }}</td>
+
+                <td>
+                    {{ user.firstName }} {{ user.lastName }}
+                </td>
+
+                <td>{{ user.email }}</td>
+
+                <td>
+                    {% if user.status == 'active' %}
+                        <span class="status status-accepted">Active</span>
+                    {% else %}
+                        <span class="status status-rejected">{{ user.status }}</span>
+                    {% endif %}
+                </td>
+
+                <td>
+                    {{ user.role ? user.role.name : 'N/A' }}
+                </td>
+
+                <td>
+                    {% if user.profilePic %}
+                        <img src="{{ asset(user.profilePic) }}"
+                             style="width:40px; height:40px; border-radius:50%;">
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+
+                <td>
+                    <a class="btn btn-edit"
+                       href="{{ path('app_users_edit', {'id': user.id}) }}">
+                        Edit
+                    </a>
+
+                    <form method="post"
+                          action="{{ path('app_users_delete', {'id': user.id}) }}"
+                          style="display:inline;">
+                        <input type="hidden" name="_token"
+                               value="{{ csrf_token('delete' ~ user.id) }}">
+                        <button class="btn btn-delete">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="7">No users found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,27 @@
+{{ form_start(form) }}
+
+<div>
+    <label>Title</label>
+    {{ form_widget(form.title) }}
+</div>
+
+<div>
+    <label>Description</label>
+    {{ form_widget(form.description) }}
+</div>
+
+<div>
+    <label>Salary</label>
+    {{ form_widget(form.salary) }}
+</div>
+
+<div>
+    <label>Status</label>
+    {{ form_widget(form.status) }}
+</div>
+
+<br>
+
+<button class="btn btn-primary">Save</button>
+
+{{ form_end(form) }}

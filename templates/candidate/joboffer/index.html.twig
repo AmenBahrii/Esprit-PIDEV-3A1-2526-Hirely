@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Job Offers{% endblock %}
+
+{% block body %}
+
+<div class="header">Hirely Dashboard</div>
+<div class="sub-header">Available Job Offers</div>
+
+<div class="card">
+
+    <div class="top-bar">
+        <h3>Available Jobs</h3>
+    </div>
+
+    <table>
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Contract</th>
+            <th>Location</th>
+            <th>Salary</th>
+            <th>Experience</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Apply</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for joboffer in joboffers %}
+        <tr>
+
+            <td>{{ joboffer.title }}</td>
+
+            <td>{{ joboffer.contractType }}</td>
+
+            <td>{{ joboffer.location }}</td>
+
+            <td>{{ joboffer.salary }}</td>
+
+            <td>{{ joboffer.experienceRequired }} yrs</td>
+
+            <td>
+                {{ joboffer.publicationDate ? joboffer.publicationDate|date('Y-m-d') : '' }}
+            </td>
+
+            <td>
+                <span class="status status-open">Open</span>
+            </td>
+
+            <td>
+                <a class="btn btn-primary"
+                   href="{{ path('app_application_new', {'jobOfferId': joboffer.id}) }}">
+                    Apply
+                </a>
+            </td>
+
+        </tr>
+    {% else %}
+        <tr>
+            <td colspan="8">No job offers available</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+</div>
+
+{% endblock %}
