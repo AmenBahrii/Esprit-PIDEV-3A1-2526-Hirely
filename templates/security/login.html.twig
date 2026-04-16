@@ -5,16 +5,22 @@
 {% block body %}
 
 <div class="login-container">
-
     <div class="login-card">
-
         <div class="login-header">
             <h2>Hirely</h2>
-            <p>Welcome back 👋</p>
+            <p>Welcome back. Sign in with your password, Google, or Face ID.</p>
+        </div>
+
+        <div class="flash-list">
+            {% for message in app.flashes('success') %}
+                <div class="flash flash-success">{{ message }}</div>
+            {% endfor %}
+            {% for message in app.flashes('error') %}
+                <div class="flash flash-error">{{ message }}</div>
+            {% endfor %}
         </div>
 
         <form method="post">
-
             {% if error %}
                 <div class="error">
                     {{ error.messageKey|trans(error.messageData, 'security') }}
@@ -62,18 +68,47 @@
                 Sign in
             </button>
 
-<div class="signup-section">
-    <p>Don’t have an account?</p>
-    
-    <a href="{{ path('app_register') }}" class="btn btn-secondary signup-btn">
-        Create Account
-    </a>
-</div>
+            <div class="divider">or continue with</div>
 
+            <a href="{{ path('app_google_connect') }}" class="btn btn-google login-btn">
+                <span>Google</span>
+            </a>
+
+            <div class="auth-panel" data-face-login data-login-url="{{ path('app_face_auth_login') }}" data-csrf="{{ csrf_token('face_login') }}">
+                <h3>Face ID Sign-In</h3>
+                <p>Enter your email, open the camera, then verify your face to continue.</p>
+
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email"
+                           class="form-input"
+                           data-face-email
+                           placeholder="Enter your email for Face ID">
+                </div>
+
+                <div class="camera-frame">
+                    <video playsinline muted></video>
+                </div>
+
+                <div class="row-actions">
+                    <button type="button" class="btn btn-secondary" data-face-start>Open Camera</button>
+                    <button type="button" class="btn btn-primary" data-face-verify>Verify Face</button>
+                </div>
+
+                <div class="status-text" data-face-status></div>
+            </div>
+
+            <div class="signup-section">
+                <p>Don't have an account?</p>
+
+                <a href="{{ path('app_register') }}" class="btn btn-secondary signup-btn">
+                    Create Account
+                </a>
+            </div>
         </form>
-
     </div>
-
 </div>
+
+<script src="{{ asset('js/face-auth.js') }}"></script>
 
 {% endblock %}

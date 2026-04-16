@@ -4,10 +4,23 @@
 
 {% block body %}
 
-<div class="header">Hirely Dashboard</div>
-<div class="sub-header">Job Offers Management</div>
-
 <div class="card">
+
+    <div class="filters">
+        <input type="text"
+               id="jobSearch"
+               placeholder="Search job..."
+               class="search-input">
+
+        <select id="jobSort" class="sort-select">
+            <option value="date_desc">Newest</option>
+            <option value="date_asc">Oldest</option>
+            <option value="salary_desc">Salary down</option>
+            <option value="salary_asc">Salary up</option>
+            <option value="experience_desc">Experience down</option>
+            <option value="experience_asc">Experience up</option>
+        </select>
+    </div>
 
     <div class="top-bar">
         <h3>Job Offers List</h3>
@@ -17,71 +30,112 @@
         </a>
     </div>
 
-    <table>
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Title</th>
-            <th>Contract</th>
-            <th>Location</th>
-            <th>Salary</th>
-            <th>Experience</th>
-            <th>Date</th>
-            <th>Status</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
+    <div class="card-grid" id="jobCards">
+        {% for joboffer in joboffers %}
+            <article class="data-card"
+                     data-job-card
+                     data-search="{{ joboffer.title ~ ' ' ~ joboffer.location ~ ' ' ~ joboffer.contractType ~ ' ' ~ joboffer.status }}"
+                     data-date="{{ joboffer.publicationDate ? joboffer.publicationDate|date('Y-m-d') : '' }}"
+                     data-salary="{{ joboffer.salary }}"
+                     data-experience="{{ joboffer.experienceRequired }}">
+                <div class="data-card-header">
+                    <div>
+                        <h4 class="data-card-title">{{ joboffer.title }}</h4>
+                        <div class="data-card-subtitle">#{{ joboffer.id }} · {{ joboffer.location }}</div>
+                    </div>
 
-    <tbody>
-    {% for joboffer in joboffers %}
-        <tr>
-            <td>#{{ joboffer.id }}</td>
+                    {% if joboffer.status == 'Open' %}
+                        <span class="status status-accepted">Open</span>
+                    {% else %}
+                        <span class="status status-rejected">{{ joboffer.status }}</span>
+                    {% endif %}
+                </div>
 
-            <td>{{ joboffer.title }}</td>
+                <div class="data-card-body">
+                    <div class="data-card-field">
+                        <span class="data-card-label">Contract</span>
+                        <span class="data-card-value">{{ joboffer.contractType }}</span>
+                    </div>
+                    <div class="data-card-field">
+                        <span class="data-card-label">Salary</span>
+                        <span class="data-card-value">{{ joboffer.salary }}</span>
+                    </div>
+                    <div class="data-card-field">
+                        <span class="data-card-label">Experience</span>
+                        <span class="data-card-value">{{ joboffer.experienceRequired }} yrs</span>
+                    </div>
+                    <div class="data-card-field">
+                        <span class="data-card-label">Publication Date</span>
+                        <span class="data-card-value">{{ joboffer.publicationDate ? joboffer.publicationDate|date('Y-m-d') : 'N/A' }}</span>
+                    </div>
+                </div>
 
-            <td>{{ joboffer.contractType }}</td>
+                <div class="data-card-actions">
+                    <a class="btn btn-edit"
+                       href="{{ path('app_joboffer_edit', {'id': joboffer.id}) }}">
+                        Edit
+                    </a>
 
-            <td>{{ joboffer.location }}</td>
-
-            <td>{{ joboffer.salary }}</td>
-
-            <td>{{ joboffer.experienceRequired }} yrs</td>
-
-            <td>
-                {{ joboffer.publicationDate ? joboffer.publicationDate|date('Y-m-d') : '' }}
-            </td>
-
-            <td>
-                {% if joboffer.status == 'Open' %}
-                    <span class="status status-open">Open</span>
-                {% else %}
-                    <span class="status status-closed">{{ joboffer.status }}</span>
-                {% endif %}
-            </td>
-
-            <td>
-                <a class="btn btn-edit"
-                   href="{{ path('app_joboffer_edit', {'id': joboffer.id}) }}">
-                    Edit
-                </a>
-
-                <form method="post"
-                      action="{{ path('app_joboffer_delete', {'id': joboffer.id}) }}"
-                      style="display:inline;">
-                    <input type="hidden" name="_token"
-                           value="{{ csrf_token('delete' ~ joboffer.id) }}">
-                    <button class="btn btn-delete">Delete</button>
-                </form>
-            </td>
-        </tr>
-    {% else %}
-        <tr>
-            <td colspan="9">No job offers found</td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
+                    <form method="post"
+                          action="{{ path('app_joboffer_delete', {'id': joboffer.id}) }}">
+                        <input type="hidden" name="_token"
+                               value="{{ csrf_token('delete' ~ joboffer.id) }}">
+                        <button class="btn btn-delete">Delete</button>
+                    </form>
+                </div>
+            </article>
+        {% else %}
+            <div class="empty-state">No job offers found</div>
+        {% endfor %}
+    </div>
 
 </div>
+
+<script>
+const jobSearch = document.getElementById('jobSearch');
+const jobSort = document.getElementById('jobSort');
+const jobCardsContainer = document.getElementById('jobCards');
+const jobCards = Array.from(jobCardsContainer.querySelectorAll('[data-job-card]'));
+
+function sortJobCards(cards, sortValue) {
+    const sorted = [...cards];
+
+    sorted.sort((a, b) => {
+        if (sortValue === 'date_asc') {
+            return String(a.dataset.date).localeCompare(String(b.dataset.date));
+        }
+        if (sortValue === 'salary_desc') {
+            return Number(b.dataset.salary) - Number(a.dataset.salary);
+        }
+        if (sortValue === 'salary_asc') {
+            return Number(a.dataset.salary) - Number(b.dataset.salary);
+        }
+        if (sortValue === 'experience_desc') {
+            return Number(b.dataset.experience) - Number(a.dataset.experience);
+        }
+        if (sortValue === 'experience_asc') {
+            return Number(a.dataset.experience) - Number(b.dataset.experience);
+        }
+
+        return String(b.dataset.date).localeCompare(String(a.dataset.date));
+    });
+
+    sorted.forEach(card => jobCardsContainer.appendChild(card));
+}
+
+function filterAndSortJobs() {
+    const search = jobSearch.value.toLowerCase();
+
+    jobCards.forEach(card => {
+        const matches = card.dataset.search.toLowerCase().includes(search);
+        card.style.display = matches ? '' : 'none';
+    });
+
+    sortJobCards(jobCards, jobSort.value);
+}
+
+jobSearch.addEventListener('input', filterAndSortJobs);
+jobSort.addEventListener('change', filterAndSortJobs);
+</script>
 
 {% endblock %}

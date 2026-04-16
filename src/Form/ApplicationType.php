@@ -3,10 +3,9 @@
 namespace App\Form;
 
 use App\Entity\Application;
-use App\Entity\Joboffer;
-use App\Entity\Users;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -15,32 +14,38 @@ class ApplicationType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            
-            ->add('applicationDate')
             ->add('coverLetter')
-            ->add('currentStatus')
             ->add('resumePath')
-            ->add('lastUpdateDate')
             ->add('expectedSalary')
-            ->add('availabilityDate')
+            ->add('availabilityDate', DateType::class, [
+                'widget' => 'single_text',
+                'html5' => true,
+                'input' => 'datetime',
+                'attr' => [
+                    'class' => 'form-input',
+                ],
+            ])
             ->add('phone')
             ->add('email')
             ->add('experienceYears')
-            ->add('portfolioUrl')
-            ->add('score')
-            ->add('reviewNote')
-            
-            ->add('jobOffer', EntityType::class, [
-                'class' => Joboffer::class,
-                'choice_label' => 'id',
-            ])
-        ;
+            ->add('portfolioUrl');
+
+        if ($options['admin_mode']) {
+            $builder->add('currentStatus', ChoiceType::class, [
+                'choices' => [
+                    'Pending' => 'pending',
+                    'Accepted' => 'Accepted',
+                    'Rejected' => 'Rejected',
+                ],
+            ]);
+        }
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => Application::class,
+            'admin_mode' => false,
         ]);
     }
 }

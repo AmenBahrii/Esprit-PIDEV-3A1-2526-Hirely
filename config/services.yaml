@@ -20,5 +20,15 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
+    App\Service\GoogleOAuthService:
+        arguments:
+            $clientId: '%env(string:GOOGLE_CLIENT_ID)%'
+            $clientSecret: '%env(string:GOOGLE_CLIENT_SECRET)%'
+            $configuredRedirectUri: '%env(string:GOOGLE_REDIRECT_URI)%'
+
+    App\Service\ApplicationNotificationMailer:
+        arguments:
+            $fromAddress: '%env(string:MAILER_FROM)%'
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

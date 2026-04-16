@@ -9,6 +9,20 @@
 
 <div class="card">
 
+    <div class="filters">
+        <input type="text"
+               id="roleSearch"
+               placeholder="Search roles..."
+               class="search-input">
+
+        <select id="roleSort" class="sort-select">
+            <option value="name_asc">Name A-Z</option>
+            <option value="name_desc">Name Z-A</option>
+            <option value="status_asc">Status A-Z</option>
+            <option value="status_desc">Status Z-A</option>
+        </select>
+    </div>
+
     <div class="top-bar">
         <h3>Roles List</h3>
 
@@ -17,83 +31,104 @@
         </a>
     </div>
 
-    <div class="table-container">
+    <div class="card-grid" id="roleCards">
+        {% for role in roles %}
+            <article class="data-card"
+                     data-role-card
+                     data-search="{{ role.name ~ ' ' ~ role.description ~ ' ' ~ role.status ~ ' ' ~ role.defaultDashboard }}"
+                     data-name="{{ role.name|lower }}"
+                     data-status="{{ role.status|lower }}">
+                <div class="data-card-header">
+                    <div>
+                        <h4 class="data-card-title">
+                            <span class="role-badge role-{{ role.name|lower }}">
+                                {{ role.name }}
+                            </span>
+                        </h4>
+                        <div class="data-card-subtitle">#{{ role.id }}</div>
+                    </div>
 
-        <table class="modern-table">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Role</th>
-                    <th>Description</th>
-                    <th>Status</th>
-                    <th>Dashboard</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
+                    <span class="status-pill">{{ role.status }}</span>
+                </div>
 
-            <tbody>
-            {% for role in roles %}
-                <tr>
+                <div class="data-card-body">
+                    <div class="data-card-field">
+                        <span class="data-card-label">Description</span>
+                        <span class="data-card-value">{{ role.description }}</span>
+                    </div>
+                    <div class="data-card-field">
+                        <span class="data-card-label">Dashboard</span>
+                        <span class="data-card-value">{{ role.defaultDashboard }}</span>
+                    </div>
+                </div>
 
-                    <td>#{{ role.role_id }}</td>
+                <div class="data-card-actions">
+                    <a href="{{ path('app_role_edit', {'id': role.id}) }}"
+                       class="btn btn-edit">
+                        Edit
+                    </a>
 
-                    <td>
-                        <span class="role-badge role-{{ role.name|lower }}">
-                            {{ role.name }}
-                        </span>
-                    </td>
+                    <a href="{{ path('app_role_show', {'id': role.id}) }}"
+                       class="btn btn-view">
+                        View
+                    </a>
 
-                    <td class="desc">
-                        {{ role.description }}
-                    </td>
-
-                    <td>
-                        <span class="status-pill">
-                            {{ role.status }}
-                        </span>
-                    </td>
-
-                    <td>
-                        <span class="dashboard-pill">
-                            {{ role.defaultDashboard }}
-                        </span>
-                    </td>
-
-                    <td class="actions">
-
-                        <a href="{{ path('app_role_edit', {'role_id': role.role_id}) }}"
-                           class="btn btn-edit">
-                            Edit
-                        </a>
-
-                        <a href="{{ path('app_role_show', {'role_id': role.role_id}) }}"
-                           class="btn btn-view">
-                            View
-                        </a>
-
-                        {% if role.name != 'Admin' %}
+                    {% if role.name != 'Admin' %}
                         <form method="post"
-                              action="{{ path('app_role_delete', {'role_id': role.role_id}) }}"
-                              style="display:inline;">
+                              action="{{ path('app_role_delete', {'id': role.id}) }}">
                             <input type="hidden" name="_token"
-                                   value="{{ csrf_token('delete' ~ role.role_id) }}">
+                                   value="{{ csrf_token('delete' ~ role.id) }}">
                             <button class="btn btn-delete">Delete</button>
                         </form>
-                        {% endif %}
-
-                    </td>
-
-                </tr>
-            {% else %}
-                <tr>
-                    <td colspan="6">No roles found</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-
+                    {% endif %}
+                </div>
+            </article>
+        {% else %}
+            <div class="empty-state">No roles found</div>
+        {% endfor %}
     </div>
 
 </div>
+
+<script>
+const roleSearch = document.getElementById('roleSearch');
+const roleSort = document.getElementById('roleSort');
+const roleCardsContainer = document.getElementById('roleCards');
+const roleCards = Array.from(roleCardsContainer.querySelectorAll('[data-role-card]'));
+
+function sortRoleCards(cards, sortValue) {
+    const sorted = [...cards];
+
+    sorted.sort((a, b) => {
+        if (sortValue === 'name_desc') {
+            return b.dataset.name.localeCompare(a.dataset.name);
+        }
+        if (sortValue === 'status_asc') {
+            return a.dataset.status.localeCompare(b.dataset.status);
+        }
+        if (sortValue === 'status_desc') {
+            return b.dataset.status.localeCompare(a.dataset.status);
+        }
+
+        return a.dataset.name.localeCompare(b.dataset.name);
+    });
+
+    sorted.forEach(card => roleCardsContainer.appendChild(card));
+}
+
+function filterAndSortRoles() {
+    const search = roleSearch.value.toLowerCase();
+
+    roleCards.forEach(card => {
+        const matches = card.dataset.search.toLowerCase().includes(search);
+        card.style.display = matches ? '' : 'none';
+    });
+
+    sortRoleCards(roleCards, roleSort.value);
+}
+
+roleSearch.addEventListener('input', filterAndSortRoles);
+roleSort.addEventListener('change', filterAndSortRoles);
+</script>
 
 {% endblock %}

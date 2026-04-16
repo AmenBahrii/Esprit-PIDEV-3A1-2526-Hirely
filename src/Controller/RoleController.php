@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+
 #[Route('/role')]
 final class RoleController extends AbstractController
 {
@@ -17,9 +18,7 @@ final class RoleController extends AbstractController
     #[IsGranted('ROLE_ADMIN')]
     public function index(EntityManagerInterface $entityManager): Response
     {
-        $roles = $entityManager
-            ->getRepository(Role::class)
-            ->findAll();
+        $roles = $entityManager->getRepository(Role::class)->findAll();
 
         return $this->render('role/index.html.twig', [
             'roles' => $roles,
@@ -47,7 +46,7 @@ final class RoleController extends AbstractController
         ]);
     }
 
-    #[Route('/{role_id}', name: 'app_role_show', methods: ['GET'])]
+    #[Route('/{id}', name: 'app_role_show', methods: ['GET'])]
     #[IsGranted('ROLE_ADMIN')]
     public function show(Role $role): Response
     {
@@ -56,7 +55,7 @@ final class RoleController extends AbstractController
         ]);
     }
 
-    #[Route('/{role_id}/edit', name: 'app_role_edit', methods: ['GET', 'POST'])]
+    #[Route('/{id}/edit', name: 'app_role_edit', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_ADMIN')]
     public function edit(Request $request, Role $role, EntityManagerInterface $entityManager): Response
     {
@@ -75,18 +74,15 @@ final class RoleController extends AbstractController
         ]);
     }
 
-    #[Route('/{role_id}', name: 'app_role_delete', methods: ['POST'])]
-public function delete(int $role_id, EntityManagerInterface $em): Response
-{
-    $role = $em->getRepository(Role::class)->find($role_id);
+    #[Route('/{id}', name: 'app_role_delete', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function delete(Request $request, Role $role, EntityManagerInterface $em): Response
+    {
+        if ($this->isCsrfTokenValid('delete'.$role->getId(), $request->getPayload()->getString('_token'))) {
+            $em->remove($role);
+            $em->flush();
+        }
 
-    if (!$role) {
-        throw $this->createNotFoundException('Role not found');
+        return $this->redirectToRoute('app_role_index');
     }
-
-    $em->remove($role);
-    $em->flush();
-
-    return $this->redirectToRoute('app_role_index');
-}
 }

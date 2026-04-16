@@ -9,69 +9,135 @@
 
 <div class="card">
 
+    <div class="filters">
+        <input type="text"
+               id="applicationSearch"
+               placeholder="Search applications..."
+               class="search-input">
+
+        <select id="applicationSort" class="sort-select">
+            <option value="date_desc">Newest</option>
+            <option value="date_asc">Oldest</option>
+            <option value="salary_desc">Salary down</option>
+            <option value="salary_asc">Salary up</option>
+            <option value="experience_desc">Experience down</option>
+            <option value="experience_asc">Experience up</option>
+        </select>
+    </div>
+
     <div class="top-bar">
         <h3>My Applications</h3>
     </div>
 
-    <table>
-    <thead>
-        <tr>
-            <th>Date</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Status</th>
-            <th>Salary</th>
-            <th>Experience</th>
-            <th>Job Offer</th>
-            <th>Score</th>
-        </tr>
-    </thead>
+    <div class="card-grid" id="applicationCards">
+        {% for application in applications %}
+            <article class="data-card"
+                     data-application-card
+                     data-search="{{ (application.jobOfferTitle ?: 'Job offer no longer exists') ~ ' ' ~ application.email ~ ' ' ~ application.phone ~ ' ' ~ application.currentStatus ~ ' ' ~ (application.reviewNote ?: '') }}"
+                     data-date="{{ application.applicationDate ?: '' }}"
+                     data-salary="{{ application.expectedSalary }}"
+                     data-experience="{{ application.experienceYears }}">
+                <div class="data-card-header">
+                    <div>
+                        <h4 class="data-card-title">
+                            {{ application.jobOfferTitle ?: 'Job offer no longer exists' }}
+                        </h4>
+                        <div class="data-card-subtitle">
+                            {{ application.applicationDate ? application.applicationDate|date('Y-m-d') : 'No date' }}
+                            {% if application.jobOfferId and not application.jobOfferTitle %}
+                                · Missing job offer #{{ application.jobOfferId }}
+                            {% endif %}
+                        </div>
+                    </div>
 
-    <tbody>
-    {% for application in applications %}
-        <tr>
+                    {% if application.currentStatus == 'Accepted' %}
+                        <span class="status status-accepted">Accepted</span>
+                    {% elseif application.currentStatus == 'pending' %}
+                        <span class="status status-pending">Pending</span>
+                    {% else %}
+                        <span class="status status-rejected">{{ application.currentStatus }}</span>
+                    {% endif %}
+                </div>
 
-            <td>
-                {{ application.applicationDate ? application.applicationDate|date('Y-m-d') : '' }}
-            </td>
-
-            <td>{{ application.email }}</td>
-
-            <td>{{ application.phone }}</td>
-
-            <td>
-                {% if application.currentStatus == 'Accepted' %}
-                    <span class="status status-accepted">Accepted</span>
-                {% elseif application.currentStatus == 'pending' %}
-                    <span class="status status-pending">Pending</span>
-                {% else %}
-                    <span class="status status-rejected">
-                        {{ application.currentStatus }}
-                    </span>
-                {% endif %}
-            </td>
-
-            <td>{{ application.expectedSalary }}</td>
-
-            <td>{{ application.experienceYears }} yrs</td>
-
-            <td>
-                {{ application.jobOffer ? application.jobOffer.title : 'N/A' }}
-            </td>
-
-            <td>
-                {{ application.score is not null ? application.score : '—' }}
-            </td>
-
-        </tr>
-    {% else %}
-        <tr>
-            <td colspan="8">No applications found</td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
+                <div class="data-card-body">
+                    <div class="data-card-field">
+                        <span class="data-card-label">Email</span>
+                        <span class="data-card-value">{{ application.email }}</span>
+                    </div>
+                    <div class="data-card-field">
+                        <span class="data-card-label">Phone</span>
+                        <span class="data-card-value">{{ application.phone }}</span>
+                    </div>
+                    <div class="data-card-field">
+                        <span class="data-card-label">Expected Salary</span>
+                        <span class="data-card-value">{{ application.expectedSalary }}</span>
+                    </div>
+                    <div class="data-card-field">
+                        <span class="data-card-label">Experience</span>
+                        <span class="data-card-value">{{ application.experienceYears }} yrs</span>
+                    </div>
+                    <div class="data-card-field">
+                        <span class="data-card-label">Score</span>
+                        <span class="data-card-value">{{ application.score is not null ? application.score : 'N/A' }}</span>
+                    </div>
+                    <div class="data-card-field" style="grid-column: 1 / -1;">
+                        <span class="data-card-label">Review Note</span>
+                        <span class="data-card-value">{{ application.reviewNote ?: 'No review note yet' }}</span>
+                    </div>
+                </div>
+            </article>
+        {% else %}
+            <div class="empty-state">No applications found</div>
+        {% endfor %}
+    </div>
 
 </div>
+
+<script>
+const applicationSearch = document.getElementById('applicationSearch');
+const applicationSort = document.getElementById('applicationSort');
+const applicationCardsContainer = document.getElementById('applicationCards');
+const applicationCards = Array.from(applicationCardsContainer.querySelectorAll('[data-application-card]'));
+
+function sortApplicationCards(cards, sortValue) {
+    const sorted = [...cards];
+
+    sorted.sort((a, b) => {
+        if (sortValue === 'date_asc') {
+            return String(a.dataset.date).localeCompare(String(b.dataset.date));
+        }
+        if (sortValue === 'salary_desc') {
+            return Number(b.dataset.salary) - Number(a.dataset.salary);
+        }
+        if (sortValue === 'salary_asc') {
+            return Number(a.dataset.salary) - Number(b.dataset.salary);
+        }
+        if (sortValue === 'experience_desc') {
+            return Number(b.dataset.experience) - Number(a.dataset.experience);
+        }
+        if (sortValue === 'experience_asc') {
+            return Number(a.dataset.experience) - Number(b.dataset.experience);
+        }
+
+        return String(b.dataset.date).localeCompare(String(a.dataset.date));
+    });
+
+    sorted.forEach(card => applicationCardsContainer.appendChild(card));
+}
+
+function filterAndSortApplications() {
+    const search = applicationSearch.value.toLowerCase();
+
+    applicationCards.forEach(card => {
+        const matches = card.dataset.search.toLowerCase().includes(search);
+        card.style.display = matches ? '' : 'none';
+    });
+
+    sortApplicationCards(applicationCards, applicationSort.value);
+}
+
+applicationSearch.addEventListener('input', filterAndSortApplications);
+applicationSort.addEventListener('change', filterAndSortApplications);
+</script>
 
 {% endblock %}

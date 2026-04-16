@@ -20,6 +20,14 @@ class RegistrationController extends AbstractController
     $form = $this->createForm(RegistrationFormType::class, $user);
     $form->handleRequest($request);
 
+    if ($form->isSubmitted()) {
+        $plainPassword = $form->get('plainPassword')->getData();
+
+        if ($plainPassword) {
+            $user->setPassword($plainPassword);
+        }
+    }
+
     if ($form->isSubmitted() && $form->isValid()) {
 
         // ✅ NOW form is mapped correctly
@@ -34,7 +42,6 @@ class RegistrationController extends AbstractController
         }
 
         // ✅ Hash password
-        $plainPassword = $form->get('plainPassword')->getData();
         $user->setPassword(
             $userPasswordHasher->hashPassword($user, $plainPassword)
         );
@@ -45,9 +52,9 @@ class RegistrationController extends AbstractController
         $entityManager->persist($user);
         $entityManager->flush();
 
+
         return $this->redirectToRoute('app_login');
     }
-
     return $this->render('registration/register.html.twig', [
         'registrationForm' => $form,
     ]);

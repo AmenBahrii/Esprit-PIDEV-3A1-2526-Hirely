@@ -12,10 +12,11 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-
+use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity]
 #[ORM\Table(name: "users")]
 #[UniqueEntity(fields: ['email'], message: 'There is already an account with this email')]
+#[UniqueEntity(fields: ['google_id'], message: 'This Google account is already linked to another user.', ignoreNull: true)]
 class Users implements UserInterface, PasswordAuthenticatedUserInterface
 {
 
@@ -25,29 +26,38 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 private ?int $id = null;
 
 #[ORM\Column(name: "first_name", type: "string", length: 100)]
+#[Assert\NotBlank(message: "First name is required")]
+#[Assert\Length(min: 2, max: 100)]
 private string $first_name;
 
 #[ORM\Column(name: "last_name", type: "string", length: 100)]
+#[Assert\NotBlank(message: "Last name is required")]
+#[Assert\Length(min: 2, max: 100)]
 private string $last_name;
 
-#[ORM\Column(name: "email", type: "string", length: 255, nullable: true)]
-private ?string $email = null;
+#[ORM\Column(name: "email", type: "string", length: 255)]
+#[Assert\NotBlank(message: "Email is required")]
+#[Assert\Email(message: "Invalid email format")]
+private string $email;
 
-
-#[ORM\Column(name: "password", type: "string", length: 255, nullable: true)]
-private ?string $password = null;
+#[ORM\Column(name: "password", type: "string", length: 255)]
+#[Assert\NotBlank(message: "Password is required")]
+private string $password;
 
 #[ORM\ManyToOne(targetEntity: Role::class, inversedBy: "userss")]
 #[ORM\JoinColumn(name: "role_id", referencedColumnName: "role_id", onDelete: "CASCADE")]
+#[Assert\NotNull(message: "Role is required")]
 private ?Role $role = null;
 
 #[ORM\Column(name: "status", type: "string", length: 20)]
+#[Assert\Choice(choices: ["active", "inactive"], message: "Invalid status")]
 private string $status;
 
 #[ORM\Column(name: "profile_pic", type: "string", length: 255, nullable: true)]
+#[Assert\Url(message: "Profile picture must be a valid URL")]
 private ?string $profile_pic = null;
 
-#[ORM\Column(name: "face_data", type: "string", nullable: true)]
+#[ORM\Column(name: "face_data", type: "text", nullable: true)]
 private ?string $face_data = null;
 
 #[ORM\Column(name: "google_id", type: "string", length: 255, nullable: true)]
