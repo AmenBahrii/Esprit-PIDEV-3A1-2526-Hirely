@@ -187,12 +187,12 @@ final class ViewerContext
 
     public function canEditPlan(Onboardingplan $plan): bool
     {
-        return $this->isAdminOrRecruiter() || ($this->isCandidate() && $this->canViewPlan($plan));
+        return $this->isAdminOrRecruiter() && $this->canViewPlan($plan);
     }
 
     public function canFullyEditPlan(Onboardingplan $plan): bool
     {
-        return $this->isAdminOrRecruiter() && $this->canViewPlan($plan);
+        return $this->canEditPlan($plan);
     }
 
     public function canCreateTasks(): bool

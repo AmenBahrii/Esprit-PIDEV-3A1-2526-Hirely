@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Onboardingplan;
 use App\Form\OnboardingPlanType;
+use App\Onboarding\OnboardingPlanStatusManager;
 use App\Onboarding\PublicUrlConfiguration;
 use App\Onboarding\ViewerContext;
 use App\Repository\OnboardingplanRepository;
@@ -20,7 +21,7 @@ final class OnboardingPlanController extends AbstractController
 {
     #[Route('/admin/plans', name: 'app_admin_plans')]
     #[Route('/workspace/plans', name: 'app_workspace_plans')]
-    public function index(Request $request, OnboardingplanRepository $planRepository, ViewerContext $viewerContext, PublicUrlConfiguration $publicUrlConfiguration): Response|RedirectResponse
+    public function index(Request $request, OnboardingplanRepository $planRepository, OnboardingtaskRepository $taskRepository, ViewerContext $viewerContext, PublicUrlConfiguration $publicUrlConfiguration, OnboardingPlanStatusManager $onboardingPlanStatusManager, EntityManagerInterface $entityManager): Response|RedirectResponse
     {
         if ($redirect = $this->redirectForArea($request, $viewerContext)) {
             return $redirect;
@@ -35,6 +36,21 @@ final class OnboardingPlanController extends AbstractController
             'overdue_only' => $request->query->getBoolean('overdue_only'),
         ];
         $plans = $viewer ? $planRepository->findVisibleFor($viewer, $searchTerm, $caseSensitive, $filters) : [];
+        $plansWereSynced = false;
+        $statusSummaryByPlanId = $taskRepository->getStatusSummaryForPlanIds(array_map(
+            static fn (Onboardingplan $plan): int => (int) $plan->getPlanId(),
+            $plans
+        ));
+
+        foreach ($plans as $plan) {
+            $planId = (int) $plan->getPlanId();
+            $plansWereSynced = $onboardingPlanStatusManager->syncPlanStatusFromSummary($plan, $statusSummaryByPlanId[$planId] ?? []) || $plansWereSynced;
+        }
+
+        if ($plansWereSynced) {
+            $entityManager->flush();
+        }
+
         $viewData = [
             'plans' => $plans,
             'search_term' => $searchTerm,
@@ -69,16 +85,12 @@ final class OnboardingPlanController extends AbstractController
         }
 
         $plan = new Onboardingplan();
-        $form = $this->createForm(OnboardingPlanType::class, $plan, [
-            'editor_mode' => 'full',
-        ]);
+        $form = $this->createForm(OnboardingPlanType::class, $plan);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($plan);
-            if (!$plan->getStatus()) {
-                $plan->setStatus(Onboardingplan::STATUS_PENDING);
-            }
+            $plan->setStatus(Onboardingplan::STATUS_PENDING);
             if (!$plan->getQrToken()) {
                 $plan->setQrToken($this->generateQrToken());
             }
@@ -97,7 +109,7 @@ final class OnboardingPlanController extends AbstractController
 
     #[Route('/admin/plans/{id}/edit', name: 'app_admin_plans_edit')]
     #[Route('/workspace/plans/{id}/edit', name: 'app_workspace_plans_edit')]
-    public function edit(Onboardingplan $plan, Request $request, EntityManagerInterface $entityManager, ViewerContext $viewerContext): Response|RedirectResponse
+    public function edit(Onboardingplan $plan, Request $request, EntityManagerInterface $entityManager, ViewerContext $viewerContext, OnboardingPlanStatusManager $onboardingPlanStatusManager): Response|RedirectResponse
     {
         if ($redirect = $this->redirectForArea($request, $viewerContext)) {
             return $redirect;
@@ -109,16 +121,11 @@ final class OnboardingPlanController extends AbstractController
             return $this->redirectToRoute($this->plansRoute($request));
         }
 
-        $limitedEditor = !$viewerContext->canFullyEditPlan($plan);
-        $form = $this->createForm(OnboardingPlanType::class, $plan, [
-            'editor_mode' => $limitedEditor ? 'candidate' : 'full',
-        ]);
+        $form = $this->createForm(OnboardingPlanType::class, $plan);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            if (!$plan->getStatus()) {
-                $plan->setStatus(Onboardingplan::STATUS_PENDING);
-            }
+            $onboardingPlanStatusManager->syncPlanStatus($plan);
             if (!$plan->getQrToken()) {
                 $plan->setQrToken($this->generateQrToken());
             }
@@ -129,8 +136,8 @@ final class OnboardingPlanController extends AbstractController
 
         return $this->render('admin/plans/form.html.twig', [
             'form' => $form->createView(),
-            'page_title' => $limitedEditor ? 'Update My Plan Status' : 'Edit Onboarding Plan',
-            'limited_editor' => $limitedEditor,
+            'page_title' => 'Edit Onboarding Plan',
+            'limited_editor' => false,
             'plan' => $plan,
         ]);
     }
@@ -159,7 +166,7 @@ final class OnboardingPlanController extends AbstractController
 
     #[Route('/admin/plans/{id}/qr', name: 'app_admin_plans_qr')]
     #[Route('/workspace/plans/{id}/qr', name: 'app_workspace_plans_qr')]
-    public function qr(Onboardingplan $plan, Request $request, EntityManagerInterface $entityManager, ViewerContext $viewerContext, PublicUrlConfiguration $publicUrlConfiguration): Response|RedirectResponse
+    public function qr(Onboardingplan $plan, Request $request, EntityManagerInterface $entityManager, ViewerContext $viewerContext, PublicUrlConfiguration $publicUrlConfiguration, OnboardingPlanStatusManager $onboardingPlanStatusManager, OnboardingtaskRepository $taskRepository): Response|RedirectResponse
     {
         if ($redirect = $this->redirectForArea($request, $viewerContext)) {
             return $redirect;
@@ -171,8 +178,16 @@ final class OnboardingPlanController extends AbstractController
             return $this->redirectToRoute($this->plansRoute($request));
         }
 
+        $qrTokenWasGenerated = false;
+
         if (!$plan->getQrToken()) {
             $plan->setQrToken($this->generateQrToken());
+            $qrTokenWasGenerated = true;
+        }
+
+        $taskSummary = $taskRepository->getStatusSummaryForPlanIds([(int) $plan->getPlanId()]);
+
+        if ($onboardingPlanStatusManager->syncPlanStatusFromSummary($plan, $taskSummary[(int) $plan->getPlanId()] ?? []) || $qrTokenWasGenerated) {
             $entityManager->flush();
         }
 
@@ -183,11 +198,17 @@ final class OnboardingPlanController extends AbstractController
     }
 
     #[Route('/qr/{token}', name: 'app_public_plan_qr')]
-    public function publicQr(string $token, OnboardingplanRepository $planRepository, OnboardingtaskRepository $taskRepository): Response
+    public function publicQr(string $token, OnboardingplanRepository $planRepository, OnboardingtaskRepository $taskRepository, OnboardingPlanStatusManager $onboardingPlanStatusManager, EntityManagerInterface $entityManager): Response
     {
         $plan = $planRepository->findOneByQrToken($token);
         if (!$plan) {
             throw new NotFoundHttpException('No onboarding plan matches this QR code.');
+        }
+
+        $taskSummary = $taskRepository->getStatusSummaryForPlanIds([(int) $plan->getPlanId()]);
+
+        if ($onboardingPlanStatusManager->syncPlanStatusFromSummary($plan, $taskSummary[(int) $plan->getPlanId()] ?? [])) {
+            $entityManager->flush();
         }
 
         return $this->render('qr/public_plan.html.twig', [

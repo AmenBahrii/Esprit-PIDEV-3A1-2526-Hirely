@@ -26,7 +26,7 @@
 <div class="page-header">
     <h1 class="page-title">{{ page_title }}</h1>
     <p class="muted-text">
-        {{ limited_editor ? 'Update your plan progress while the protected plan details stay unchanged.' : 'Set the owner, status, and timing for this onboarding plan.' }}
+        {{ limited_editor ? 'Protected plan details stay unchanged here.' : 'Set the owner and timing for this onboarding plan. Status is derived automatically from the plan tasks.' }}
     </p>
 </div>
 
@@ -41,15 +41,8 @@
                 {% endif %}
             </div>
         {% endif %}
-        {% if limited_editor and plan is defined %}
-            <div class="form-note-panel">
-                <p class="form-note-title">Plan details are protected</p>
-                <p class="form-note-text">Only the current plan status can be updated from this view. Owner, deadline, and QR data remain unchanged.</p>
-            </div>
-        {% endif %}
         <div class="form-grid">
             {% if form.user is defined %}{{ form_ui.render_field(form.user) }}{% endif %}
-            {{ form_ui.render_field(form.status) }}
             {% if form.deadline is defined %}{{ form_ui.render_field(form.deadline) }}{% endif %}
         </div>
 

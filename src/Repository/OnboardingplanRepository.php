@@ -25,7 +25,8 @@ class OnboardingplanRepository extends ServiceEntityRepository
     {
         $builder = $this->createQueryBuilder('plan')
             ->leftJoin('plan.user', 'user')
-            ->addSelect('user')
+            ->leftJoin('plan.onboardingtasks', 'task')
+            ->addSelect('user', 'task')
             ->orderBy('plan.planId', 'DESC');
 
         if (1 === $viewer->getRole()?->getRoleId()) {

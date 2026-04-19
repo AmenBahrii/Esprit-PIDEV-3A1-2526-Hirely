@@ -34,7 +34,7 @@
                         <p class="record-subtitle">{{ plan.user.email ?: 'Assigned candidate' }}</p>
                     </div>
                     <div class="record-chip-stack">
-                        <span class="status-pill">{{ plan.status|replace({'_': ' '})|title }}</span>
+                        <span class="status-pill status-{{ plan.status|replace({'_': '-'}) }}">{{ plan.status|replace({'_': ' '})|title }}</span>
                         <span class="status-chip {{ plan.isOverdue ? 'overdue' : 'on-track' }}">
                             {{ plan.isOverdue ? 'Overdue' : 'On Track' }}
                         </span>

@@ -111,10 +111,7 @@
                         <p class="record-subtitle">{{ task.hasAttachment ? 'Attachment ready' : 'No attachment linked yet' }}</p>
                     </div>
                     <div class="record-chip-stack">
-                        <span class="status-pill">{{ task.status|replace({'_': ' '})|title }}</span>
-                        <span class="status-chip {{ task.hasAttachment ? 'on-track' : 'neutral' }}">
-                            {{ task.hasAttachment ? 'File linked' : 'No file' }}
-                        </span>
+                        <span class="status-pill status-{{ task.status|replace({'_': '-'}) }}">{{ task.status|replace({'_': ' '})|title }}</span>
                     </div>
                 </div>
 

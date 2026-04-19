@@ -24,17 +24,12 @@ final class PublicUrlConfiguration
             return rtrim($request->getSchemeAndHttpHost(), '/');
         }
 
-        $detectedHostname = $this->detectStableHostName();
-        if (null !== $detectedHostname) {
-            return $this->buildBaseUrl($request, $detectedHostname);
-        }
-
         $detectedHost = $this->detectLanHost();
-        if (null === $detectedHost) {
-            return rtrim($request->getSchemeAndHttpHost(), '/');
+        if (null !== $detectedHost) {
+            return $this->buildBaseUrl($request, $detectedHost);
         }
 
-        return $this->buildBaseUrl($request, $detectedHost);
+        return rtrim($request->getSchemeAndHttpHost(), '/');
     }
 
     public function isUsingConfiguredPublicBaseUrl(): bool
@@ -63,16 +58,6 @@ final class PublicUrlConfiguration
         }
 
         return rtrim($configuredBaseUrl, '/');
-    }
-
-    private function detectStableHostName(): ?string
-    {
-        $hostname = trim((string) gethostname());
-        if (!$this->isReachableHost($hostname)) {
-            return null;
-        }
-
-        return $hostname;
     }
 
     private function detectLanHost(): ?string

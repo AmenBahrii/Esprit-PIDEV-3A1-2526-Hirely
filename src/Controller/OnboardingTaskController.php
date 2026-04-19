@@ -7,6 +7,7 @@ use App\Entity\Onboardingtask;
 use App\Form\OnboardingTaskType;
 use App\Onboarding\AttachmentUploadConfiguration;
 use App\Onboarding\LocalTaskAttachmentStorage;
+use App\Onboarding\OnboardingPlanStatusManager;
 use App\Onboarding\TaskDecisionGuideService;
 use App\Onboarding\TaskRecommendation;
 use App\Onboarding\ViewerContext;
@@ -99,7 +100,7 @@ final class OnboardingTaskController extends AbstractController
 
     #[Route('/admin/plans/{id}/tasks/new', name: 'app_admin_plan_tasks_new')]
     #[Route('/workspace/plans/{id}/tasks/new', name: 'app_workspace_plan_tasks_new')]
-    public function new(Onboardingplan $plan, Request $request, EntityManagerInterface $entityManager, ViewerContext $viewerContext, AttachmentUploadConfiguration $attachmentUploadConfiguration): Response|RedirectResponse
+    public function new(Onboardingplan $plan, Request $request, EntityManagerInterface $entityManager, ViewerContext $viewerContext, AttachmentUploadConfiguration $attachmentUploadConfiguration, OnboardingPlanStatusManager $onboardingPlanStatusManager): Response|RedirectResponse
     {
         if ($redirect = $this->redirectForArea($request, $viewerContext)) {
             return $redirect;
@@ -114,7 +115,7 @@ final class OnboardingTaskController extends AbstractController
         }
 
         $task = new Onboardingtask();
-        $task->setPlan($plan);
+        $plan->addOnboardingtask($task);
         $task->setStatus(Onboardingtask::STATUS_NOT_STARTED);
 
         $form = $this->createForm(OnboardingTaskType::class, $task, [
@@ -130,6 +131,7 @@ final class OnboardingTaskController extends AbstractController
                 $task->clearAttachment();
             }
 
+            $onboardingPlanStatusManager->syncPlanStatus($plan);
             $entityManager->persist($task);
             $entityManager->flush();
 
@@ -150,7 +152,7 @@ final class OnboardingTaskController extends AbstractController
 
     #[Route('/admin/tasks/{id}/edit', name: 'app_admin_plan_tasks_edit')]
     #[Route('/workspace/tasks/{id}/edit', name: 'app_workspace_plan_tasks_edit')]
-    public function edit(Onboardingtask $task, Request $request, EntityManagerInterface $entityManager, ViewerContext $viewerContext, AttachmentUploadConfiguration $attachmentUploadConfiguration): Response|RedirectResponse
+    public function edit(Onboardingtask $task, Request $request, EntityManagerInterface $entityManager, ViewerContext $viewerContext, AttachmentUploadConfiguration $attachmentUploadConfiguration, OnboardingPlanStatusManager $onboardingPlanStatusManager): Response|RedirectResponse
     {
         if ($redirect = $this->redirectForArea($request, $viewerContext)) {
             return $redirect;
@@ -182,6 +184,7 @@ final class OnboardingTaskController extends AbstractController
                 $task->clearAttachment();
             }
 
+            $onboardingPlanStatusManager->syncPlanStatus($plan);
             $entityManager->flush();
 
             return $this->redirectToRoute($this->planTasksRoute($request), [
@@ -201,7 +204,7 @@ final class OnboardingTaskController extends AbstractController
 
     #[Route('/admin/tasks/{id}/delete', name: 'app_admin_plan_tasks_delete', methods: ['POST'])]
     #[Route('/workspace/tasks/{id}/delete', name: 'app_workspace_plan_tasks_delete', methods: ['POST'])]
-    public function delete(Onboardingtask $task, Request $request, EntityManagerInterface $entityManager, ViewerContext $viewerContext): Response|RedirectResponse
+    public function delete(Onboardingtask $task, Request $request, EntityManagerInterface $entityManager, ViewerContext $viewerContext, OnboardingPlanStatusManager $onboardingPlanStatusManager): Response|RedirectResponse
     {
         if ($redirect = $this->redirectForArea($request, $viewerContext)) {
             return $redirect;
@@ -218,7 +221,9 @@ final class OnboardingTaskController extends AbstractController
         }
 
         if ($this->isCsrfTokenValid('delete_task_' . $task->getTaskId(), $request->request->get('_token'))) {
+            $plan->removeOnboardingtask($task);
             $entityManager->remove($task);
+            $onboardingPlanStatusManager->syncPlanStatus($plan);
             $entityManager->flush();
         }
 
