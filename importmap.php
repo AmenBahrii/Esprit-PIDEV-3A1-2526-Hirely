@@ -28,4 +28,13 @@ return [
     'chart.js' => [
         'version' => '3.9.1',
     ],
+    'gsap' => [
+        'version' => '3.15.0',
+    ],
+    'lenis' => [
+        'version' => '1.3.23',
+    ],
+    'split-type' => [
+        'version' => '0.3.4',
+    ],
 ];

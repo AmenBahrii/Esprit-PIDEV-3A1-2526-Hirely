@@ -10,13 +10,18 @@
                 if (trigger) {
                     trigger.setAttribute('aria-expanded', 'false');
                 }
+                const menu = root._customSelectMenu;
+                if (menu) {
+                    menu.classList.remove('is-open');
+                }
             }
         });
     };
 
-    const positionMenu = (wrapper, trigger, list) => {
+    const positionMenu = (wrapper, trigger, menu, list) => {
         const rect = trigger.getBoundingClientRect();
         const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+        const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
         const spaceBelow = viewportHeight - rect.bottom - 24;
         const spaceAbove = rect.top - 24;
         const openUpward = spaceBelow < 220 && spaceAbove > spaceBelow;
@@ -25,6 +30,10 @@
 
         wrapper.classList.toggle('is-open-upward', openUpward);
         list.style.maxHeight = `${maxHeight}px`;
+        menu.style.width = `${rect.width}px`;
+        menu.style.minWidth = `${rect.width}px`;
+        menu.style.left = `${Math.max(12, Math.min(rect.left, viewportWidth - rect.width - 12))}px`;
+        menu.style.top = `${openUpward ? rect.top - Math.min(list.offsetHeight || maxHeight, maxHeight) - 10 : rect.bottom + 10}px`;
 
         const selectedOption = list.querySelector('.custom-select-option.is-selected');
         if (selectedOption) {
@@ -102,6 +111,8 @@
 
         const menu = document.createElement('div');
         menu.className = 'custom-select-menu';
+        document.body.appendChild(menu);
+        wrapper._customSelectMenu = menu;
 
         const list = document.createElement('div');
         list.className = 'custom-select-list';
@@ -109,7 +120,6 @@
         menu.appendChild(list);
 
         wrapper.appendChild(trigger);
-        wrapper.appendChild(menu);
 
         const syncFromSelect = () => {
             const selectedOption = select.options[select.selectedIndex] || select.options[0];
@@ -138,9 +148,11 @@
             wrapper.classList.toggle('is-open', willOpen);
             trigger.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
             if (willOpen) {
-                positionMenu(wrapper, trigger, list);
+                menu.classList.add('is-open');
+                positionMenu(wrapper, trigger, menu, list);
             } else {
                 wrapper.classList.remove('is-open-upward');
+                menu.classList.remove('is-open');
             }
         });
 
@@ -173,9 +185,11 @@
                 wrapper.classList.toggle('is-open', !isOpen);
                 trigger.setAttribute('aria-expanded', !isOpen ? 'true' : 'false');
                 if (!isOpen) {
-                    positionMenu(wrapper, trigger, list);
+                    menu.classList.add('is-open');
+                    positionMenu(wrapper, trigger, menu, list);
                 } else {
                     wrapper.classList.remove('is-open-upward');
+                    menu.classList.remove('is-open');
                 }
             }
         });
@@ -189,7 +203,7 @@
     };
 
     document.addEventListener('click', (event) => {
-        if (!event.target.closest('.custom-select-root')) {
+        if (!event.target.closest('.custom-select-root, .custom-select-menu')) {
             closeAll();
         }
     });
@@ -198,11 +212,23 @@
         document.querySelectorAll('.custom-select-root.is-open').forEach((wrapper) => {
             const trigger = wrapper.querySelector('.custom-select-trigger');
             const list = wrapper.querySelector('.custom-select-list');
-            if (trigger && list) {
-                positionMenu(wrapper, trigger, list);
+            const menu = wrapper._customSelectMenu;
+            if (trigger && list && menu) {
+                positionMenu(wrapper, trigger, menu, list);
             }
         });
     });
+
+    window.addEventListener('scroll', () => {
+        document.querySelectorAll('.custom-select-root.is-open').forEach((wrapper) => {
+            const trigger = wrapper.querySelector('.custom-select-trigger');
+            const list = wrapper.querySelector('.custom-select-list');
+            const menu = wrapper._customSelectMenu;
+            if (trigger && list && menu) {
+                positionMenu(wrapper, trigger, menu, list);
+            }
+        });
+    }, true);
 
     document.querySelectorAll(SELECTOR).forEach(buildCustomSelect);
 })();

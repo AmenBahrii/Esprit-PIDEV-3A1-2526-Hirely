@@ -3233,28 +3233,25 @@ body {
 }
 
 .custom-select-menu {
-    position: absolute;
-    top: calc(100% + 10px);
+    position: fixed;
+    top: 0;
     left: 0;
-    z-index: 80;
-    min-width: 100%;
-    width: max-content;
-    max-width: min(320px, 90vw);
+    z-index: 9999;
+    min-width: 180px;
+    width: 240px;
+    max-width: min(340px, calc(100vw - 24px));
     opacity: 0;
     visibility: hidden;
     transform: translateY(-4px);
     transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+    pointer-events: none;
 }
 
-.custom-select-root.is-open .custom-select-menu {
+.custom-select-menu.is-open {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
-}
-
-.custom-select-root.is-open-upward .custom-select-menu {
-    top: auto;
-    bottom: calc(100% + 10px);
+    pointer-events: auto;
 }
 
 .custom-select-list {
@@ -3837,8 +3834,8 @@ body.immersive-ui-ready::after {
 .flow-side-block,
 .flow-score-chip,
 .flow-mission-card {
-    transform: perspective(1100px) rotateX(var(--tilt-y, 0deg)) rotateY(var(--tilt-x, 0deg)) translate3d(var(--tilt-shift-x, 0px), var(--tilt-shift-y, 0px), 0);
-    transform-style: preserve-3d;
+    transform: translate3d(var(--tilt-shift-x, 0px), var(--tilt-shift-y, 0px), 0);
+    transform-style: flat;
 }
 
 .record-card:hover,
