@@ -17,14 +17,34 @@
 {% endmacro %}
 {% import _self as form_ui %}
 
-{% block title %}{{ page_title }}{% endblock %}
+{% block title %}{{ onboarding_language.translateMap({page_title: page_title}).page_title }}{% endblock %}
 
 {% set admin_area = app.request.attributes.get('_route') starts with 'app_admin' %}
 {% set tasks_route = admin_area ? 'app_admin_plan_tasks' : 'app_workspace_plan_tasks' %}
+{% set task_form_ui = onboarding_language.translateMap({
+    review_title: 'Please review the highlighted fields',
+    review_text: 'Some task details still need attention before this update can be saved.',
+    title: 'Title',
+    deadline: 'Deadline',
+    untitled_task: 'Untitled task',
+    no_deadline: 'No deadline',
+    attachment_eyebrow: 'Task Attachment',
+    attachment_title: 'Upload supporting proof',
+    attachment_limited_text: 'Update the file linked to this task.',
+    attachment_full_text: 'Upload a file and keep it attached directly to this task.',
+    upload_attachment: 'Upload Attachment',
+    remove_attachment: 'Remove Attachment',
+    attachment_ready_prefix: 'Attachment ready:',
+    select_file: 'Select any file from your device to attach it.',
+    open_file: 'Open file',
+    no_attachment_uploaded: 'No attachment uploaded yet.',
+    save: 'Save',
+    cancel: 'Cancel'
+}) %}
 
 {% block admin_content %}
 <div class="page-header">
-    <h1 class="page-title">{{ page_title }}</h1>
+    <h1 class="page-title">{{ onboarding_language.translateMap({page_title: page_title}).page_title }}</h1>
     <p class="muted-text">
         Plan #{{ plan.planId }} - {{ plan.user.firstName }} {{ plan.user.lastName }}
     </p>
@@ -34,8 +54,8 @@
     {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'form-shell'}}) }}
         {% if not form.vars.valid %}
             <div class="form-error-banner">
-                <div class="form-error-banner-title">Please review the highlighted fields</div>
-                <p class="form-error-banner-text">Some task details still need attention before this update can be saved.</p>
+                <div class="form-error-banner-title">{{ task_form_ui.review_title }}</div>
+                <p class="form-error-banner-text">{{ task_form_ui.review_text }}</p>
                 {% if form.vars.errors|length %}
                     <div class="form-error-list">{{ form_errors(form) }}</div>
                 {% endif %}
@@ -44,12 +64,12 @@
         {% if limited_editor and task is defined %}
             <div class="record-meta form-meta-grid">
                 <div class="record-meta-item">
-                    <span class="record-meta-label">Title</span>
-                    <span class="record-meta-value">{{ task.title ?: 'Untitled task' }}</span>
+                    <span class="record-meta-label">{{ task_form_ui.title }}</span>
+                    <span class="record-meta-value">{{ task.title ?: task_form_ui.untitled_task }}</span>
                 </div>
                 <div class="record-meta-item">
-                    <span class="record-meta-label">Deadline</span>
-                    <span class="record-meta-value">{{ task.deadline ? task.deadline|date('Y-m-d') : 'No deadline' }}</span>
+                    <span class="record-meta-label">{{ task_form_ui.deadline }}</span>
+                    <span class="record-meta-value">{{ task.deadline ? task.deadline|date('Y-m-d') : task_form_ui.no_deadline }}</span>
                 </div>
             </div>
         {% endif %}
@@ -70,12 +90,12 @@
             >
                 <div class="attachment-uploader-header">
                     <div>
-                        <p class="record-eyebrow">Task Attachment</p>
-                        <h2 class="section-title">Upload supporting proof</h2>
+                        <p class="record-eyebrow">{{ task_form_ui.attachment_eyebrow }}</p>
+                        <h2 class="section-title">{{ task_form_ui.attachment_title }}</h2>
                         <p class="muted-text">
                             {{ limited_editor
-                                ? 'Update the file linked to this task.'
-                                : 'Upload a file and keep it attached directly to this task.'
+                                ? task_form_ui.attachment_limited_text
+                                : task_form_ui.attachment_full_text
                             }}
                         </p>
                     </div>
@@ -84,17 +104,17 @@
                 <div class="attachment-panel">
                     <div class="attachment-input-row">
                         <input type="file" class="attachment-file-input" data-cloudinary-file-input>
-                        <button type="button" class="btn-secondary" data-cloudinary-upload-button>Upload Attachment</button>
-                        <button type="button" class="btn-danger" data-cloudinary-clear-button>Remove Attachment</button>
+                        <button type="button" class="btn-secondary" data-cloudinary-upload-button>{{ task_form_ui.upload_attachment }}</button>
+                        <button type="button" class="btn-danger" data-cloudinary-clear-button>{{ task_form_ui.remove_attachment }}</button>
                     </div>
 
                     <p class="attachment-status muted-text" data-cloudinary-status>
                         {% if task.hasAttachment %}
-                            Attachment ready: {{ task.attachmentLabel }}
+                            {{ task_form_ui.attachment_ready_prefix }} {{ task.attachmentLabel }}
                         {% elseif attachment_upload.provider == 'cloudinary' %}
-                            Select any file from your device to attach it.
+                            {{ task_form_ui.select_file }}
                         {% else %}
-                            Select any file from your device to attach it.
+                            {{ task_form_ui.select_file }}
                         {% endif %}
                     </p>
 
@@ -108,12 +128,12 @@
                                 <div class="attachment-current-meta">
                                     <span class="record-meta-value" data-cloudinary-name>{{ task.attachmentLabel }}</span>
                                     <a href="{{ task.filePath }}" target="_blank" rel="noreferrer" class="attachment-link" data-cloudinary-link>
-                                        Open file
+                                        {{ task_form_ui.open_file }}
                                     </a>
                                 </div>
                             </div>
                         {% else %}
-                            <span class="muted-text" data-cloudinary-name>No attachment uploaded yet.</span>
+                            <span class="muted-text" data-cloudinary-name>{{ task_form_ui.no_attachment_uploaded }}</span>
                         {% endif %}
                     </div>
                 </div>
@@ -126,8 +146,8 @@
         </div>
 
         <div class="form-actions">
-            <button type="submit" class="btn-primary">Save</button>
-            <a href="{{ path(tasks_route, {id: plan.planId}) }}" class="btn-secondary">Cancel</a>
+            <button type="submit" class="btn-primary">{{ task_form_ui.save }}</button>
+            <a href="{{ path(tasks_route, {id: plan.planId}) }}" class="btn-secondary">{{ task_form_ui.cancel }}</a>
         </div>
     {{ form_end(form) }}
 </div>

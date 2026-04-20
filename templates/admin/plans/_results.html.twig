@@ -3,24 +3,93 @@
 {% set tasks_route = admin_area ? 'app_admin_plan_tasks' : 'app_workspace_plan_tasks' %}
 {% set delete_plan_route = admin_area ? 'app_admin_plans_delete' : 'app_workspace_plans_delete' %}
 {% set qr_route = admin_area ? 'app_admin_plans_qr' : 'app_workspace_plans_qr' %}
+{% set plans_results_ui = onboarding_language.translateMap({
+    chart_title: 'Plan Status Snapshot',
+    chart_text: 'Visual breakdown of the currently visible onboarding plans.',
+    focus_title: 'Plan Focus',
+    focus_text: 'A quick read on what deserves attention in the current view.',
+    current_pulse: 'Current pulse',
+    priority_plan: 'Priority plan',
+    next_deadline: 'Next deadline',
+    coverage: 'Coverage',
+    assigned_candidate: 'Assigned candidate',
+    overdue: 'Overdue',
+    on_track: 'On Track',
+    deadline: 'Deadline',
+    tasks: 'Tasks',
+    qr_access: 'QR access',
+    no_deadline: 'No deadline',
+    ready: 'Ready',
+    generate_on_open: 'Generate on open',
+    edit: 'Edit',
+    tasks_button: 'Tasks',
+    qr_code: 'QR Code',
+    delete: 'Delete',
+    no_matching_plans: 'No matching plans',
+    no_plans_found: 'No plans found for',
+    no_plans_search_text: 'Try another keyword, change the filters, or clear the search to see all plans again.',
+    no_plans_yet: 'No plans yet',
+    start_flow_title: 'Start your onboarding coordination flow',
+    start_flow_text: 'Create the first onboarding plan to assign a user, set a status, and organize plan-specific tasks.'
+}) %}
+{% set plan_status_labels = onboarding_language.translateMap({
+    pending: 'Pending',
+    in_progress: 'In Progress',
+    completed: 'Completed',
+    on_hold: 'On Hold'
+}) %}
+{% set plan_focus_dynamic = onboarding_language.translateMap({
+    title: plan_focus.title,
+    text: plan_focus.text,
+    priority_label: plan_focus.priority_label,
+    priority_reason: plan_focus.priority_reason,
+    next_deadline: plan_focus.next_deadline,
+    coverage: plan_focus.candidate_coverage
+}) %}
 
-<div class="explorer-metrics">
-    <div class="explorer-metric-card">
-        <span class="explorer-metric-label">Visible plans</span>
-        <strong class="explorer-metric-value">{{ plan_metrics.total }}</strong>
-    </div>
-    <div class="explorer-metric-card">
-        <span class="explorer-metric-label">In progress</span>
-        <strong class="explorer-metric-value">{{ plan_metrics.active }}</strong>
-    </div>
-    <div class="explorer-metric-card">
-        <span class="explorer-metric-label">Completed</span>
-        <strong class="explorer-metric-value">{{ plan_metrics.completed }}</strong>
-    </div>
-    <div class="explorer-metric-card">
-        <span class="explorer-metric-label">Need attention</span>
-        <strong class="explorer-metric-value">{{ plan_metrics.overdue }}</strong>
-    </div>
+<div class="analytics-grid analytics-grid-double analytics-grid-plan" style="margin-bottom: 22px;">
+    <article class="analytics-card">
+        <div class="analytics-card-head">
+            <div>
+                <h3 class="analytics-title">{{ plans_results_ui.chart_title }}</h3>
+                <p class="analytics-text">{{ plans_results_ui.chart_text }}</p>
+            </div>
+        </div>
+        <div class="chart-frame">
+            {{ render_chart(plan_status_chart) }}
+        </div>
+    </article>
+
+    <article class="analytics-card plan-focus-card">
+        <div class="analytics-card-head">
+            <div>
+                <h3 class="analytics-title">{{ plans_results_ui.focus_title }}</h3>
+                <p class="analytics-text">{{ plans_results_ui.focus_text }}</p>
+            </div>
+        </div>
+
+        <div class="plan-focus-hero">
+            <span class="plan-focus-kicker">{{ plans_results_ui.current_pulse }}</span>
+            <h4 class="plan-focus-title">{{ plan_focus_dynamic.title }}</h4>
+            <p class="plan-focus-text">{{ plan_focus_dynamic.text }}</p>
+        </div>
+
+        <div class="plan-focus-list">
+            <div class="plan-focus-item">
+                <span class="plan-focus-label">{{ plans_results_ui.priority_plan }}</span>
+                <strong class="plan-focus-value">{{ plan_focus_dynamic.priority_label }}</strong>
+                <span class="plan-focus-note">{{ plan_focus_dynamic.priority_reason }}</span>
+            </div>
+            <div class="plan-focus-item">
+                <span class="plan-focus-label">{{ plans_results_ui.next_deadline }}</span>
+                <strong class="plan-focus-value">{{ plan_focus_dynamic.next_deadline }}</strong>
+            </div>
+            <div class="plan-focus-item">
+                <span class="plan-focus-label">{{ plans_results_ui.coverage }}</span>
+                <strong class="plan-focus-value">{{ plan_focus_dynamic.coverage }}</strong>
+            </div>
+        </div>
+    </article>
 </div>
 
 {% if plans is not empty %}
@@ -31,43 +100,41 @@
                     <div class="record-heading">
                         <p class="record-eyebrow">Plan #{{ plan.planId }}</p>
                         <h3 class="record-title">{{ plan.user.firstName }} {{ plan.user.lastName }}</h3>
-                        <p class="record-subtitle">{{ plan.user.email ?: 'Assigned candidate' }}</p>
+                        <p class="record-subtitle">{{ plan.user.email ?: plans_results_ui.assigned_candidate }}</p>
                     </div>
                     <div class="record-chip-stack">
-                        <span class="status-pill status-{{ plan.status|replace({'_': '-'}) }}">{{ plan.status|replace({'_': ' '})|title }}</span>
+                        <span class="status-pill status-{{ plan.status|replace({'_': '-'}) }}">{{ plan_status_labels[plan.status] ?? (plan.status|replace({'_': ' '})|title) }}</span>
                         <span class="status-chip {{ plan.isOverdue ? 'overdue' : 'on-track' }}">
-                            {{ plan.isOverdue ? 'Overdue' : 'On Track' }}
+                            {{ plan.isOverdue ? plans_results_ui.overdue : plans_results_ui.on_track }}
                         </span>
                     </div>
                 </div>
 
                 <div class="record-stats record-stats-plan">
                     <div class="record-stat">
-                        <span class="record-stat-label">Deadline</span>
-                        <span class="record-stat-value">{{ plan.deadline ? plan.deadline|date('Y-m-d') : 'No deadline' }}</span>
+                        <span class="record-stat-label">{{ plans_results_ui.deadline }}</span>
+                        <span class="record-stat-value">{{ plan.deadline ? plan.deadline|date('Y-m-d') : plans_results_ui.no_deadline }}</span>
                     </div>
                     <div class="record-stat">
-                        <span class="record-stat-label">Tasks</span>
+                        <span class="record-stat-label">{{ plans_results_ui.tasks }}</span>
                         <span class="record-stat-value">{{ plan.onboardingtasks|length }} task(s)</span>
                     </div>
                     <div class="record-stat record-stat-wide">
-                        <span class="record-stat-label">QR access</span>
-                        <span class="record-stat-value">{{ plan.qrToken ? 'Ready' : 'Generate on open' }}</span>
+                        <span class="record-stat-label">{{ plans_results_ui.qr_access }}</span>
+                        <span class="record-stat-value">{{ plan.qrToken ? plans_results_ui.ready : plans_results_ui.generate_on_open }}</span>
                     </div>
                 </div>
 
                 <div class="actions-cell record-actions">
                     {% if viewer_context.canEditPlan(plan) %}
-                        <a href="{{ path(edit_plan_route, {id: plan.planId}) }}" class="btn-secondary">
-                            {{ viewer_context.canFullyEditPlan(plan) ? 'Edit' : 'Update Status' }}
-                        </a>
+                        <a href="{{ path(edit_plan_route, {id: plan.planId}) }}" class="btn-secondary">{{ plans_results_ui.edit }}</a>
                     {% endif %}
-                    <a href="{{ path(tasks_route, {id: plan.planId}) }}" class="btn-primary">Tasks</a>
-                    <a href="{{ path(qr_route, {id: plan.planId}) }}" class="btn-secondary">QR Code</a>
+                    <a href="{{ path(tasks_route, {id: plan.planId}) }}" class="btn-primary">{{ plans_results_ui.tasks_button }}</a>
+                    <a href="{{ path(qr_route, {id: plan.planId}) }}" class="btn-secondary">{{ plans_results_ui.qr_code }}</a>
                     {% if viewer_context.canDeletePlan(plan) %}
                         <form method="post" action="{{ path(delete_plan_route, {id: plan.planId}) }}" class="inline-form">
                             <input type="hidden" name="_token" value="{{ csrf_token('delete_plan_' ~ plan.planId) }}">
-                            <button type="submit" class="btn-danger">Delete</button>
+                            <button type="submit" class="btn-danger">{{ plans_results_ui.delete }}</button>
                         </form>
                     {% endif %}
                 </div>
@@ -77,13 +144,13 @@
 {% else %}
     <div class="empty-state-card">
         {% if search_term is defined and search_term is not empty %}
-            <p class="record-eyebrow">No matching plans</p>
-            <h3 class="record-title">No plans found for "{{ search_term }}"</h3>
-            <p class="muted-text">Try another keyword, change the filters, or clear the search to see all plans again.</p>
+            <p class="record-eyebrow">{{ plans_results_ui.no_matching_plans }}</p>
+            <h3 class="record-title">{{ plans_results_ui.no_plans_found }} "{{ search_term }}"</h3>
+            <p class="muted-text">{{ plans_results_ui.no_plans_search_text }}</p>
         {% else %}
-            <p class="record-eyebrow">No plans yet</p>
-            <h3 class="record-title">Start your onboarding coordination flow</h3>
-            <p class="muted-text">Create the first onboarding plan to assign a user, set a status, and organize plan-specific tasks.</p>
+            <p class="record-eyebrow">{{ plans_results_ui.no_plans_yet }}</p>
+            <h3 class="record-title">{{ plans_results_ui.start_flow_title }}</h3>
+            <p class="muted-text">{{ plans_results_ui.start_flow_text }}</p>
         {% endif %}
     </div>
 {% endif %}

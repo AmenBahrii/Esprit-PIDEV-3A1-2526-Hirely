@@ -1,16 +1,31 @@
 {% extends 'admin/base_admin.html.twig' %}
 
-{% block title %}Plan Tasks{% endblock %}
+{% block title %}{{ onboarding_language.translateMap({page_title: 'Plan Tasks'}).page_title }}{% endblock %}
 
 {% set admin_area = app.request.attributes.get('_route') starts with 'app_admin' %}
 {% set plans_route = admin_area ? 'app_admin_plans' : 'app_workspace_plans' %}
 {% set tasks_new_route = admin_area ? 'app_admin_plan_tasks_new' : 'app_workspace_plan_tasks_new' %}
 {% set tasks_edit_route = admin_area ? 'app_admin_plan_tasks_edit' : 'app_workspace_plan_tasks_edit' %}
 {% set tasks_delete_route = admin_area ? 'app_admin_plan_tasks_delete' : 'app_workspace_plan_tasks_delete' %}
+{% set task_index_ui = onboarding_language.translateMap({
+    back_to_plans: 'Back to Plans',
+    add_task: 'Add Task',
+    search_placeholder: 'Search by task number, title, status, or attachment',
+    case_on: 'Case Sensitive: On',
+    case_off: 'Case Sensitive: Off',
+    all_statuses: 'All statuses',
+    newest: 'Newest',
+    title: 'Title',
+    status: 'Status',
+    deadline: 'Deadline',
+    has_attachment_only: 'Has attachment only',
+    clear: 'Clear',
+    search: 'Search'
+}) %}
 
 {% block admin_content %}
 <div class="page-header">
-    <h1 class="page-title">{{ viewer_context.candidate ? 'My Plan Tasks' : 'Plan Tasks' }}</h1>
+    <h1 class="page-title">{{ selected_language != 'en' ? task_translation.ui.page_title : (viewer_context.candidate ? 'My Plan Tasks' : 'Plan Tasks') }}</h1>
     <p class="muted-text">
         {{ plan.user.firstName }} {{ plan.user.lastName }} - Plan #{{ plan.planId }}
     </p>
@@ -19,19 +34,33 @@
 <div class="card card-immersive">
     <div class="section-header">
         <div>
-            <h2 class="section-title">Task Flow</h2>
-            <p class="section-kicker">Stay focused on progress, deadlines, attachment status, and the next useful action.</p>
+            <h2 class="section-title">{{ selected_language != 'en' ? task_translation.ui.flow_title : 'Task Flow' }}</h2>
+            <p class="section-kicker">{{ selected_language != 'en' ? task_translation.ui.flow_kicker : 'Stay focused on progress, deadlines, attachment status, and the next useful action.' }}</p>
         </div>
         <div class="section-actions">
-            <a href="{{ path(plans_route) }}" class="btn-secondary">Back to Plans</a>
+            {% if translation_enabled %}
+                <form method="get" action="{{ path(admin_area ? 'app_admin_plan_tasks' : 'app_workspace_plan_tasks', {id: plan.planId}) }}" class="inline-translation-form">
+                    <input type="hidden" name="q" value="{{ search_term|default('') }}">
+                    <input type="hidden" name="case_sensitive" value="{{ case_sensitive ? '1' : '0' }}">
+                    <input type="hidden" name="status" value="{{ selected_status }}">
+                    <input type="hidden" name="sort" value="{{ selected_sort }}">
+                    <input type="hidden" name="attachment_only" value="{{ attachment_only ? '1' : '0' }}">
+                    <select name="lang" class="search-select translation-select" onchange="this.form.requestSubmit()">
+                        {% for label, value in translation_languages %}
+                            <option value="{{ value }}" {{ selected_language == value ? 'selected' : '' }}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
+            {% endif %}
+            <a href="{{ path(plans_route) }}" class="btn-secondary">{{ task_index_ui.back_to_plans }}</a>
             {% if viewer_context.canCreateTasks %}
-                <a href="{{ path(tasks_new_route, {id: plan.planId}) }}" class="btn-primary">Add Task</a>
+                <a href="{{ path(tasks_new_route, {id: plan.planId}) }}" class="btn-primary">{{ task_index_ui.add_task }}</a>
             {% endif %}
         </div>
     </div>
 
     <form method="get" action="{{ path(admin_area ? 'app_admin_plan_tasks' : 'app_workspace_plan_tasks', {id: plan.planId}) }}" class="search-form search-form-panel" data-live-search-form>
-        <label for="tasks-search" class="search-label">Find a task</label>
+        <label for="tasks-search" class="search-label">{{ selected_language != 'en' ? task_translation.ui.find_task : 'Find a task' }}</label>
         <div class="search-controls">
             <input
                 id="tasks-search"
@@ -40,9 +69,10 @@
                 value="{{ search_term|default('') }}"
                 class="search-input"
                 autocomplete="off"
-                placeholder="Search by task number, title, status, or attachment"
+                placeholder="{{ task_index_ui.search_placeholder }}"
                 data-live-search-input
             >
+            <input type="hidden" name="lang" value="{{ selected_language }}">
             <input type="hidden" name="case_sensitive" value="{{ case_sensitive ? '1' : '0' }}" data-live-search-case-sensitive>
             <button
                 type="button"
@@ -50,30 +80,30 @@
                 data-live-search-toggle
                 aria-pressed="{{ case_sensitive ? 'true' : 'false' }}"
             >
-                {{ case_sensitive ? 'Case Sensitive: On' : 'Case Sensitive: Off' }}
+                {{ case_sensitive ? task_index_ui.case_on : task_index_ui.case_off }}
             </button>
             <select name="status" class="search-select">
-                <option value="">All statuses</option>
+                <option value="">{{ task_index_ui.all_statuses }}</option>
                 {% for label, value in task_status_choices %}
-                    <option value="{{ value }}" {{ selected_status == value ? 'selected' : '' }}>{{ label }}</option>
+                    <option value="{{ value }}" {{ selected_status == value ? 'selected' : '' }}>{{ task_translation.statuses[value] ?? label }}</option>
                 {% endfor %}
             </select>
             <select name="sort" class="search-select">
-                <option value="newest" {{ selected_sort == 'newest' ? 'selected' : '' }}>Newest</option>
-                <option value="title" {{ selected_sort == 'title' ? 'selected' : '' }}>Title</option>
-                <option value="status" {{ selected_sort == 'status' ? 'selected' : '' }}>Status</option>
-                <option value="deadline" {{ selected_sort == 'deadline' ? 'selected' : '' }}>Deadline</option>
+                <option value="newest" {{ selected_sort == 'newest' ? 'selected' : '' }}>{{ task_index_ui.newest }}</option>
+                <option value="title" {{ selected_sort == 'title' ? 'selected' : '' }}>{{ task_index_ui.title }}</option>
+                <option value="status" {{ selected_sort == 'status' ? 'selected' : '' }}>{{ task_index_ui.status }}</option>
+                <option value="deadline" {{ selected_sort == 'deadline' ? 'selected' : '' }}>{{ task_index_ui.deadline }}</option>
             </select>
             <label class="search-check">
                 <input type="checkbox" name="attachment_only" value="1" {{ attachment_only ? 'checked' : '' }}>
-                Has attachment only
+                {{ task_index_ui.has_attachment_only }}
             </label>
-            <button type="button" class="btn-secondary" data-live-search-clear>Clear</button>
+            <button type="button" class="btn-secondary" data-live-search-clear>{{ task_index_ui.clear }}</button>
             <noscript>
-                <button type="submit" class="btn-primary">Search</button>
+                <button type="submit" class="btn-primary">{{ task_index_ui.search }}</button>
             </noscript>
         </div>
-        <p class="search-hint">Use search and filters to narrow the task flow instantly.</p>
+        <p class="search-hint">{{ selected_language != 'en' ? task_translation.ui.search_hint : 'Use search and filters to narrow the task flow instantly.' }}</p>
     </form>
 
     <div data-live-search-results>

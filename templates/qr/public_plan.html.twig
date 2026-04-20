@@ -6,22 +6,35 @@
 <div class="home-wrap">
     <div class="card home-card public-qr-card">
         <div class="page-header">
-            <p class="record-eyebrow">Hirely Mobile View</p>
-            <h1 class="page-title">Onboarding Plan #{{ plan.planId }}</h1>
-            <p class="muted-text">Assigned to {{ plan.user.firstName }} {{ plan.user.lastName }}</p>
+            <div class="section-actions" style="justify-content: space-between; width: 100%;">
+                <div>
+                    <p class="record-eyebrow">{{ selected_language != 'en' ? qr_translation.ui.mobile_view : 'Hirely Mobile View' }}</p>
+                    <h1 class="page-title">{{ selected_language != 'en' ? qr_translation.ui.plan_title : 'Onboarding Plan #' ~ plan.planId }}</h1>
+                    <p class="muted-text">{{ selected_language != 'en' ? qr_translation.ui.assigned_to : 'Assigned to' }} {{ plan.user.firstName }} {{ plan.user.lastName }}</p>
+                </div>
+                {% if translation_enabled %}
+                    <form method="get" action="{{ path('app_public_plan_qr', {token: plan.qrToken}) }}" class="inline-translation-form">
+                        <select name="lang" class="search-select translation-select" onchange="this.form.requestSubmit()">
+                            {% for label, value in translation_languages %}
+                                <option value="{{ value }}" {{ selected_language == value ? 'selected' : '' }}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                {% endif %}
+            </div>
         </div>
 
         <div class="explorer-metrics">
             <div class="explorer-metric-card">
-                <span class="explorer-metric-label">Status</span>
-                <strong class="explorer-metric-value">{{ plan.status|replace({'_': ' '})|title }}</strong>
+                <span class="explorer-metric-label">{{ selected_language != 'en' ? qr_translation.ui.status : 'Status' }}</span>
+                <strong class="explorer-metric-value">{{ selected_language != 'en' ? qr_translation.statuses[plan.status] : plan.status|replace({'_': ' '})|title }}</strong>
             </div>
             <div class="explorer-metric-card">
-                <span class="explorer-metric-label">Deadline</span>
-                <strong class="explorer-metric-value">{{ plan.deadline ? plan.deadline|date('Y-m-d') : 'No deadline' }}</strong>
+                <span class="explorer-metric-label">{{ selected_language != 'en' ? qr_translation.ui.deadline : 'Deadline' }}</span>
+                <strong class="explorer-metric-value">{{ plan.deadline ? plan.deadline|date('Y-m-d') : (selected_language != 'en' ? qr_translation.ui.no_deadline : 'No deadline') }}</strong>
             </div>
             <div class="explorer-metric-card">
-                <span class="explorer-metric-label">Tasks</span>
+                <span class="explorer-metric-label">{{ selected_language != 'en' ? qr_translation.ui.tasks : 'Tasks' }}</span>
                 <strong class="explorer-metric-value">{{ tasks|length }}</strong>
             </div>
         </div>
@@ -33,21 +46,21 @@
                         <div class="record-card-top">
                             <div>
                                 <p class="record-eyebrow">Task #{{ task.taskId }}</p>
-                                <h2 class="record-title">{{ task.title ?: 'Untitled task' }}</h2>
+                                <h2 class="record-title">{{ selected_language != 'en' ? qr_translation.tasks[task.taskId].title : (task.title ?: 'Untitled task') }}</h2>
                             </div>
-                            <span class="status-pill">{{ task.status|replace({'_': ' '})|title }}</span>
+                            <span class="status-pill status-{{ task.status|replace({'_': '-'}) }}">{{ selected_language != 'en' ? qr_translation.statuses[task.status] : task.status|replace({'_': ' '})|title }}</span>
                         </div>
 
-                        <p class="record-description">{{ task.description ?: 'No description added for this task yet.' }}</p>
+                        <p class="record-description">{{ selected_language != 'en' ? qr_translation.tasks[task.taskId].description : (task.description ?: 'No description added for this task yet.') }}</p>
 
                         <div class="record-meta">
                             <div class="record-meta-item">
-                                <span class="record-meta-label">Deadline</span>
-                                <span class="record-meta-value">{{ task.deadline ? task.deadline|date('Y-m-d') : 'No deadline' }}</span>
+                                <span class="record-meta-label">{{ selected_language != 'en' ? qr_translation.ui.deadline : 'Deadline' }}</span>
+                                <span class="record-meta-value">{{ task.deadline ? task.deadline|date('Y-m-d') : (selected_language != 'en' ? qr_translation.ui.no_deadline : 'No deadline') }}</span>
                             </div>
                             <div class="record-meta-item">
-                                <span class="record-meta-label">Attachment</span>
-                                <span class="record-meta-value">{{ task.hasAttachment ? task.attachmentLabel : 'No attachment' }}</span>
+                                <span class="record-meta-label">{{ selected_language != 'en' ? qr_translation.ui.attachment : 'Attachment' }}</span>
+                                <span class="record-meta-value">{{ task.hasAttachment ? task.attachmentLabel : (selected_language != 'en' ? qr_translation.tasks[task.taskId].attachment : 'No attachment') }}</span>
                             </div>
                         </div>
 
@@ -56,16 +69,16 @@
                                 task: task,
                                 preview_class: 'attachment-preview'
                             } only %}
-                            <a href="{{ task.filePath }}" target="_blank" rel="noreferrer" class="attachment-link">Open file</a>
+                            <a href="{{ task.filePath }}" target="_blank" rel="noreferrer" class="attachment-link">{{ selected_language != 'en' ? qr_translation.ui.open_file : 'Open file' }}</a>
                         {% endif %}
                     </article>
                 {% endfor %}
             </div>
         {% else %}
             <div class="empty-state-card">
-                <p class="record-eyebrow">No tasks yet</p>
-                <h2 class="record-title">This onboarding plan has no tasks yet.</h2>
-                <p class="muted-text">When tasks are added, they will appear here with any linked attachments.</p>
+                <p class="record-eyebrow">{{ selected_language != 'en' ? qr_translation.ui.no_tasks_yet : 'No tasks yet' }}</p>
+                <h2 class="record-title">{{ selected_language != 'en' ? qr_translation.ui.no_tasks_title : 'This onboarding plan has no tasks yet.' }}</h2>
+                <p class="muted-text">{{ selected_language != 'en' ? qr_translation.ui.no_tasks_text : 'When tasks are added, they will appear here with any linked attachments.' }}</p>
             </div>
         {% endif %}
     </div>

@@ -7,6 +7,8 @@ parameters:
     onboarding.cloudinary.cloud_name: '%env(default::CLOUDINARY_CLOUD_NAME)%'
     onboarding.cloudinary.unsigned_preset: '%env(default::CLOUDINARY_UNSIGNED_PRESET)%'
     onboarding.public_base_url: '%env(default::ONBOARDING_PUBLIC_BASE_URL)%'
+    onboarding.libretranslate.api_url: '%env(default::LIBRETRANSLATE_API_URL)%'
+    onboarding.libretranslate.api_key: '%env(default::LIBRETRANSLATE_API_KEY)%'
 
 services:
     # default configuration for services in *this* file
@@ -33,6 +35,11 @@ services:
     App\Onboarding\PublicUrlConfiguration:
         arguments:
             $publicBaseUrl: '%onboarding.public_base_url%'
+
+    App\Onboarding\LibreTranslateService:
+        arguments:
+            $apiUrl: '%onboarding.libretranslate.api_url%'
+            $apiKey: '%onboarding.libretranslate.api_key%'
 
     App\Onboarding\LocalTaskAttachmentStorage:
         arguments:
