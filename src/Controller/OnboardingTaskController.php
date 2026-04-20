@@ -9,9 +9,9 @@ use App\Onboarding\AttachmentUploadConfiguration;
 use App\Onboarding\LibreTranslateService;
 use App\Onboarding\LocalTaskAttachmentStorage;
 use App\Onboarding\OnboardingLanguageContext;
+use App\Onboarding\OnboardingFlowPresenter;
+use App\Onboarding\OnboardingFlowService;
 use App\Onboarding\OnboardingPlanStatusManager;
-use App\Onboarding\TaskDecisionGuideService;
-use App\Onboarding\TaskRecommendation;
 use App\Onboarding\ViewerContext;
 use App\Repository\OnboardingtaskRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -59,7 +59,7 @@ final class OnboardingTaskController extends AbstractController
 
     #[Route('/admin/plans/{id}/tasks', name: 'app_admin_plan_tasks')]
     #[Route('/workspace/plans/{id}/tasks', name: 'app_workspace_plan_tasks')]
-    public function index(Request $request, Onboardingplan $plan, OnboardingtaskRepository $taskRepository, ViewerContext $viewerContext, TaskDecisionGuideService $taskDecisionGuideService, ChartBuilderInterface $chartBuilder, LibreTranslateService $libreTranslateService, OnboardingLanguageContext $onboardingLanguageContext): Response|RedirectResponse
+    public function index(Request $request, Onboardingplan $plan, OnboardingtaskRepository $taskRepository, ViewerContext $viewerContext, ChartBuilderInterface $chartBuilder, LibreTranslateService $libreTranslateService, OnboardingLanguageContext $onboardingLanguageContext, OnboardingFlowService $onboardingFlowService, OnboardingFlowPresenter $onboardingFlowPresenter): Response|RedirectResponse
     {
         if ($redirect = $this->redirectForArea($request, $viewerContext)) {
             return $redirect;
@@ -81,13 +81,15 @@ final class OnboardingTaskController extends AbstractController
         $selectedLanguage = $onboardingLanguageContext->resolveFromRequest($request);
         $tasks = $taskRepository->findByPlan($plan, $searchTerm, $caseSensitive, $filters);
         $taskMetrics = $this->buildTaskMetrics($tasks);
-        $taskRecommendations = \array_slice($taskDecisionGuideService->buildRecommendations($viewerContext->getRoleId() ?? ViewerContext::ROLE_CANDIDATE, $tasks), 0, 5);
         $translatedTaskUi = $this->buildTranslatedTaskUi(
             $tasks,
-            $taskRecommendations,
             $libreTranslateService,
             $selectedLanguage,
             $viewerContext->isCandidate() ? 'My Plan Tasks' : 'Plan Tasks',
+        );
+        $taskFlow = $onboardingFlowPresenter->translateFlow(
+            $onboardingFlowService->buildPlanFlow($plan, $tasks),
+            $selectedLanguage
         );
         $viewData = [
             'plan' => $plan,
@@ -101,11 +103,10 @@ final class OnboardingTaskController extends AbstractController
             'translation_languages' => $libreTranslateService->getLanguageChoices(),
             'translation_enabled' => $libreTranslateService->isEnabled(),
             'task_translation' => $translatedTaskUi,
+            'task_flow' => $taskFlow,
             'task_metrics' => $taskMetrics,
             'task_status_chart' => $this->buildTaskStatusChart($chartBuilder, $taskMetrics, $onboardingLanguageContext, $selectedLanguage),
             'task_progress_chart' => $this->buildTaskProgressChart($chartBuilder, $taskMetrics, $onboardingLanguageContext, $selectedLanguage),
-            'task_recommendations' => $taskRecommendations,
-            'task_guide_overview' => $this->buildTaskGuideOverview($tasks, $taskMetrics, $taskRecommendations),
             'task_status_choices' => Onboardingtask::getStatusChoices(),
         ];
 
@@ -296,15 +297,13 @@ final class OnboardingTaskController extends AbstractController
 
     /**
      * @param Onboardingtask[] $tasks
-     * @param TaskRecommendation[] $taskRecommendations
      * @return array{
      *     ui: array<string, string>,
      *     statuses: array<string, string>,
-     *     tasks: array<int, array<string, string>>,
-     *     recommendations: array<int, array{message: string, reason: string, action_label: string}>
+     *     tasks: array<int, array<string, string>>
      * }
      */
-    private function buildTranslatedTaskUi(array $tasks, array $taskRecommendations, LibreTranslateService $libreTranslateService, string $selectedLanguage, string $pageTitle): array
+    private function buildTranslatedTaskUi(array $tasks, LibreTranslateService $libreTranslateService, string $selectedLanguage, string $pageTitle): array
     {
         $uiTexts = [
             'page_title' => $pageTitle,
@@ -316,20 +315,25 @@ final class OnboardingTaskController extends AbstractController
             'task_status_distribution_text' => 'See how the current task flow is split across each status.',
             'completion_file_coverage' => 'Completion and File Coverage',
             'completion_file_coverage_text' => 'Track finished work and how much of the plan already has linked files.',
-            'decision_guide' => 'Decision Guide',
-            'decision_guide_text' => 'Live guidance based on task status mix, missing proof, urgency, and the next deadline.',
-            'guide_health' => 'Guide Health',
-            'current_focus' => 'Current focus',
-            'guide_updates' => 'The guide updates from the visible task list and current filters.',
-            'score' => 'score',
-            'urgent_actions' => 'Urgent actions',
-            'urgent_actions_note' => 'High-priority recommendations visible now',
-            'due_soon' => 'Due soon',
-            'due_soon_note' => 'Tasks due within the next 3 days',
-            'missing_proof' => 'Missing proof',
-            'missing_proof_note' => 'Completed tasks still missing evidence',
-            'next_deadline' => 'Next deadline',
-            'next_deadline_note' => 'Earliest active deadline in this plan',
+            'flow_workspace' => 'Flow Workspace',
+            'flow_workspace_text' => 'A live timeline of the onboarding flow with progress, risk, and the next best moves.',
+            'readiness_score' => 'Readiness score',
+            'progress' => 'Progress',
+            'risk_level' => 'Risk level',
+            'current_phase' => 'Current phase',
+            'next_actions' => 'Next actions',
+            'risk_signals' => 'Risk signals',
+            'timeline' => 'Timeline',
+            'tasks_in_phase' => 'tasks in phase',
+            'primary_task' => 'Primary task',
+            'priority_action' => 'Priority action',
+            'signal_count' => 'Signal count',
+            'phase_status' => 'Phase status',
+            'phase_load' => 'Phase load',
+            'all_clear' => 'All clear',
+            'no_risk_signals' => 'No active risk signals.',
+            'action_open_task' => 'Open task',
+            'action_update' => 'Review task',
             'attachment_ready' => 'Attachment ready',
             'no_attachment_yet' => 'No attachment linked yet',
             'untitled_task' => 'Untitled task',
@@ -368,17 +372,9 @@ final class OnboardingTaskController extends AbstractController
             $taskTexts['task_attachment_value_' . $task->getTaskId()] = $task->hasAttachment() ? $task->getAttachmentLabel() : $uiTexts['not_attached'];
         }
 
-        $recommendationTexts = [];
-        foreach ($taskRecommendations as $index => $recommendation) {
-            $recommendationTexts['recommendation_message_' . $index] = $recommendation->getMessage();
-            $recommendationTexts['recommendation_reason_' . $index] = $recommendation->getReason();
-            $recommendationTexts['recommendation_action_' . $index] = $recommendation->getActionLabel();
-        }
-
         $translatedUi = $libreTranslateService->translateMap($uiTexts, $selectedLanguage);
         $translatedStatuses = $libreTranslateService->translateMap($statusTexts, $selectedLanguage);
         $translatedTasks = $libreTranslateService->translateMap($taskTexts, $selectedLanguage);
-        $translatedRecommendations = $libreTranslateService->translateMap($recommendationTexts, $selectedLanguage);
 
         $tasksById = [];
         foreach ($tasks as $task) {
@@ -393,20 +389,10 @@ final class OnboardingTaskController extends AbstractController
             ];
         }
 
-        $recommendationsByIndex = [];
-        foreach ($taskRecommendations as $index => $recommendation) {
-            $recommendationsByIndex[$index] = [
-                'message' => $translatedRecommendations['recommendation_message_' . $index] ?? $recommendation->getMessage(),
-                'reason' => $translatedRecommendations['recommendation_reason_' . $index] ?? $recommendation->getReason(),
-                'action_label' => $translatedRecommendations['recommendation_action_' . $index] ?? $recommendation->getActionLabel(),
-            ];
-        }
-
         return [
             'ui' => $translatedUi,
             'statuses' => $translatedStatuses,
             'tasks' => $tasksById,
-            'recommendations' => $recommendationsByIndex,
         ];
     }
 
@@ -457,87 +443,6 @@ final class OnboardingTaskController extends AbstractController
             'on_hold' => $onHold,
             'not_started' => $notStarted,
             'attachments' => $attachments,
-        ];
-    }
-
-    /**
-     * @param Onboardingtask[] $tasks
-     * @param array{total: int, completed: int, in_progress: int, blocked: int, on_hold: int, not_started: int, attachments: int} $taskMetrics
-     * @param TaskRecommendation[] $taskRecommendations
-     * @return array{health_score: int, health_label: string, focus_label: string, due_soon_count: int, missing_proof_count: int, urgent_actions: int, next_deadline_label: string}
-     */
-    private function buildTaskGuideOverview(array $tasks, array $taskMetrics, array $taskRecommendations): array
-    {
-        $dueSoonCount = 0;
-        $missingProofCount = 0;
-        $urgentActions = 0;
-        $nextDeadline = null;
-        $today = new \DateTimeImmutable('today');
-        $soonLimit = $today->modify('+3 days');
-
-        foreach ($tasks as $task) {
-            $deadline = $task->getDeadline();
-            if ($deadline && Onboardingtask::STATUS_COMPLETED !== $task->getStatus()) {
-                $deadlineDate = \DateTimeImmutable::createFromInterface($deadline)->setTime(0, 0);
-                if ($deadlineDate <= $soonLimit) {
-                    ++$dueSoonCount;
-                }
-
-                if (null === $nextDeadline || $deadlineDate < $nextDeadline) {
-                    $nextDeadline = $deadlineDate;
-                }
-            }
-
-            if (Onboardingtask::STATUS_COMPLETED === $task->getStatus() && !$task->hasAttachment()) {
-                ++$missingProofCount;
-            }
-        }
-
-        foreach ($taskRecommendations as $recommendation) {
-            if (TaskRecommendation::PRIORITY_HIGH === $recommendation->getPriority()) {
-                ++$urgentActions;
-            }
-        }
-
-        $healthScore = 100;
-        $healthScore -= ($taskMetrics['blocked'] * 18);
-        $healthScore -= ($taskMetrics['on_hold'] * 10);
-        $healthScore -= ($taskMetrics['not_started'] * 6);
-        $healthScore -= ($missingProofCount * 7);
-        $healthScore += ($taskMetrics['completed'] * 4);
-        $healthScore += ($taskMetrics['attachments'] * 2);
-        $healthScore = max(18, min(96, $healthScore));
-
-        if ($healthScore >= 80) {
-            $healthLabel = 'Healthy flow';
-        } elseif ($healthScore >= 60) {
-            $healthLabel = 'Watch closely';
-        } else {
-            $healthLabel = 'Needs attention';
-        }
-
-        if ($taskMetrics['blocked'] > 0) {
-            $focusLabel = 'Resolve blockers';
-        } elseif ($missingProofCount > 0) {
-            $focusLabel = 'Collect missing proof';
-        } elseif ($taskMetrics['in_progress'] > 0) {
-            $focusLabel = 'Push active work forward';
-        } elseif ($taskMetrics['not_started'] > 0) {
-            $focusLabel = 'Kick off pending work';
-        } else {
-            $focusLabel = 'Maintain momentum';
-        }
-
-        $nextDeadlineLabel = $nextDeadline ? $nextDeadline->format('Y-m-d') : 'No active deadline';
-
-        return [
-            'health_score' => $healthScore,
-            'health_label' => $healthLabel,
-            'focus_label' => $focusLabel,
-            'due_soon_count' => $dueSoonCount,
-            'missing_proof_count' => $missingProofCount,
-            'urgent_actions' => $urgentActions,
-            'next_deadline_label' => $nextDeadlineLabel,
         ];
     }
 

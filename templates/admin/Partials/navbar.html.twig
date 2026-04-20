@@ -7,12 +7,20 @@
     topbar_subtitle: 'Onboarding coordination',
     dashboard: 'Dashboard',
     my_onboarding: 'My Onboarding',
-    onboarding_plans: 'Onboarding Plans'
+    onboarding_plans: 'Onboarding Plans',
+    live_workspace: 'Live workspace',
+    command_surface: 'Command surface',
+    connected_view: 'Connected view'
 }) %}
 
 <header class="topbar">
     <div class="topbar-layout">
-        <div>
+        <div class="topbar-copy">
+            <div class="topbar-kicker-row">
+                <span class="topbar-kicker">{{ admin_area ? shell_ui.command_surface : shell_ui.connected_view }}</span>
+                <span class="topbar-kicker-dot"></span>
+                <span class="topbar-kicker">{{ shell_ui.live_workspace }}</span>
+            </div>
             <div class="topbar-title">{{ shell_ui.topbar_title }}</div>
             <div class="topbar-subtitle">{{ shell_ui.topbar_subtitle }}</div>
         </div>

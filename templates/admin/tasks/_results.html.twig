@@ -2,6 +2,157 @@
 {% set tasks_edit_route = admin_area ? 'app_admin_plan_tasks_edit' : 'app_workspace_plan_tasks_edit' %}
 {% set tasks_delete_route = admin_area ? 'app_admin_plan_tasks_delete' : 'app_workspace_plan_tasks_delete' %}
 {% set tasks_list_route = admin_area ? 'app_admin_plan_tasks' : 'app_workspace_plan_tasks' %}
+{% set active_phase = null %}
+{% for phase in task_flow.timeline %}
+    {% if phase.code == task_flow.currentPhase.code %}
+        {% set active_phase = phase %}
+    {% endif %}
+{% endfor %}
+{% set primary_action = task_flow.nextActions|first %}
+{% set total_signal_count = 0 %}
+{% for signal in task_flow.riskSignals %}
+    {% set total_signal_count = total_signal_count + signal.count %}
+{% endfor %}
+
+<section class="card flow-workspace" style="margin-bottom: 22px;">
+    <div class="section-header">
+        <div>
+            <h2 class="section-title">{{ selected_language != 'en' ? task_translation.ui.flow_workspace : 'Flow Workspace' }}</h2>
+            <p class="section-kicker">{{ selected_language != 'en' ? task_translation.ui.flow_workspace_text : 'A live timeline of the onboarding flow with progress, risk, and the next best moves.' }}</p>
+        </div>
+    </div>
+
+    <div class="flow-workspace-grid">
+        <article class="flow-hero-panel risk-{{ task_flow.riskLevel }}">
+            <div class="flow-hero-top">
+                <div class="flow-hero-copy">
+                    <span class="flow-kicker"><span class="flow-kicker-dot"></span>{{ selected_language != 'en' ? task_translation.ui.current_phase : 'Current phase' }}</span>
+                    <h3 class="flow-hero-title">{{ task_flow.currentPhase.phaseLabel }}</h3>
+                    <p class="flow-hero-text">{{ task_flow.smartSummary }}</p>
+                </div>
+                <div class="flow-score-stack">
+                    <div class="flow-score-chip">
+                        <span class="flow-score-label">{{ selected_language != 'en' ? task_translation.ui.progress : 'Progress' }}</span>
+                        <strong class="flow-score-value">{{ task_flow.progressPercent }}%</strong>
+                    </div>
+                    <div class="flow-score-chip">
+                        <span class="flow-score-label">{{ selected_language != 'en' ? task_translation.ui.readiness_score : 'Readiness score' }}</span>
+                        <strong class="flow-score-value">{{ task_flow.readinessScore }}</strong>
+                    </div>
+                    <div class="flow-score-chip">
+                        <span class="flow-score-label">{{ selected_language != 'en' ? task_translation.ui.risk_level : 'Risk level' }}</span>
+                        <strong class="flow-score-value">{{ task_flow.riskLevelLabel }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-hero-lower">
+                <div class="flow-mission-card">
+                    <span class="flow-mission-label">{{ selected_language != 'en' ? task_translation.ui.priority_action : 'Priority action' }}</span>
+                    <h4 class="flow-mission-title">{{ primary_action.title }}</h4>
+                    <p class="flow-mission-text">{{ primary_action.detail }}</p>
+                    {% if primary_action.taskId %}
+                        <a href="{{ path(tasks_edit_route, {id: primary_action.taskId}) }}" class="btn-primary flow-mission-action">
+                            {{ primary_action.actionType == 'open_update'
+                                ? (selected_language != 'en' ? task_translation.ui.action_update : 'Review task')
+                                : (selected_language != 'en' ? task_translation.ui.action_open_task : 'Open task')
+                            }}
+                        </a>
+                    {% endif %}
+                </div>
+
+                <div class="flow-pulse-strip">
+                    <div class="flow-pulse-metric">
+                        <span class="flow-pulse-label">{{ selected_language != 'en' ? task_translation.ui.signal_count : 'Signal count' }}</span>
+                        <strong class="flow-pulse-value">{{ total_signal_count }}</strong>
+                        <span class="flow-pulse-note">{{ total_signal_count > 0 ? task_flow.riskLevelLabel : (selected_language != 'en' ? task_translation.ui.all_clear : 'All clear') }}</span>
+                    </div>
+                    <div class="flow-pulse-metric">
+                        <span class="flow-pulse-label">{{ selected_language != 'en' ? task_translation.ui.phase_status : 'Phase status' }}</span>
+                        <strong class="flow-pulse-value">{{ task_flow.currentPhase.statusLabel }}</strong>
+                        <span class="flow-pulse-note">{{ task_flow.currentPhase.phaseLabel }}</span>
+                    </div>
+                    <div class="flow-pulse-metric">
+                        <span class="flow-pulse-label">{{ selected_language != 'en' ? task_translation.ui.phase_load : 'Phase load' }}</span>
+                        <strong class="flow-pulse-value">{{ active_phase ? active_phase.completedCount ~ '/' ~ active_phase.taskCount : '0/0' }}</strong>
+                        <span class="flow-pulse-note">{{ selected_language != 'en' ? task_translation.ui.tasks_in_phase : 'tasks in phase' }}</span>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <aside class="flow-side-panel">
+            <div class="flow-side-block">
+                <h3 class="flow-side-title">{{ selected_language != 'en' ? task_translation.ui.next_actions : 'Next actions' }}</h3>
+                <div class="flow-action-list">
+                    {% for action in task_flow.nextActions %}
+                        <article class="flow-action-item priority-{{ action.priority }}">
+                            <div>
+                                <div class="flow-action-title">{{ action.title }}</div>
+                                <p class="flow-action-text">{{ action.detail }}</p>
+                            </div>
+                            {% if action.taskId %}
+                                <a href="{{ path(tasks_edit_route, {id: action.taskId}) }}" class="btn-secondary">
+                                    {{ action.actionType == 'open_update'
+                                        ? (selected_language != 'en' ? task_translation.ui.action_update : 'Review task')
+                                        : (selected_language != 'en' ? task_translation.ui.action_open_task : 'Open task')
+                                    }}
+                                </a>
+                            {% endif %}
+                        </article>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="flow-side-block">
+                <h3 class="flow-side-title">{{ selected_language != 'en' ? task_translation.ui.risk_signals : 'Risk signals' }}</h3>
+                {% if task_flow.riskSignals is not empty %}
+                    <div class="flow-risk-list">
+                        {% for signal in task_flow.riskSignals %}
+                            <div class="flow-risk-chip severity-{{ signal.severity }}">
+                                <span>{{ signal.label }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="muted-text">{{ selected_language != 'en' ? task_translation.ui.no_risk_signals : 'No active risk signals.' }}</p>
+                {% endif %}
+            </div>
+        </aside>
+    </div>
+
+    <div class="flow-timeline">
+        <div class="flow-timeline-head">
+            <h3 class="flow-side-title">{{ selected_language != 'en' ? task_translation.ui.timeline : 'Timeline' }}</h3>
+        </div>
+        <div class="flow-phase-grid">
+            {% for phase in task_flow.timeline %}
+                <article class="flow-phase-card status-{{ phase.status }}">
+                    <div class="flow-phase-top">
+                        <div>
+                            <span class="flow-phase-kicker">{{ phase.statusLabel }}</span>
+                            <h4 class="flow-phase-title">{{ phase.phaseLabel }}</h4>
+                        </div>
+                        <span class="flow-phase-progress">{{ phase.progressPercent }}%</span>
+                    </div>
+                    <div class="flow-phase-meter">
+                        <span class="flow-phase-meter-fill" style="width: {{ phase.progressPercent }}%;"></span>
+                    </div>
+                    <div class="flow-phase-meta">
+                        <span>{{ phase.taskCount }} {{ selected_language != 'en' ? task_translation.ui.tasks_in_phase : 'tasks in phase' }}</span>
+                        <span>{{ phase.completedCount }}/{{ phase.taskCount }}</span>
+                    </div>
+                    {% if phase.primaryTaskTitle %}
+                        <div class="flow-phase-primary">
+                            <span class="flow-phase-primary-label">{{ selected_language != 'en' ? task_translation.ui.primary_task : 'Primary task' }}</span>
+                            <strong class="flow-phase-primary-title">{{ phase.primaryTaskTitle }}</strong>
+                        </div>
+                    {% endif %}
+                </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
 
 <div class="analytics-grid analytics-grid-double" style="margin-bottom: 22px;">
     <article class="analytics-card">
@@ -28,80 +179,6 @@
         </div>
     </article>
 </div>
-
-{% if task_recommendations is not empty %}
-    <div class="card insight-panel">
-        <div class="section-header">
-            <div>
-                <h2 class="section-title">{{ selected_language != 'en' ? task_translation.ui.decision_guide : 'Decision Guide' }}</h2>
-                <p class="section-kicker">{{ selected_language != 'en' ? task_translation.ui.decision_guide_text : 'Live guidance based on task status mix, missing proof, urgency, and the next deadline.' }}</p>
-            </div>
-        </div>
-
-        <div class="guide-overview">
-            <article class="guide-hero-card">
-                <div class="guide-hero-copy">
-                    <span class="guide-kicker">{{ selected_language != 'en' ? task_translation.ui.guide_health : 'Guide Health' }}</span>
-                    <h3 class="guide-hero-title">{{ task_guide_overview.health_label }}</h3>
-                    <p class="guide-hero-text">{{ selected_language != 'en' ? task_translation.ui.current_focus : 'Current focus' }}: {{ task_guide_overview.focus_label|lower }}. {{ selected_language != 'en' ? task_translation.ui.guide_updates : 'The guide updates from the visible task list and current filters.' }}</p>
-                </div>
-                <div class="guide-score-wrap">
-                    <div class="guide-score-ring">
-                        <strong class="guide-score-value">{{ task_guide_overview.health_score }}</strong>
-                        <span class="guide-score-label">{{ selected_language != 'en' ? task_translation.ui.score : 'score' }}</span>
-                    </div>
-                </div>
-            </article>
-
-            <div class="guide-signal-grid">
-                <article class="guide-signal-card">
-                    <span class="guide-signal-label">{{ selected_language != 'en' ? task_translation.ui.urgent_actions : 'Urgent actions' }}</span>
-                    <strong class="guide-signal-value">{{ task_guide_overview.urgent_actions }}</strong>
-                    <span class="guide-signal-note">{{ selected_language != 'en' ? task_translation.ui.urgent_actions_note : 'High-priority recommendations visible now' }}</span>
-                </article>
-                <article class="guide-signal-card">
-                    <span class="guide-signal-label">{{ selected_language != 'en' ? task_translation.ui.due_soon : 'Due soon' }}</span>
-                    <strong class="guide-signal-value">{{ task_guide_overview.due_soon_count }}</strong>
-                    <span class="guide-signal-note">{{ selected_language != 'en' ? task_translation.ui.due_soon_note : 'Tasks due within the next 3 days' }}</span>
-                </article>
-                <article class="guide-signal-card">
-                    <span class="guide-signal-label">{{ selected_language != 'en' ? task_translation.ui.missing_proof : 'Missing proof' }}</span>
-                    <strong class="guide-signal-value">{{ task_guide_overview.missing_proof_count }}</strong>
-                    <span class="guide-signal-note">{{ selected_language != 'en' ? task_translation.ui.missing_proof_note : 'Completed tasks still missing evidence' }}</span>
-                </article>
-                <article class="guide-signal-card">
-                    <span class="guide-signal-label">{{ selected_language != 'en' ? task_translation.ui.next_deadline : 'Next deadline' }}</span>
-                    <strong class="guide-signal-value guide-signal-value-date">{{ task_guide_overview.next_deadline_label }}</strong>
-                    <span class="guide-signal-note">{{ selected_language != 'en' ? task_translation.ui.next_deadline_note : 'Earliest active deadline in this plan' }}</span>
-                </article>
-            </div>
-        </div>
-
-        <div class="insight-list">
-            {% for recommendation in task_recommendations %}
-                <article class="insight-item {{ recommendation.priority }}">
-                    <div class="insight-copy">
-                        <div class="insight-meta-row">
-                            <span class="guide-priority-badge {{ recommendation.priority }}">{{ selected_language != 'en' ? task_translation.statuses[recommendation.priority]|upper : recommendation.priority|upper }}</span>
-                            {% if recommendation.taskId %}
-                                <span class="guide-task-ref">Task #{{ recommendation.taskId }}</span>
-                            {% endif %}
-                        </div>
-                        <p class="insight-title">{{ selected_language != 'en' ? task_translation.recommendations[loop.index0].message : recommendation.message }}</p>
-                        <p class="insight-text">{{ selected_language != 'en' ? task_translation.recommendations[loop.index0].reason : recommendation.reason }}</p>
-                    </div>
-                    <div class="insight-action">
-                        {% if recommendation.taskId and recommendation.actionType in ['open_update', 'select_task'] %}
-                            <a href="{{ path(tasks_edit_route, {id: recommendation.taskId}) }}" class="btn-secondary">{{ selected_language != 'en' ? task_translation.recommendations[loop.index0].action_label : recommendation.actionLabel }}</a>
-                        {% else %}
-                            <a href="{{ path(tasks_list_route, {id: plan.planId}) }}" class="btn-secondary">{{ selected_language != 'en' ? task_translation.recommendations[loop.index0].action_label : recommendation.actionLabel }}</a>
-                        {% endif %}
-                    </div>
-                </article>
-            {% endfor %}
-        </div>
-    </div>
-{% endif %}
 
 {% if tasks is not empty %}
     <div class="record-grid">

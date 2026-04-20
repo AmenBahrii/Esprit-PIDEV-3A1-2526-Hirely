@@ -7,9 +7,11 @@
 {% set tasks_new_route = admin_area ? 'app_admin_plan_tasks_new' : 'app_workspace_plan_tasks_new' %}
 {% set tasks_edit_route = admin_area ? 'app_admin_plan_tasks_edit' : 'app_workspace_plan_tasks_edit' %}
 {% set tasks_delete_route = admin_area ? 'app_admin_plan_tasks_delete' : 'app_workspace_plan_tasks_delete' %}
+{% set flow_api_route = 'app_api_onboarding_plan_flow' %}
 {% set task_index_ui = onboarding_language.translateMap({
     back_to_plans: 'Back to Plans',
     add_task: 'Add Task',
+    flow_api: 'Flow API',
     search_placeholder: 'Search by task number, title, status, or attachment',
     case_on: 'Case Sensitive: On',
     case_off: 'Case Sensitive: Off',
@@ -52,6 +54,7 @@
                     </select>
                 </form>
             {% endif %}
+            <a href="{{ path(flow_api_route, {id: plan.planId, lang: selected_language}) }}" target="_blank" rel="noreferrer" class="btn-secondary">{{ task_index_ui.flow_api }}</a>
             <a href="{{ path(plans_route) }}" class="btn-secondary">{{ task_index_ui.back_to_plans }}</a>
             {% if viewer_context.canCreateTasks %}
                 <a href="{{ path(tasks_new_route, {id: plan.planId}) }}" class="btn-primary">{{ task_index_ui.add_task }}</a>

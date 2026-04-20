@@ -122,6 +122,38 @@ class OnboardingtaskRepository extends ServiceEntityRepository
         return $summaryByPlanId;
     }
 
+    /**
+     * @param int[] $planIds
+     * @return array<int, Onboardingtask[]>
+     */
+    public function findGroupedByPlanIds(array $planIds): array
+    {
+        $planIds = array_values(array_unique(array_filter(array_map('intval', $planIds), static fn (int $planId): bool => $planId > 0)));
+        if ([] === $planIds) {
+            return [];
+        }
+
+        $tasks = $this->createQueryBuilder('task')
+            ->leftJoin('task.plan', 'plan')
+            ->addSelect('plan')
+            ->andWhere('task.plan IN (:planIds)')
+            ->setParameter('planIds', $planIds)
+            ->orderBy('task.taskId', 'DESC')
+            ->getQuery()
+            ->getResult();
+
+        $grouped = [];
+        foreach ($planIds as $planId) {
+            $grouped[$planId] = [];
+        }
+
+        foreach ($tasks as $task) {
+            $grouped[(int) $task->getPlan()?->getPlanId()][] = $task;
+        }
+
+        return $grouped;
+    }
+
     private function applySearch(QueryBuilder $builder, ?string $search, bool $caseSensitive): void
     {
         $search = null !== $search ? trim($search) : '';

@@ -11,15 +11,22 @@
     {% endif %}
 
     <div class="admin-main">
+        <div class="shell-backdrop">
+            <span class="shell-glow shell-glow-a"></span>
+            <span class="shell-glow shell-glow-b"></span>
+            <span class="shell-grid"></span>
+        </div>
         {% include 'admin/Partials/navbar.html.twig' %}
 
         <main class="admin-content">
-            {% for label, messages in app.flashes %}
-                {% for message in messages %}
-                    <div class="flash-message {{ label }}">{{ message }}</div>
+            <div class="content-stage">
+                {% for label, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="flash-message {{ label }}">{{ message }}</div>
+                    {% endfor %}
                 {% endfor %}
-            {% endfor %}
-            {% block admin_content %}{% endblock %}
+                {% block admin_content %}{% endblock %}
+            </div>
         </main>
     </div>
 </div>

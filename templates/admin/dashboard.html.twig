@@ -48,33 +48,47 @@
 }) %}
 
 {% block admin_content %}
-<div class="page-header">
-    <h1 class="page-title">{{ dashboard_ui.page_title }}</h1>
-    <p class="muted-text">
-        {{ viewer_context.candidate
-            ? dashboard_ui.candidate_intro
-            : dashboard_ui.admin_intro
-        }}
-    </p>
-</div>
+<section class="dashboard-hero">
+    <div class="dashboard-hero-copy">
+        <span class="dashboard-hero-kicker">{{ viewer_context.roleName }}</span>
+        <h1 class="dashboard-hero-title">{{ dashboard_ui.page_title }}</h1>
+        <p class="dashboard-hero-text">
+            {{ viewer_context.candidate
+                ? dashboard_ui.candidate_intro
+                : dashboard_ui.admin_intro
+            }}
+        </p>
+    </div>
 
-<div class="metrics-grid">
-    <div class="metric-card">
+    <div class="dashboard-hero-rail">
+        <div class="dashboard-hero-chip">
+            <span class="dashboard-hero-chip-label">{{ dashboard_ui.current_role }}</span>
+            <strong class="dashboard-hero-chip-value">{{ viewer_context.roleName }}</strong>
+        </div>
+        <div class="dashboard-hero-chip">
+            <span class="dashboard-hero-chip-label">{{ dashboard_ui.focus }}</span>
+            <strong class="dashboard-hero-chip-value">{{ viewer_context.candidate ? dashboard_ui.candidate_focus_title : dashboard_ui.admin_focus_title }}</strong>
+        </div>
+    </div>
+</section>
+
+<div class="metrics-grid metrics-grid-dashboard">
+    <div class="metric-card metric-card-dashboard">
         <div class="metric-label">{{ viewer_context.candidate ? dashboard_ui.my_plans : dashboard_ui.visible_plans }}</div>
         <div class="metric-value">{{ metrics.plans }}</div>
     </div>
 
-    <div class="metric-card">
+    <div class="metric-card metric-card-dashboard">
         <div class="metric-label">{{ dashboard_ui.completed_plans }}</div>
         <div class="metric-value">{{ metrics.completed_plans }}</div>
     </div>
 
-    <div class="metric-card">
+    <div class="metric-card metric-card-dashboard">
         <div class="metric-label">{{ viewer_context.candidate ? dashboard_ui.my_active_tasks : dashboard_ui.in_progress_tasks }}</div>
         <div class="metric-value">{{ metrics.active_tasks }}</div>
     </div>
 
-    <div class="metric-card">
+    <div class="metric-card metric-card-dashboard">
         <div class="metric-label">{{ viewer_context.candidate ? dashboard_ui.my_attachments : dashboard_ui.tasks_with_attachments }}</div>
         <div class="metric-value">{{ metrics.attachments }}</div>
     </div>

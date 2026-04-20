@@ -38,14 +38,25 @@
     completed: 'Completed',
     on_hold: 'On Hold'
 }) %}
-{% set plan_focus_dynamic = onboarding_language.translateMap({
-    title: plan_focus.title,
-    text: plan_focus.text,
-    priority_label: plan_focus.priority_label,
-    priority_reason: plan_focus.priority_reason,
-    next_deadline: plan_focus.next_deadline,
-    coverage: plan_focus.candidate_coverage
+{% set flow_panel_ui = onboarding_language.translateMap({
+    focus_title: 'Flow Signal',
+    focus_text: 'A compact read on progress and risk across the visible onboarding plans.',
+    average_progress: 'Average progress',
+    risk_level: 'Risk level',
+    risk_signals: 'Risk signals',
+    active_signals: 'active signals',
+    priority_plan: 'Priority plan',
+    current_phase: 'Current phase',
+    next_action: 'Next action',
+    high: 'High',
+    medium: 'Medium',
+    low: 'Low'
 }) %}
+{% set plan_flow_risk_labels = {
+    high: flow_panel_ui.high,
+    medium: flow_panel_ui.medium,
+    low: flow_panel_ui.low
+} %}
 
 <div class="analytics-grid analytics-grid-double analytics-grid-plan" style="margin-bottom: 22px;">
     <article class="analytics-card">
@@ -63,30 +74,31 @@
     <article class="analytics-card plan-focus-card">
         <div class="analytics-card-head">
             <div>
-                <h3 class="analytics-title">{{ plans_results_ui.focus_title }}</h3>
-                <p class="analytics-text">{{ plans_results_ui.focus_text }}</p>
+                <h3 class="analytics-title">{{ flow_panel_ui.focus_title }}</h3>
+                <p class="analytics-text">{{ flow_panel_ui.focus_text }}</p>
             </div>
         </div>
 
         <div class="plan-focus-hero">
-            <span class="plan-focus-kicker">{{ plans_results_ui.current_pulse }}</span>
-            <h4 class="plan-focus-title">{{ plan_focus_dynamic.title }}</h4>
-            <p class="plan-focus-text">{{ plan_focus_dynamic.text }}</p>
+            <span class="plan-focus-kicker">{{ flow_panel_ui.average_progress }}</span>
+            <h4 class="plan-focus-title">{{ plan_flow_panel.average_progress }}%</h4>
+            <p class="plan-focus-text">{{ plan_flow_panel.summary }}</p>
         </div>
 
         <div class="plan-focus-list">
             <div class="plan-focus-item">
-                <span class="plan-focus-label">{{ plans_results_ui.priority_plan }}</span>
-                <strong class="plan-focus-value">{{ plan_focus_dynamic.priority_label }}</strong>
-                <span class="plan-focus-note">{{ plan_focus_dynamic.priority_reason }}</span>
+                <span class="plan-focus-label">{{ flow_panel_ui.risk_level }}</span>
+                <strong class="plan-focus-value risk-{{ plan_flow_panel.highest_risk }}">{{ plan_flow_risk_labels[plan_flow_panel.highest_risk] ?? plan_flow_panel.highest_risk|title }}</strong>
+                <span class="plan-focus-note">{{ plan_flow_panel.total_risk_signals }} {{ flow_panel_ui.active_signals }}</span>
             </div>
             <div class="plan-focus-item">
-                <span class="plan-focus-label">{{ plans_results_ui.next_deadline }}</span>
-                <strong class="plan-focus-value">{{ plan_focus_dynamic.next_deadline }}</strong>
+                <span class="plan-focus-label">{{ flow_panel_ui.priority_plan }}</span>
+                <strong class="plan-focus-value">{{ plan_flow_panel.priority_plan_label }}</strong>
+                <span class="plan-focus-note">{{ flow_panel_ui.current_phase }}: {{ plan_flow_panel.priority_phase }}</span>
             </div>
             <div class="plan-focus-item">
-                <span class="plan-focus-label">{{ plans_results_ui.coverage }}</span>
-                <strong class="plan-focus-value">{{ plan_focus_dynamic.coverage }}</strong>
+                <span class="plan-focus-label">{{ flow_panel_ui.next_action }}</span>
+                <strong class="plan-focus-value">{{ plan_flow_panel.top_action }}</strong>
             </div>
         </div>
     </article>

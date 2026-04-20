@@ -5,6 +5,8 @@ namespace App\Controller;
 use App\Entity\Onboardingplan;
 use App\Form\OnboardingPlanType;
 use App\Onboarding\OnboardingLanguageContext;
+use App\Onboarding\OnboardingFlowPresenter;
+use App\Onboarding\OnboardingFlowService;
 use App\Onboarding\LibreTranslateService;
 use App\Onboarding\OnboardingPlanStatusManager;
 use App\Onboarding\PublicUrlConfiguration;
@@ -15,6 +17,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -25,7 +28,7 @@ final class OnboardingPlanController extends AbstractController
 {
     #[Route('/admin/plans', name: 'app_admin_plans')]
     #[Route('/workspace/plans', name: 'app_workspace_plans')]
-    public function index(Request $request, OnboardingplanRepository $planRepository, OnboardingtaskRepository $taskRepository, ViewerContext $viewerContext, PublicUrlConfiguration $publicUrlConfiguration, OnboardingPlanStatusManager $onboardingPlanStatusManager, EntityManagerInterface $entityManager, ChartBuilderInterface $chartBuilder, OnboardingLanguageContext $onboardingLanguageContext): Response|RedirectResponse
+    public function index(Request $request, OnboardingplanRepository $planRepository, OnboardingtaskRepository $taskRepository, ViewerContext $viewerContext, PublicUrlConfiguration $publicUrlConfiguration, OnboardingPlanStatusManager $onboardingPlanStatusManager, EntityManagerInterface $entityManager, ChartBuilderInterface $chartBuilder, OnboardingLanguageContext $onboardingLanguageContext, OnboardingFlowService $onboardingFlowService, OnboardingFlowPresenter $onboardingFlowPresenter): Response|RedirectResponse
     {
         if ($redirect = $this->redirectForArea($request, $viewerContext)) {
             return $redirect;
@@ -64,7 +67,13 @@ final class OnboardingPlanController extends AbstractController
             'selected_sort' => $filters['sort'],
             'overdue_only' => $filters['overdue_only'],
             'plan_metrics' => $this->buildPlanMetrics($plans),
-            'plan_focus' => $this->buildPlanFocus($plans),
+            'plan_flow_panel' => $this->buildPlanFlowPanel(
+                $plans,
+                $taskRepository->findGroupedByPlanIds(array_map(static fn (Onboardingplan $plan): int => (int) $plan->getPlanId(), $plans)),
+                $onboardingFlowService,
+                $onboardingFlowPresenter,
+                $selectedLanguage
+            ),
             'plan_status_chart' => $this->buildPlanStatusChart($chartBuilder, $plans, $onboardingLanguageContext, $selectedLanguage),
             'plan_status_choices' => Onboardingplan::getStatusChoices(),
             'public_qr_base_url' => $publicUrlConfiguration->resolveBaseUrl($request),
@@ -232,6 +241,21 @@ final class OnboardingPlanController extends AbstractController
         ]);
     }
 
+    #[Route('/api/onboarding/plans/{id}/flow', name: 'app_api_onboarding_plan_flow', methods: ['GET'])]
+    public function flowApi(Onboardingplan $plan, Request $request, ViewerContext $viewerContext, OnboardingtaskRepository $taskRepository, OnboardingFlowService $onboardingFlowService, OnboardingFlowPresenter $onboardingFlowPresenter, OnboardingLanguageContext $onboardingLanguageContext): JsonResponse
+    {
+        if (!$viewerContext->canViewPlan($plan)) {
+            return $this->json(['error' => 'You are not allowed to view this onboarding flow.'], Response::HTTP_FORBIDDEN);
+        }
+
+        $selectedLanguage = $onboardingLanguageContext->resolveFromRequest($request);
+        $flow = $onboardingFlowService->buildPlanFlow($plan, $taskRepository->findByPlan($plan));
+
+        return $this->json([
+            'flow' => $onboardingFlowPresenter->translateFlow($flow, $selectedLanguage),
+        ]);
+    }
+
     private function generateQrToken(): string
     {
         return rtrim(strtr(base64_encode(random_bytes(24)), '+/', '-_'), '=');
@@ -292,6 +316,94 @@ final class OnboardingPlanController extends AbstractController
             'completed' => $completed,
             'active' => $active,
         ];
+    }
+
+    /**
+     * @param Onboardingplan[] $plans
+     * @param array<int, \App\Entity\Onboardingtask[]> $tasksByPlanId
+     * @return array{
+     *     average_progress: int,
+     *     highest_risk: string,
+     *     total_risk_signals: int,
+     *     priority_plan_label: string,
+     *     priority_phase: string,
+     *     top_action: string,
+     *     summary: string
+     * }
+     */
+    private function buildPlanFlowPanel(
+        array $plans,
+        array $tasksByPlanId,
+        OnboardingFlowService $onboardingFlowService,
+        OnboardingFlowPresenter $onboardingFlowPresenter,
+        string $selectedLanguage,
+    ): array {
+        if ([] === $plans) {
+            return [
+                'average_progress' => 0,
+                'highest_risk' => 'low',
+                'total_risk_signals' => 0,
+                'priority_plan_label' => 'No visible plan',
+                'priority_phase' => 'Pre-arrival',
+                'top_action' => 'No action needed right now.',
+                'summary' => 'The flow panel will react once onboarding plans are available in this view.',
+            ];
+        }
+
+        $priorityFlow = null;
+        $priorityPlan = null;
+        $totalProgress = 0;
+        $totalRiskSignals = 0;
+        $highestRisk = 'low';
+
+        foreach ($plans as $plan) {
+            $flow = $onboardingFlowService->buildPlanFlow($plan, $tasksByPlanId[(int) $plan->getPlanId()] ?? []);
+            $totalProgress += $flow['progressPercent'];
+            $totalRiskSignals += \count($flow['riskSignals']);
+            $highestRisk = $this->highestRiskLevel($highestRisk, $flow['riskLevel']);
+
+            if (null === $priorityFlow || $this->flowPriorityScore($flow) > $this->flowPriorityScore($priorityFlow)) {
+                $priorityFlow = $flow;
+                $priorityPlan = $plan;
+            }
+        }
+
+        $translatedPriorityFlow = $priorityFlow
+            ? $onboardingFlowPresenter->translateFlow($priorityFlow, $selectedLanguage)
+            : null;
+
+        return [
+            'average_progress' => (int) round($totalProgress / max(1, \count($plans))),
+            'highest_risk' => $highestRisk,
+            'total_risk_signals' => $totalRiskSignals,
+            'priority_plan_label' => $priorityPlan
+                ? trim((string) $priorityPlan->getUser()?->getFirstName() . ' ' . (string) $priorityPlan->getUser()?->getLastName()) . sprintf(' (Plan #%d)', (int) $priorityPlan->getPlanId())
+                : 'No visible plan',
+            'priority_phase' => $translatedPriorityFlow['currentPhase']['phaseLabel'] ?? 'Pre-arrival',
+            'top_action' => $translatedPriorityFlow['nextActions'][0]['title'] ?? 'No action needed right now.',
+            'summary' => $translatedPriorityFlow['smartSummary'] ?? 'The flow panel will react once onboarding plans are available in this view.',
+        ];
+    }
+
+    /**
+     * @param array{riskLevel: string, riskSignals: array, nextActions: array, currentPhase: array{status: string}} $flow
+     */
+    private function flowPriorityScore(array $flow): int
+    {
+        $riskScore = match ($flow['riskLevel']) {
+            'high' => 100,
+            'medium' => 65,
+            default => 30,
+        };
+
+        return $riskScore + (\count($flow['riskSignals']) * 8) + ('at_risk' === $flow['currentPhase']['status'] ? 12 : 0);
+    }
+
+    private function highestRiskLevel(string $left, string $right): string
+    {
+        $weights = ['low' => 1, 'medium' => 2, 'high' => 3];
+
+        return ($weights[$right] ?? 1) > ($weights[$left] ?? 1) ? $right : $left;
     }
 
     /**
