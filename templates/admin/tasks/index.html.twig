@@ -38,20 +38,6 @@
             <p class="section-kicker">{{ selected_language != 'en' ? task_translation.ui.flow_kicker : 'Stay focused on progress, deadlines, attachment status, and the next useful action.' }}</p>
         </div>
         <div class="section-actions">
-            {% if translation_enabled %}
-                <form method="get" action="{{ path(admin_area ? 'app_admin_plan_tasks' : 'app_workspace_plan_tasks', {id: plan.planId}) }}" class="inline-translation-form">
-                    <input type="hidden" name="q" value="{{ search_term|default('') }}">
-                    <input type="hidden" name="case_sensitive" value="{{ case_sensitive ? '1' : '0' }}">
-                    <input type="hidden" name="status" value="{{ selected_status }}">
-                    <input type="hidden" name="sort" value="{{ selected_sort }}">
-                    <input type="hidden" name="attachment_only" value="{{ attachment_only ? '1' : '0' }}">
-                    <select name="lang" class="search-select translation-select" onchange="this.form.requestSubmit()">
-                        {% for label, value in translation_languages %}
-                            <option value="{{ value }}" {{ selected_language == value ? 'selected' : '' }}>{{ label }}</option>
-                        {% endfor %}
-                    </select>
-                </form>
-            {% endif %}
             <a href="{{ path(plans_route) }}" class="btn-secondary">{{ task_index_ui.back_to_plans }}</a>
             {% if viewer_context.canCreateTasks %}
                 <a href="{{ path(tasks_new_route, {id: plan.planId}) }}" class="btn-primary">{{ task_index_ui.add_task }}</a>

@@ -17,11 +17,23 @@
         const status = uploader.querySelector('[data-cloudinary-status]');
         const current = uploader.querySelector('[data-cloudinary-current]');
         const nameNode = uploader.querySelector('[data-cloudinary-name]');
+        const dropzone = uploader.querySelector('[data-cloudinary-dropzone]');
+        const selectedFileNode = uploader.querySelector('[data-cloudinary-selected-file]');
         const form = uploader.closest('form');
 
         if (!fileInput || !uploadButton || !clearButton || !status || !current || !nameNode || !form) {
             return;
         }
+
+        const selectFileText = uploader.dataset.attachmentSelectFile || 'Select any file from your device to attach it.';
+        const selectedFilePrefix = uploader.dataset.attachmentSelectedFilePrefix || 'Selected file:';
+        const chooseBeforeText = uploader.dataset.attachmentChooseBefore || 'Choose a file before starting the upload.';
+        const uploadingText = uploader.dataset.attachmentUploading || 'Uploading attachment...';
+        const uploadSuccessText = uploader.dataset.attachmentUploadSuccess || 'Attachment uploaded successfully.';
+        const clearedText = uploader.dataset.attachmentCleared || 'Attachment cleared.';
+        const clearedReplaceText = uploader.dataset.attachmentClearedReplace || 'Attachment cleared. You can upload a new file.';
+        const noAttachmentText = uploader.dataset.attachmentNone || 'No attachment uploaded yet.';
+        const openFileText = uploader.dataset.attachmentOpenFile || 'Open file';
 
         const filePathField = form.querySelector('[data-cloudinary-file-path]');
         const publicIdField = form.querySelector('[data-cloudinary-public-id]');
@@ -35,6 +47,18 @@
         const setStatus = (message, isError) => {
             status.textContent = message;
             status.classList.toggle('attachment-status-error', !!isError);
+        };
+
+        const updateSelectedFile = (file) => {
+            if (!selectedFileNode) {
+                return;
+            }
+
+            selectedFileNode.textContent = file
+                ? `${selectedFilePrefix} ${file.name}`
+                : selectFileText;
+            selectedFileNode.classList.toggle('has-file', !!file);
+            uploader.classList.toggle('has-pending-file', !!file);
         };
 
         const getPreviewKind = (url, contentType, fileName) => {
@@ -154,7 +178,7 @@
             link.rel = 'noreferrer';
             link.dataset.cloudinaryLink = '';
             link.href = url;
-            link.textContent = 'Open file';
+            link.textContent = openFileText;
 
             nameNode.textContent = fileName || 'Attachment uploaded';
             meta.append(nameNode, link);
@@ -169,9 +193,10 @@
             originalNameField.value = '';
             contentTypeField.value = '';
             updateCurrentAttachment('', '', '');
+            updateSelectedFile(null);
             setStatus(enabled
-                ? 'Attachment cleared. You can upload a new file.'
-                : 'Attachment cleared.', false);
+                ? clearedReplaceText
+                : clearedText, false);
         };
 
         const getUploadEndpoint = (file) => {
@@ -239,12 +264,12 @@
             const selectedFile = fileInput.files && fileInput.files[0];
 
             if (!selectedFile) {
-                setStatus('Choose a file before starting the upload.', true);
+                setStatus(chooseBeforeText, true);
                 return;
             }
 
             uploadButton.disabled = true;
-            setStatus('Uploading attachment...', false);
+            setStatus(uploadingText, false);
 
             try {
                 const payload = 'cloudinary' === provider
@@ -263,7 +288,8 @@
                     originalNameField.value || 'attachment',
                     contentTypeField.value || ''
                 );
-                setStatus('Attachment uploaded successfully.', false);
+                updateSelectedFile(selectedFile);
+                setStatus(uploadSuccessText, false);
             } catch (error) {
                 setStatus(error.message || 'Attachment upload failed.', true);
             } finally {
@@ -271,10 +297,55 @@
             }
         });
 
+        fileInput.addEventListener('change', () => {
+            const selectedFile = fileInput.files && fileInput.files[0];
+            updateSelectedFile(selectedFile || null);
+
+            if (selectedFile) {
+                setStatus(`${selectedFilePrefix} ${selectedFile.name}`, false);
+            }
+        });
+
+        if (dropzone) {
+            ['dragenter', 'dragover'].forEach((eventName) => {
+                dropzone.addEventListener(eventName, (event) => {
+                    event.preventDefault();
+                    dropzone.classList.add('is-dragover');
+                });
+            });
+
+            ['dragleave', 'dragend', 'drop'].forEach((eventName) => {
+                dropzone.addEventListener(eventName, (event) => {
+                    event.preventDefault();
+                    if ('dragleave' === eventName && dropzone.contains(event.relatedTarget)) {
+                        return;
+                    }
+                    dropzone.classList.remove('is-dragover');
+                });
+            });
+
+            dropzone.addEventListener('drop', (event) => {
+                const files = event.dataTransfer && event.dataTransfer.files;
+                if (!files || !files.length) {
+                    return;
+                }
+
+                fileInput.files = files;
+                const selectedFile = files[0];
+                updateSelectedFile(selectedFile);
+                setStatus(`${selectedFilePrefix} ${selectedFile.name}`, false);
+            });
+        }
+
         clearButton.addEventListener('click', clearAttachment);
 
         if (filePathField.value && originalNameField.value) {
             updateCurrentAttachment(filePathField.value, originalNameField.value, contentTypeField.value);
+        }
+
+        updateSelectedFile(fileInput.files && fileInput.files[0] ? fileInput.files[0] : null);
+        if (!filePathField.value) {
+            nameNode.textContent = noAttachmentText;
         }
     });
 })();

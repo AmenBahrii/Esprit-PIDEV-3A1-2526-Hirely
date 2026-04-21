@@ -146,7 +146,18 @@
                     {% if viewer_context.canDeletePlan(plan) %}
                         <form method="post" action="{{ path(delete_plan_route, {id: plan.planId}) }}" class="inline-form">
                             <input type="hidden" name="_token" value="{{ csrf_token('delete_plan_' ~ plan.planId) }}">
-                            <button type="submit" class="btn-danger">{{ plans_results_ui.delete }}</button>
+                            <button
+                                type="submit"
+                                class="btn-danger delete-action"
+                                data-delete-label="{{ plans_results_ui.delete }}"
+                                aria-label="{{ plans_results_ui.delete }}"
+                                title="{{ plans_results_ui.delete }}"
+                            >
+                                <svg class="delete-action-icon" viewBox="0 0 448 512" aria-hidden="true" focusable="false">
+                                    <path d="M135.2 17.7C140.6 7.1 151.5 0 163.4 0H284.6c11.9 0 22.8 7.1 28.2 17.7L328 48H432c8.8 0 16 7.2 16 16s-7.2 16-16 16H416l-21.2 339.2c-2 31.4-28.1 56.8-59.6 56.8H112.8c-31.5 0-57.6-25.4-59.6-56.8L32 80H16C7.2 80 0 72.8 0 64S7.2 48 16 48H120l15.2-30.3zM168 176c8.8 0 16 7.2 16 16V400c0 8.8-7.2 16-16 16s-16-7.2-16-16V192c0-8.8 7.2-16 16-16zm112 0c8.8 0 16 7.2 16 16V400c0 8.8-7.2 16-16 16s-16-7.2-16-16V192c0-8.8 7.2-16 16-16z"></path>
+                                </svg>
+                                <span class="delete-action-text">{{ plans_results_ui.delete }}</span>
+                            </button>
                         </form>
                     {% endif %}
                 </div>

@@ -36,6 +36,14 @@
     remove_attachment: 'Remove Attachment',
     attachment_ready_prefix: 'Attachment ready:',
     select_file: 'Select any file from your device to attach it.',
+    drop_title: 'Drop your file here',
+    drop_hint: 'Drag and drop a file here or choose one manually from your device.',
+    selected_file_prefix: 'Selected file:',
+    choose_file_before_upload: 'Choose a file before starting the upload.',
+    uploading: 'Uploading attachment...',
+    upload_success: 'Attachment uploaded successfully.',
+    attachment_cleared: 'Attachment cleared.',
+    attachment_cleared_replace: 'Attachment cleared. You can upload a new file.',
     open_file: 'Open file',
     no_attachment_uploaded: 'No attachment uploaded yet.',
     save: 'Save',
@@ -87,6 +95,15 @@
                 data-cloudinary-cloud-name="{{ attachment_upload.cloud_name }}"
                 data-cloudinary-unsigned-preset="{{ attachment_upload.unsigned_preset }}"
                 data-cloudinary-upload-url="{{ attachment_upload.upload_url }}"
+                data-attachment-select-file="{{ task_form_ui.select_file }}"
+                data-attachment-selected-file-prefix="{{ task_form_ui.selected_file_prefix }}"
+                data-attachment-choose-before="{{ task_form_ui.choose_file_before_upload }}"
+                data-attachment-uploading="{{ task_form_ui.uploading }}"
+                data-attachment-upload-success="{{ task_form_ui.upload_success }}"
+                data-attachment-cleared="{{ task_form_ui.attachment_cleared }}"
+                data-attachment-cleared-replace="{{ task_form_ui.attachment_cleared_replace }}"
+                data-attachment-open-file="{{ task_form_ui.open_file }}"
+                data-attachment-none="{{ task_form_ui.no_attachment_uploaded }}"
             >
                 <div class="attachment-uploader-header">
                     <div>
@@ -102,8 +119,22 @@
                 </div>
 
                 <div class="attachment-panel">
-                    <div class="attachment-input-row">
+                    <label class="attachment-dropzone" data-cloudinary-dropzone>
+                        <span class="attachment-drop-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" focusable="false">
+                                <path d="M12 16V5m0 0-4 4m4-4 4 4M5 15.5v1A2.5 2.5 0 0 0 7.5 19h9A2.5 2.5 0 0 0 19 16.5v-1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </span>
+                        <span class="attachment-drop-title">{{ task_form_ui.drop_title }}</span>
+                        <span class="attachment-drop-hint">{{ task_form_ui.drop_hint }}</span>
                         <input type="file" class="attachment-file-input" data-cloudinary-file-input>
+                    </label>
+
+                    <div class="attachment-selected-file" data-cloudinary-selected-file>
+                        {{ task_form_ui.select_file }}
+                    </div>
+
+                    <div class="attachment-input-row">
                         <button type="button" class="btn-secondary" data-cloudinary-upload-button>{{ task_form_ui.upload_attachment }}</button>
                         <button type="button" class="btn-danger" data-cloudinary-clear-button>{{ task_form_ui.remove_attachment }}</button>
                     </div>
