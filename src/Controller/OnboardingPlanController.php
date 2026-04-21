@@ -3,11 +3,14 @@
 namespace App\Controller;
 
 use App\Entity\Onboardingplan;
+use App\Form\OnboardingPlanTemplateAssignmentType;
 use App\Form\OnboardingPlanType;
 use App\Onboarding\OnboardingLanguageContext;
 use App\Onboarding\OnboardingFlowPresenter;
 use App\Onboarding\OnboardingFlowService;
 use App\Onboarding\LibreTranslateService;
+use App\Onboarding\OnboardingPlanTemplateCatalog;
+use App\Onboarding\OnboardingPlanTemplateSelection;
 use App\Onboarding\OnboardingPlanStatusManager;
 use App\Onboarding\PublicUrlConfiguration;
 use App\Onboarding\ViewerContext;
@@ -121,6 +124,64 @@ final class OnboardingPlanController extends AbstractController
             'page_title' => 'Add Onboarding Plan',
             'limited_editor' => false,
             'plan' => $plan,
+        ]);
+    }
+
+    #[Route('/admin/plans/template', name: 'app_admin_plans_template')]
+    #[Route('/workspace/plans/template', name: 'app_workspace_plans_template')]
+    public function fromTemplate(Request $request, EntityManagerInterface $entityManager, ViewerContext $viewerContext, OnboardingPlanTemplateCatalog $templateCatalog, OnboardingPlanStatusManager $onboardingPlanStatusManager): Response|RedirectResponse
+    {
+        if ($redirect = $this->redirectForArea($request, $viewerContext)) {
+            return $redirect;
+        }
+
+        if (!$viewerContext->canCreatePlans()) {
+            $this->addFlash('error', 'Candidates cannot create onboarding plans.');
+
+            return $this->redirectToRoute($this->plansRoute($request));
+        }
+
+        $selection = new OnboardingPlanTemplateSelection();
+
+        $form = $this->createForm(OnboardingPlanTemplateAssignmentType::class, $selection, [
+            'template_choices' => $templateCatalog->choiceMap(),
+        ]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $plan = $templateCatalog->createPlanFromTemplate(
+                (string) $selection->getTemplateKey(),
+                $selection->getUser(),
+                $selection->getDeadline()
+            );
+
+            if (!$plan) {
+                $this->addFlash('error', 'The selected onboarding template could not be found.');
+
+                return $this->redirectToRoute($this->templateRoute($request));
+            }
+
+            $plan->setQrToken($this->generateQrToken());
+            $onboardingPlanStatusManager->syncPlanStatus($plan);
+            $entityManager->persist($plan);
+            foreach ($plan->getOnboardingtasks() as $task) {
+                $entityManager->persist($task);
+            }
+            $entityManager->flush();
+
+            $selectedTemplate = $templateCatalog->find((string) $selection->getTemplateKey());
+            if ($selectedTemplate) {
+                $this->addFlash('success', sprintf('Plan created from the "%s" template.', $selectedTemplate['name']));
+            }
+
+            return $this->redirectToRoute($this->plansRoute($request));
+        }
+
+        return $this->render('admin/plans/template_form.html.twig', [
+            'form' => $form->createView(),
+            'page_title' => 'Create Plan From Template',
+            'templates_catalog' => $templateCatalog->all(),
+            'selected_template_key' => $selection->getTemplateKey(),
         ]);
     }
 
@@ -284,6 +345,11 @@ final class OnboardingPlanController extends AbstractController
     private function plansRoute(Request $request): string
     {
         return $this->isAdminArea($request) ? 'app_admin_plans' : 'app_workspace_plans';
+    }
+
+    private function templateRoute(Request $request): string
+    {
+        return $this->isAdminArea($request) ? 'app_admin_plans_template' : 'app_workspace_plans_template';
     }
 
     /**

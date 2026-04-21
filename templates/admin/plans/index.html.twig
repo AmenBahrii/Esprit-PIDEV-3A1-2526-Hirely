@@ -5,6 +5,7 @@
 {% set admin_area = app.request.attributes.get('_route') starts with 'app_admin' %}
 {% set plans_route = admin_area ? 'app_admin_plans' : 'app_workspace_plans' %}
 {% set new_plan_route = admin_area ? 'app_admin_plans_new' : 'app_workspace_plans_new' %}
+{% set template_plan_route = admin_area ? 'app_admin_plans_template' : 'app_workspace_plans_template' %}
 {% set edit_plan_route = admin_area ? 'app_admin_plans_edit' : 'app_workspace_plans_edit' %}
 {% set tasks_route = admin_area ? 'app_admin_plan_tasks' : 'app_workspace_plan_tasks' %}
 {% set delete_plan_route = admin_area ? 'app_admin_plans_delete' : 'app_workspace_plans_delete' %}
@@ -17,6 +18,7 @@
     overview_title: 'Plans Overview',
     overview_kicker: 'Only the essentials are shown here: owner, status, deadline, tasks, and QR access.',
     add_plan: 'Add Plan',
+    select_template: 'Select Template',
     find_plan: 'Find a plan',
     search_placeholder: 'Search by plan number, person, email, status, or QR token',
     case_on: 'Case Sensitive: On',
@@ -51,6 +53,7 @@
         </div>
         <div class="section-actions">
             {% if viewer_context.canCreatePlans %}
+                <a href="{{ path(template_plan_route) }}" class="btn-secondary">{{ plans_ui.select_template }}</a>
                 <a href="{{ path(new_plan_route) }}" class="btn-primary">{{ plans_ui.add_plan }}</a>
             {% endif %}
         </div>

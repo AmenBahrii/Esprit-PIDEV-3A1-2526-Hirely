@@ -15,7 +15,7 @@ const shellSelectors = {
     topbar: '.topbar-layout',
     sidebar: '.sidebar-shell',
     hero: '.dashboard-hero, .flow-hero-panel, .analytics-grid-plan .analytics-card, .analytics-grid .analytics-card',
-    blocks: '.content-stage > *, .record-card, .metric-card, .quick-link-card, .flow-side-block, .flow-phase-card, .form-field, .search-form-panel, .attachment-uploader',
+    blocks: '.content-stage > *, .record-card, .metric-card, .quick-link-card, .flow-side-block, .flow-phase-card, .form-field, .search-form-panel, .attachment-uploader, .template-plan-card, .template-assignment-card, .template-assignment-form-card, .template-assignment-task-card',
     buttons: '.btn-primary, .btn-secondary, .btn-danger, .search-toggle, .custom-select-trigger, .workspace-nav-link, .sidebar-link, .attachment-link'
 };
 
