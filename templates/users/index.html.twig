@@ -12,79 +12,118 @@
     <div class="top-bar">
         <h3>Users List</h3>
 
+        <div class="filters">
+            <input type="text"
+                   id="userSearch"
+                   placeholder="Search user..."
+                   class="search-input">
+
+            <select id="roleFilter" class="sort-select">
+                <option value="">All Roles</option>
+                <option value="admin">Admin</option>
+                <option value="recruiter">Recruiter</option>
+                <option value="candidate">Candidate</option>
+            </select>
+
+            <select id="statusFilter" class="sort-select">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+            </select>
+        </div>
+
         <a href="{{ path('app_users_new') }}" class="btn btn-primary">
             + Add User
         </a>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Status</th>
-                <th>Role</th>
-                <th>Profile</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-
-        <tbody>
+    <div class="card-grid" id="userCards">
         {% for user in users %}
-            <tr>
-                <td>#{{ user.id }}</td>
+            <article class="data-card"
+                     data-user-card
+                     data-search="{{ (user.firstName ~ ' ' ~ user.lastName ~ ' ' ~ user.email)|lower }}"
+                     data-role="{{ user.role ? user.role.name|lower : '' }}"
+                     data-status="{{ user.status|lower }}">
+                <div class="data-card-header">
+                    <div class="user-cell">
+                        {% if user.profilePic %}
+                            <img src="{{ asset(user.profilePic) }}"
+                                 class="avatar-small"
+                                 alt="{{ user.firstName }} {{ user.lastName }}">
+                        {% else %}
+                            <div class="user-avatar-placeholder">
+                                {{ user.firstName|first }}{{ user.lastName|first }}
+                            </div>
+                        {% endif %}
 
-                <td>
-                    {{ user.firstName }} {{ user.lastName }}
-                </td>
+                        <div>
+                            <h4 class="data-card-title">{{ user.firstName }} {{ user.lastName }}</h4>
+                            <div class="data-card-subtitle">#{{ user.id }}</div>
+                        </div>
+                    </div>
 
-                <td>{{ user.email }}</td>
-
-                <td>
                     {% if user.status == 'active' %}
                         <span class="status status-accepted">Active</span>
                     {% else %}
                         <span class="status status-rejected">{{ user.status }}</span>
                     {% endif %}
-                </td>
+                </div>
 
-                <td>
-                    {{ user.role ? user.role.name : 'N/A' }}
-                </td>
+                <div class="data-card-body">
+                    <div class="data-card-field">
+                        <span class="data-card-label">Email</span>
+                        <span class="data-card-value">{{ user.email }}</span>
+                    </div>
+                    <div class="data-card-field">
+                        <span class="data-card-label">Role</span>
+                        <span class="data-card-value">{{ user.role ? user.role.name : 'N/A' }}</span>
+                    </div>
+                </div>
 
-                <td>
-                    {% if user.profilePic %}
-                        <img src="{{ asset(user.profilePic) }}"
-                             style="width:40px; height:40px; border-radius:50%;">
-                    {% else %}
-                        —
-                    {% endif %}
-                </td>
-
-                <td>
+                <div class="data-card-actions">
                     <a class="btn btn-edit"
                        href="{{ path('app_users_edit', {'id': user.id}) }}">
                         Edit
                     </a>
 
                     <form method="post"
-                          action="{{ path('app_users_delete', {'id': user.id}) }}"
-                          style="display:inline;">
+                          action="{{ path('app_users_delete', {'id': user.id}) }}">
                         <input type="hidden" name="_token"
                                value="{{ csrf_token('delete' ~ user.id) }}">
                         <button class="btn btn-delete">Delete</button>
                     </form>
-                </td>
-            </tr>
+                </div>
+            </article>
         {% else %}
-            <tr>
-                <td colspan="7">No users found</td>
-            </tr>
+            <div class="empty-state">No users found</div>
         {% endfor %}
-        </tbody>
-    </table>
+    </div>
 
 </div>
+
+<script>
+const searchInput = document.getElementById('userSearch');
+const roleFilter = document.getElementById('roleFilter');
+const statusFilter = document.getElementById('statusFilter');
+const cards = document.querySelectorAll('[data-user-card]');
+
+function filterUsers() {
+    const search = searchInput.value.toLowerCase();
+    const role = roleFilter.value.toLowerCase();
+    const status = statusFilter.value.toLowerCase();
+
+    cards.forEach(card => {
+        const matchSearch = card.dataset.search.includes(search);
+        const matchRole = role === "" || card.dataset.role === role;
+        const matchStatus = status === "" || card.dataset.status === status;
+
+        card.style.display = matchSearch && matchRole && matchStatus ? "" : "none";
+    });
+}
+
+searchInput.addEventListener("input", filterUsers);
+roleFilter.addEventListener("change", filterUsers);
+statusFilter.addEventListener("change", filterUsers);
+</script>
 
 {% endblock %}

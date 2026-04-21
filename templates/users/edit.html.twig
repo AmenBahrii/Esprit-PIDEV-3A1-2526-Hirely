@@ -1,79 +1,330 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Edit User{% endblock %}
+{% set show_topbar = false %}
 
 {% block body %}
+<style>
+    .identity-grid {
+        display: grid;
+        gap: 20px;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
 
-<div class="header">Hirely Dashboard</div>
-<div class="sub-header">Edit User</div>
+    .identity-panel {
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        border-radius: 8px;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.86);
+    }
 
-<div class="card">
+    .identity-panel h5 {
+        margin: 0 0 8px;
+        font-size: 16px;
+    }
 
-    <div class="top-bar">
-        <h3>Edit User</h3>
+    .identity-panel p {
+        margin: 0 0 14px;
+        color: #64748b;
+        line-height: 1.5;
+    }
 
-        <a href="{{ path('app_users_index') }}" class="btn btn-secondary">
-            ← Back
-        </a>
+    .identity-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #eff6ff;
+        color: #1d4ed8;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .identity-status.is-ready {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .camera-shell {
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        overflow: hidden;
+        border-radius: 8px;
+        background: #0f172a;
+        margin-bottom: 12px;
+    }
+
+    .camera-shell video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .action-row {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+
+    .mini-note {
+        min-height: 20px;
+        margin-top: 10px;
+        font-size: 13px;
+        color: #64748b;
+    }
+
+    .mini-note[data-tone="success"] {
+        color: #166534;
+    }
+
+    .mini-note[data-tone="error"] {
+        color: #b91c1c;
+    }
+
+    .flash-stack {
+        display: grid;
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+
+    .flash-item {
+        border-radius: 8px;
+        padding: 12px 14px;
+        font-size: 14px;
+    }
+
+    .flash-item.success {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .flash-item.error {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .qr-contact-panel {
+        display: grid;
+        gap: 16px;
+        justify-items: center;
+        text-align: center;
+    }
+
+    .qr-contact-image {
+        width: min(100%, 240px);
+        aspect-ratio: 1;
+        object-fit: contain;
+        border-radius: 8px;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        background: #fff;
+        padding: 10px;
+    }
+
+    .qr-contact-note {
+        margin: 0;
+        color: #64748b;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .qr-contact-code {
+        width: 100%;
+        margin: 0;
+        padding: 12px;
+        border-radius: 8px;
+        background: #f8fafc;
+        color: #64748b;
+        font-size: 12px;
+        line-height: 1.5;
+        text-align: left;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+    }
+</style>
+
+<div class="settings-wrapper">
+    <div class="settings-card">
+        <div class="top-bar">
+            <h3>User Settings</h3>
+
+            <a href="{{ is_granted('ROLE_ADMIN') ? path('app_users_index') : path('app_joboffer_index') }}" class="btn btn-secondary">
+                Back
+            </a>
+        </div>
+
+        <div class="flash-stack">
+            {% for message in app.flashes('success') %}
+                <div class="flash-item success">{{ message }}</div>
+            {% endfor %}
+            {% for message in app.flashes('error') %}
+                <div class="flash-item error">{{ message }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="profile-section">
+            <div class="profile-left">
+                {% if form.profilePic.vars.value %}
+                    <img src="{{ form.profilePic.vars.value }}" class="profile-big">
+                {% else %}
+                    <div class="profile-placeholder-big">
+                        {{ form.firstName.vars.value|first }}{{ form.lastName.vars.value|first }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="profile-info">
+                <h2>{{ form.firstName.vars.value }} {{ form.lastName.vars.value }}</h2>
+                <p>{{ form.email.vars.value }}</p>
+
+                <span class="role-{{ form.vars.data.role ? form.vars.data.role.name|lower : '' }}">
+                    {{ form.vars.data.role ? form.vars.data.role.name : '' }}
+                </span>
+            </div>
+        </div>
+
+        {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+        {{ form_errors(form) }}
+
+        <div class="form-section">
+            <h4>Personal Info</h4>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>First Name</label>
+                    {{ form_widget(form.firstName, {'attr': {'class': 'form-input'}}) }}
+                    {{ form_errors(form.firstName) }}
+                </div>
+
+                <div class="form-group">
+                    <label>Last Name</label>
+                    {{ form_widget(form.lastName, {'attr': {'class': 'form-input'}}) }}
+                    {{ form_errors(form.lastName) }}
+                </div>
+
+                <div class="form-group full">
+                    <label>Email</label>
+                    {{ form_widget(form.email, {'attr': {'class': 'form-input'}}) }}
+                    {{ form_errors(form.email) }}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h4>Account Settings</h4>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Password</label>
+                    {{ form_widget(form.plainPassword, {
+                        'attr': {
+                            'class': 'form-input',
+                            'placeholder': 'Leave blank to keep current password'
+                        }
+                    }) }}
+                    {{ form_errors(form.plainPassword) }}
+                </div>
+
+                {% if form.status is defined %}
+                    <div class="form-group">
+                        <label>Status</label>
+                        {{ form_widget(form.status, {'attr': {'class': 'form-input'}}) }}
+                        {{ form_errors(form.status) }}
+                    </div>
+                {% endif %}
+
+                {% if form.role is defined %}
+                    <div class="form-group full">
+                        <label>Role</label>
+                        {{ form_widget(form.role, {'attr': {'class': 'form-input'}}) }}
+                        {{ form_errors(form.role) }}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h4>Profile</h4>
+
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label>Profile Picture URL</label>
+                    {{ form_widget(form.profilePic, {'attr': {'class': 'form-input'}}) }}
+                    {{ form_errors(form.profilePic) }}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button class="btn btn-primary big-btn">
+                Save Changes
+            </button>
+        </div>
+
+        {{ form_end(form) }}
+
+        <div class="form-section">
+            <h4>Connected Sign-In Methods</h4>
+
+            <div class="identity-grid">
+                <div class="identity-panel">
+                    <h5>Google</h5>
+                    <p>Link your Google account so users can sign in without entering a password.</p>
+                    <div class="identity-status {{ user.googleId ? 'is-ready' : '' }}">
+                        {{ user.googleId ? 'Connected' : 'Not connected' }}
+                    </div>
+                    <div class="form-actions" style="margin-top: 14px;">
+                        <a href="{{ path('app_google_connect_link') }}" class="btn btn-secondary">
+                            {{ user.googleId ? 'Reconnect Google' : 'Connect Google' }}
+                        </a>
+                    </div>
+                </div>
+
+                <div class="identity-panel"
+                     data-face-enroll
+                     data-enroll-url="{{ path('app_face_auth_enroll', {id: user.id}) }}"
+                     data-remove-url="{{ path('app_face_auth_remove', {id: user.id}) }}"
+                     data-enroll-csrf="{{ csrf_token('face_enroll_' ~ user.id) }}"
+                     data-remove-csrf="{{ csrf_token('face_remove_' ~ user.id) }}">
+                    <h5>Face ID</h5>
+                    <p>Capture your face once here, then you can sign in later with your email and a quick camera check.</p>
+                    <div class="identity-status {{ user.faceData ? 'is-ready' : '' }}" data-face-badge>
+                        {{ user.faceData ? 'Enrolled' : 'Not enrolled' }}
+                    </div>
+
+                    <div class="camera-shell" style="margin-top: 14px;">
+                        <video playsinline muted></video>
+                    </div>
+
+                    <div class="action-row">
+                        <button type="button" class="btn btn-secondary" data-enroll-start>Open Camera</button>
+                        <button type="button" class="btn btn-primary" data-enroll-save>Save Face ID</button>
+                        <button type="button" class="btn btn-danger" data-enroll-remove>Remove Face ID</button>
+                    </div>
+
+                    <div class="mini-note" data-enroll-status></div>
+                </div>
+
+                <div class="identity-panel">
+                    <h5>Contact QR</h5>
+                    <p>Scan this code on a phone to create a contact card with your Hirely details.</p>
+
+                    <div class="qr-contact-panel">
+                        <img src="{{ contact_qr_url }}"
+                             alt="Contact QR code for {{ user.firstName }} {{ user.lastName }}"
+                             class="qr-contact-image">
+
+                        <p class="qr-contact-note">
+                            The QR contains your name, email, role, and Hirely account status.
+                        </p>
+
+                        <pre class="qr-contact-code">{{ contact_vcard }}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
-    {{ form_start(form) }}
-
-    <div class="form-grid">
-
-        <div class="form-group">
-            <label>First Name</label>
-            {{ form_widget(form.firstName, {'attr': {'class': 'form-input'}}) }}
-        </div>
-
-        <div class="form-group">
-            <label>Last Name</label>
-            {{ form_widget(form.lastName, {'attr': {'class': 'form-input'}}) }}
-        </div>
-
-        <div class="form-group">
-            <label>Email</label>
-            {{ form_widget(form.email, {'attr': {'class': 'form-input'}}) }}
-        </div>
-
-        <div class="form-group">
-            <label>Password</label>
-            {{ form_widget(form.password, {'attr': {'class': 'form-input', 'placeholder': 'Leave blank to keep current password'}}) }}
-        </div>
-
-        <div class="form-group">
-            <label>Status</label>
-            {{ form_widget(form.status, {'attr': {'class': 'form-input'}}) }}
-        </div>
-
-        <div class="form-group">
-            <label>Role</label>
-            {{ form_widget(form.role, {'attr': {'class': 'form-input'}}) }}
-        </div>
-
-        <div class="form-group full">
-            <label>Profile Picture (URL)</label>
-            {{ form_widget(form.profilePic, {'attr': {'class': 'form-input'}}) }}
-        </div>
-
-        <div class="form-group">
-            <label>Face Data</label>
-            {{ form_widget(form.faceData, {'attr': {'class': 'form-input'}}) }}
-        </div>
-
-        <div class="form-group">
-            <label>Google ID</label>
-            {{ form_widget(form.googleId, {'attr': {'class': 'form-input'}}) }}
-        </div>
-
-    </div>
-
-    <br>
-
-    <button class="btn btn-primary">Update User</button>
-
-    {{ form_end(form) }}
-
 </div>
 
+<script src="{{ asset('js/face-auth.js') }}"></script>
 {% endblock %}

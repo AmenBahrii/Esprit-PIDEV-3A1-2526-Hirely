@@ -15,79 +15,87 @@ use Symfony\Component\Routing\Attribute\Route;
 final class JobofferController extends AbstractController
 {
     #[Route(name: 'app_joboffer_index', methods: ['GET'])]
-    public function index(EntityManagerInterface $em): Response
+    public function index(Request $request, EntityManagerInterface $em): Response
     {
         $repo = $em->getRepository(Joboffer::class);
 
-        // 🔥 SIMULATED USER
-         /** @var \App\Entity\Users $user */
+        /** @var Users $user */
         $user = $this->getUser();
 
-if (!$user) {
-    return $this->redirectToRoute('app_login');
-}
-        $roleName = strtolower($user->getRole()?->getName() ?? '');
-
-        if ($roleName === 'admin') {
-            $joboffers = $repo->findAll();
-
-            return $this->render('admin/joboffer/index.html.twig', [
-                'joboffers' => $joboffers,
-                'roleName' => $roleName
-            ]);
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
         }
+
+        $roleName = strtolower($user->getRole()?->getName() ?? '');
+        $search = $request->query->get('search');
+        $sort = $request->query->get('sort');
+
+        $qb = $repo->createQueryBuilder('j');
 
         if ($roleName === 'recruiter') {
-            $joboffers = $repo->findBy([
-                'user' => $user
-            ]);
-
-            return $this->render('recruiter/joboffer/index.html.twig', [
-                'joboffers' => $joboffers,
-                'roleName' => $roleName
-            ]);
+            $qb->andWhere('j.user = :user')
+                ->setParameter('user', $user);
+        } elseif ($roleName !== 'admin') {
+            $qb->andWhere('j.status = :status')
+                ->setParameter('status', 'Open');
         }
 
-        // ✅ Candidate → only OPEN jobs
-        $joboffers = $repo->findBy([
-            'status' => 'Open'
-        ]);
+        if ($search) {
+            $qb->andWhere('j.title LIKE :search OR j.location LIKE :search')
+                ->setParameter('search', '%' . $search . '%');
+        }
 
-        return $this->render('candidate/joboffer/index.html.twig', [
+        switch ($sort) {
+            case 'salary_asc':
+                $qb->orderBy('j.salary', 'ASC');
+                break;
+            case 'salary_desc':
+                $qb->orderBy('j.salary', 'DESC');
+                break;
+            case 'date_asc':
+                $qb->orderBy('j.publicationDate', 'ASC');
+                break;
+            case 'date_desc':
+                $qb->orderBy('j.publicationDate', 'DESC');
+                break;
+            default:
+                $qb->orderBy('j.id', 'DESC');
+        }
+
+        $joboffers = $qb->getQuery()->getResult();
+
+        return $this->render($roleName . '/joboffer/index.html.twig', [
             'joboffers' => $joboffers,
-            'roleName' => $roleName
+            'search' => $search,
+            'sort' => $sort,
+            'roleName' => $roleName,
         ]);
     }
 
     #[Route('/new', name: 'app_joboffer_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $em): Response
     {
-         /** @var \App\Entity\Users $user */
+        /** @var Users $user */
         $user = $this->getUser();
 
-if (!$user) {
-    return $this->redirectToRoute('app_login');
-}
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
         $roleName = strtolower($user->getRole()?->getName() ?? '');
 
-        // ❌ Only recruiter allowed
         if ($roleName !== 'recruiter') {
             return $this->redirectToRoute('app_joboffer_index');
         }
 
         $joboffer = new Joboffer();
+        $joboffer->setUser($user);
+        $joboffer->setPublicationDate(new \DateTime());
         $form = $this->createForm(JobofferType::class, $joboffer);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-
-            // ✅ Assign recruiter automatically
-            $joboffer->setUser($user);
-
-            // ✅ Default status
             $joboffer->setStatus('Open');
-
-            // ✅ Auto date (important)
             $joboffer->setPublicationDate(new \DateTime());
 
             $em->persist($joboffer);
@@ -103,18 +111,22 @@ if (!$user) {
     }
 
     #[Route('/{id}', name: 'app_joboffer_show', methods: ['GET'])]
-    public function show(Joboffer $joboffer, EntityManagerInterface $em): Response
+    public function show(Joboffer $joboffer): Response
     {
-         /** @var \App\Entity\Users $user */
+        /** @var Users $user */
         $user = $this->getUser();
 
-if (!$user) {
-    return $this->redirectToRoute('app_login');
-}
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
         $roleName = strtolower($user->getRole()?->getName() ?? '');
 
-        // optional: different templates
         if ($roleName === 'recruiter') {
+            if ($joboffer->getUser() !== $user) {
+                return $this->redirectToRoute('app_joboffer_index');
+            }
+
             return $this->render('recruiter/joboffer/show.html.twig', [
                 'joboffer' => $joboffer,
             ]);
@@ -126,6 +138,10 @@ if (!$user) {
             ]);
         }
 
+        if ($joboffer->getStatus() !== 'Open') {
+            return $this->redirectToRoute('app_joboffer_index');
+        }
+
         return $this->render('candidate/joboffer/show.html.twig', [
             'joboffer' => $joboffer,
         ]);
@@ -134,14 +150,14 @@ if (!$user) {
     #[Route('/{id}/edit', name: 'app_joboffer_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Joboffer $joboffer, EntityManagerInterface $em): Response
     {
-         /** @var \App\Entity\Users $user */
+        /** @var Users $user */
         $user = $this->getUser();
 
-if (!$user) {
-    return $this->redirectToRoute('app_login');
-}
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
         $roleName = strtolower($user->getRole()?->getName() ?? '');
-        $roleName = strtolower($user->getRole()->getName());
 
         if ($roleName !== 'recruiter' || $joboffer->getUser() !== $user) {
             return $this->redirectToRoute('app_joboffer_index');
@@ -165,12 +181,13 @@ if (!$user) {
     #[Route('/{id}', name: 'app_joboffer_delete', methods: ['POST'])]
     public function delete(Request $request, Joboffer $joboffer, EntityManagerInterface $em): Response
     {
-        /** @var \App\Entity\Users $user */
+        /** @var Users $user */
         $user = $this->getUser();
 
-if (!$user) {
-    return $this->redirectToRoute('app_login');
-}
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
         $roleName = strtolower($user->getRole()?->getName() ?? '');
 
         if ($roleName !== 'recruiter' || $joboffer->getUser() !== $user) {

@@ -8,20 +8,18 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Routing\Attribute\Route;
+
 #[Route('/users')]
 final class UsersController extends AbstractController
 {
-
-    
     #[Route(name: 'app_users_index', methods: ['GET'])]
     public function index(EntityManagerInterface $entityManager): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
-        $users = $entityManager
-            ->getRepository(Users::class)
-            ->findAll();
+
+        $users = $entityManager->getRepository(Users::class)->findAll();
 
         return $this->render('users/index.html.twig', [
             'users' => $users,
@@ -30,82 +28,130 @@ final class UsersController extends AbstractController
 
     #[Route('/new', name: 'app_users_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
-{
-    //$this->denyAccessUnlessGranted('ROLE_ADMIN');
-    $user = new Users();
-    $form = $this->createForm(UsersType::class, $user);
-    $form->handleRequest($request);
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-    if ($form->isSubmitted() && $form->isValid()) {
+        $user = new Users();
+        $form = $this->createForm(UsersType::class, $user, [
+            'is_admin' => true,
+            'password_required' => true,
+        ]);
+        $form->handleRequest($request);
 
-        // 🔐 HASH PASSWORD
-        $hashedPassword = $passwordHasher->hashPassword(
-            $user,
-            $user->getPassword()
-        );
+        if ($form->isSubmitted() && $form->isValid()) {
+            $plainPassword = $form->get('plainPassword')->getData();
+            $hashedPassword = $passwordHasher->hashPassword(
+                $user,
+                $plainPassword
+            );
 
-        $user->setPassword($hashedPassword);
+            $user->setPassword($hashedPassword);
 
-        $em->persist($user);
-        $em->flush();
+            $em->persist($user);
+            $em->flush();
 
-        return $this->redirectToRoute('app_users_index');
+            return $this->redirectToRoute('app_users_index');
+        }
+
+        return $this->render('users/new.html.twig', [
+            'user' => $user,
+            'form' => $form,
+        ]);
     }
-
-    return $this->render('users/new.html.twig', [
-        'user' => $user,
-        'form' => $form,
-    ]);
-}
 
     #[Route('/{id}', name: 'app_users_show', methods: ['GET'])]
     public function show(Users $user): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $vcard = $this->buildContactVcard($user);
+
         return $this->render('users/show.html.twig', [
             'user' => $user,
+            'contact_qr_url' => 'https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=' . rawurlencode($vcard),
+            'contact_vcard' => $vcard,
         ]);
     }
 
     #[Route('/{id}/edit', name: 'app_users_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Users $user, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
-{
-    //$this->denyAccessUnlessGranted('ROLE_ADMIN');
-    $form = $this->createForm(UsersType::class, $user);
-    $form->handleRequest($request);
-    $originalPassword = $user->getPassword();
-    if ($form->isSubmitted() && $form->isValid()) {
+    {
+        $currentUser = $this->getUser();
+        $isAdmin = $this->isGranted('ROLE_ADMIN');
 
-        if ($user->getPassword()) {
-        $hashedPassword = $passwordHasher->hashPassword(
-            $user,
-            $user->getPassword()
-        );
-        $user->setPassword($hashedPassword);
-    } else {
-        $user->setPassword($originalPassword);
+        if (!$isAdmin && (!$currentUser instanceof Users || $currentUser->getId() !== $user->getId())) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $form = $this->createForm(UsersType::class, $user, [
+            'is_admin' => $isAdmin,
+            'password_required' => false,
+        ]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $plainPassword = $form->get('plainPassword')->getData();
+
+            if (is_string($plainPassword) && $plainPassword !== '') {
+                $hashedPassword = $passwordHasher->hashPassword(
+                    $user,
+                    $plainPassword
+                );
+                $user->setPassword($hashedPassword);
+            }
+
+            $em->flush();
+
+            return $this->redirectToRoute(
+                $isAdmin ? 'app_users_index' : 'app_joboffer_index'
+            );
+        }
+
+        $vcard = $this->buildContactVcard($user);
+
+        return $this->render('users/edit.html.twig', [
+            'user' => $user,
+            'form' => $form,
+            'contact_qr_url' => 'https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=' . rawurlencode($vcard),
+            'contact_vcard' => $vcard,
+        ]);
     }
-
-    $em->flush();
-
-        return $this->redirectToRoute('app_users_index');
-    }
-
-    return $this->render('users/edit.html.twig', [
-        'user' => $user,
-        'form' => $form,
-    ]);
-}
 
     #[Route('/{id}', name: 'app_users_delete', methods: ['POST'])]
     public function delete(Request $request, Users $user, EntityManagerInterface $entityManager): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
         if ($this->isCsrfTokenValid('delete'.$user->getId(), $request->getPayload()->getString('_token'))) {
             $entityManager->remove($user);
             $entityManager->flush();
         }
 
         return $this->redirectToRoute('app_users_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+    private function escapeVcardValue(?string $value): string
+    {
+        $sanitized = str_replace(["\r\n", "\r", "\n"], '\n', (string) $value);
+
+        return str_replace(['\\', ';', ','], ['\\\\', '\;', '\,'], $sanitized);
+    }
+
+    private function buildContactVcard(Users $user): string
+    {
+        $fullName = trim(sprintf('%s %s', $user->getFirstName(), $user->getLastName()));
+        $roleName = $user->getRole()?->getName() ?? 'User';
+
+        return implode("\r\n", [
+            'BEGIN:VCARD',
+            'VERSION:3.0',
+            sprintf('N:%s;%s;;;', $this->escapeVcardValue($user->getLastName()), $this->escapeVcardValue($user->getFirstName())),
+            sprintf('FN:%s', $this->escapeVcardValue($fullName !== '' ? $fullName : $user->getEmail())),
+            sprintf('EMAIL;TYPE=INTERNET:%s', $this->escapeVcardValue($user->getEmail())),
+            'ORG:Hirely',
+            sprintf('TITLE:%s', $this->escapeVcardValue(ucfirst($roleName))),
+            sprintf('NOTE:%s', $this->escapeVcardValue(sprintf('Hirely account status: %s', ucfirst($user->getStatus())))),
+            'END:VCARD',
+        ]);
     }
 }

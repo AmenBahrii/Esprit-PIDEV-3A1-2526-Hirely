@@ -1,0 +1,39 @@
+<div class="card-grid" id="jobCards">
+{% for joboffer in joboffers %}
+    <article class="data-card">
+        <div class="data-card-header">
+            <div>
+                <h4 class="data-card-title">{{ joboffer.title }}</h4>
+                <div class="data-card-subtitle">#{{ joboffer.id }} · {{ joboffer.location }}</div>
+            </div>
+
+            {% if joboffer.status == 'Open' %}
+                <span class="status status-accepted">Open</span>
+            {% else %}
+                <span class="status status-rejected">{{ joboffer.status }}</span>
+            {% endif %}
+        </div>
+
+        <div class="data-card-body">
+            <div class="data-card-field">
+                <span class="data-card-label">Contract</span>
+                <span class="data-card-value">{{ joboffer.contractType }}</span>
+            </div>
+            <div class="data-card-field">
+                <span class="data-card-label">Salary</span>
+                <span class="data-card-value">{{ joboffer.salary }}</span>
+            </div>
+            <div class="data-card-field">
+                <span class="data-card-label">Experience</span>
+                <span class="data-card-value">{{ joboffer.experienceRequired }} yrs</span>
+            </div>
+            <div class="data-card-field">
+                <span class="data-card-label">Publication Date</span>
+                <span class="data-card-value">{{ joboffer.publicationDate ? joboffer.publicationDate|date('Y-m-d') : 'N/A' }}</span>
+            </div>
+        </div>
+    </article>
+{% else %}
+    <div class="empty-state">No job offers found</div>
+{% endfor %}
+</div>

@@ -25,7 +25,13 @@
             </tr>
             <tr>
                 <th>ResumePath</th>
-                <td>{{ application.resumePath }}</td>
+                <td>
+                    {% if application.resumePath %}
+                        <a href="{{ asset('uploads/resumes/' ~ application.resumePath) }}" target="_blank" rel="noreferrer">{{ application.resumePath }}</a>
+                    {% else %}
+                        No resume uploaded
+                    {% endif %}
+                </td>
             </tr>
             <tr>
                 <th>LastUpdateDate</th>
@@ -70,5 +76,5 @@
 
     <a href="{{ path('app_application_edit', {'applicationId': application.applicationId}) }}">edit</a>
 
-    {{ include('application/_delete_form.html.twig') }}
+    {{ include('admin/application/_delete_form.html.twig') }}
 {% endblock %}

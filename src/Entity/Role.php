@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 use Doctrine\Common\Collections\Collection;
 use App\Entity\Users;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
 class Role
@@ -17,23 +18,30 @@ class Role
 private ?int $id = null;
 
     #[ORM\Column(type: "string", length: 50)]
+    #[Assert\NotBlank(message: "Role name is required")]
+    #[Assert\Length(min: 3, max: 50, minMessage: "Role name must be at least {{ limit }} characters")]
     private string $name;
 
     #[ORM\Column(type: "string", length: 255)]
+    #[Assert\NotBlank(message: "Description is required")]
+    #[Assert\Length(min: 5, max: 255, minMessage: "Description must be at least {{ limit }} characters")]
     private string $description;
 
     #[ORM\Column(type: "string", length: 20)]
+    #[Assert\NotBlank(message: "Status is required")]
+    #[Assert\Choice(choices: ["active", "inactive"], message: "Please choose a valid status")]
     private string $status;
 
-    #[ORM\Column(type: "string", length: 50)]
-    private string $default_dashboard;
+    #[ORM\Column(type: "string", length: 50, nullable: true)]
+#[Assert\NotBlank(message: "Default dashboard is required")]
+private ?string $default_dashboard = null;
 
-    public function getRole_id()
+    public function getid()
     {
         return $this->id;
     }
 
-    public function setRole_id($value)
+    public function setid($value)
     {
         $this->id = $value;
     }
@@ -68,11 +76,10 @@ private ?int $id = null;
         $this->status = $value;
     }
 
-    public function getDefaultDashboard()
-    {
-        return $this->default_dashboard;
-    }
-
+public function getDefaultDashboard(): ?string
+{
+    return $this->default_dashboard;
+}
     public function setDefaultDashboard($value)
     {
         $this->default_dashboard = $value;

@@ -35,7 +35,6 @@ class RegistrationFormType extends AbstractType
     'class' => Role::class,
     'choice_label' => 'name',
     'required' => true, // ✅ IMPORTANT
-    'placeholder' => false,
     'query_builder' => function ($repo) {
         return $repo->createQueryBuilder('r')
             ->where('r.name IN (:roles)')

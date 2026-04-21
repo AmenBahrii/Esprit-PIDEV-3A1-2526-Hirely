@@ -14,42 +14,47 @@ use Symfony\Component\Routing\Attribute\Route;
 class RegistrationController extends AbstractController
 {
     #[Route('/register', name: 'app_register')]
-    public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager): Response
-{
-    $user = new Users();
-    $form = $this->createForm(RegistrationFormType::class, $user);
-    $form->handleRequest($request);
-
-    if ($form->isSubmitted() && $form->isValid()) {
-
-        // ✅ NOW form is mapped correctly
-        $role = $user->getRole();
-
-        if (!$role) {
-            throw new \Exception('Role is required');
-        }
-
-        if (!in_array(strtolower($role->getName()), ['candidate', 'recruiter'])) {
-            throw new \Exception('Invalid role');
-        }
-
-        // ✅ Hash password
-        $plainPassword = $form->get('plainPassword')->getData();
-        $user->setPassword(
-            $userPasswordHasher->hashPassword($user, $plainPassword)
-        );
-
-        // ✅ Optional: default status
+    public function register(
+        Request $request,
+        UserPasswordHasherInterface $userPasswordHasher,
+        EntityManagerInterface $entityManager
+    ): Response {
+        $user = new Users();
         $user->setStatus('active');
 
-        $entityManager->persist($user);
-        $entityManager->flush();
+        $form = $this->createForm(RegistrationFormType::class, $user);
+        $form->handleRequest($request);
 
-        return $this->redirectToRoute('app_login');
+        $plainPassword = $form->get('plainPassword')->getData();
+        if (is_string($plainPassword) && $plainPassword !== '') {
+            // Keep the entity valid during form validation; hash after success.
+            $user->setPassword($plainPassword);
+        }
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $role = $user->getRole();
+            if (!$role || !in_array(strtolower($role->getName()), ['candidate', 'recruiter'], true)) {
+                $this->addFlash('error', 'Please choose a valid account type.');
+
+                return $this->render('registration/register.html.twig', [
+                    'registrationForm' => $form,
+                ]);
+            }
+
+            $user->setPassword(
+                $userPasswordHasher->hashPassword($user, $plainPassword)
+            );
+
+            $entityManager->persist($user);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Account created successfully. You can log in now.');
+
+            return $this->redirectToRoute('app_login');
+        }
+
+        return $this->render('registration/register.html.twig', [
+            'registrationForm' => $form,
+        ]);
     }
-
-    return $this->render('registration/register.html.twig', [
-        'registrationForm' => $form,
-    ]);
-}
 }

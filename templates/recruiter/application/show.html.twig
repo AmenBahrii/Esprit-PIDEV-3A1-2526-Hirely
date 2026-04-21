@@ -1,74 +1,251 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Application{% endblock %}
+{% block title %}Recruiter Review{% endblock %}
 
 {% block body %}
-    <h1>Application</h1>
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>ApplicationId</th>
-                <td>{{ application.applicationId }}</td>
-            </tr>
-            <tr>
-                <th>ApplicationDate</th>
-                <td>{{ application.applicationDate ? application.applicationDate|date('Y-m-d') : '' }}</td>
-            </tr>
-            <tr>
-                <th>CoverLetter</th>
-                <td>{{ application.coverLetter }}</td>
-            </tr>
-            <tr>
-                <th>CurrentStatus</th>
-                <td>{{ application.currentStatus }}</td>
-            </tr>
-            <tr>
-                <th>ResumePath</th>
-                <td>{{ application.resumePath }}</td>
-            </tr>
-            <tr>
-                <th>LastUpdateDate</th>
-                <td>{{ application.lastUpdateDate ? application.lastUpdateDate|date('Y-m-d H:i:s') : '' }}</td>
-            </tr>
-            <tr>
-                <th>ExpectedSalary</th>
-                <td>{{ application.expectedSalary }}</td>
-            </tr>
-            <tr>
-                <th>AvailabilityDate</th>
-                <td>{{ application.availabilityDate ? application.availabilityDate|date('Y-m-d') : '' }}</td>
-            </tr>
-            <tr>
-                <th>Phone</th>
-                <td>{{ application.phone }}</td>
-            </tr>
-            <tr>
-                <th>Email</th>
-                <td>{{ application.email }}</td>
-            </tr>
-            <tr>
-                <th>ExperienceYears</th>
-                <td>{{ application.experienceYears }}</td>
-            </tr>
-            <tr>
-                <th>PortfolioUrl</th>
-                <td>{{ application.portfolioUrl }}</td>
-            </tr>
-            <tr>
-                <th>Score</th>
-                <td>{{ application.score }}</td>
-            </tr>
-            <tr>
-                <th>ReviewNote</th>
-                <td>{{ application.reviewNote }}</td>
-            </tr>
-        </tbody>
-    </table>
+<style>
+    .ai-review-panel {
+        margin-bottom: 18px;
+        padding: 16px 18px;
+        border: 1px solid rgba(255, 107, 53, 0.16);
+        border-radius: 8px;
+        background: linear-gradient(180deg, rgba(255, 247, 243, 0.92), rgba(255, 255, 255, 0.98));
+    }
 
-    <a href="{{ path('app_application_index') }}">back to list</a>
+    .ai-review-panel p {
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.55;
+    }
 
-    <a href="{{ path('app_application_edit', {'applicationId': application.applicationId}) }}">edit</a>
+    .ai-review-status {
+        display: none;
+        margin-top: 12px;
+        padding: 12px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        line-height: 1.5;
+    }
 
-    {{ include('application/_delete_form.html.twig') }}
+    .ai-review-status.is-visible {
+        display: block;
+    }
+
+    .ai-review-status.is-loading {
+        background: #fff6ea;
+        border: 1px solid #ffd8a8;
+        color: #9a5313;
+    }
+
+    .ai-review-status.is-success {
+        background: #eefaf3;
+        border: 1px solid #b9e6c8;
+        color: #1e6d3d;
+    }
+
+    .ai-review-status.is-error {
+        background: #fff1f1;
+        border: 1px solid #ffc9c9;
+        color: #b02a37;
+    }
+</style>
+
+<div class="header">Hirely Dashboard</div>
+<div class="sub-header">Review candidate application</div>
+
+<div class="card">
+    <div class="top-bar">
+        <h3>Application Review</h3>
+        <a href="{{ path('app_application_index') }}" class="btn btn-secondary">Back to Applications</a>
+    </div>
+
+    <div class="data-card" style="margin-bottom: 18px;">
+        <div class="data-card-header">
+            <div>
+                <h4 class="data-card-title">
+                    {{ application.jobOffer ? application.jobOffer.title : 'Job offer no longer exists' }}
+                </h4>
+                <div class="data-card-subtitle">
+                    Applied on {{ application.applicationDate ? application.applicationDate|date('Y-m-d') : 'N/A' }}
+                </div>
+            </div>
+
+            {% if application.currentStatus == 'Accepted' %}
+                <span class="status status-accepted">Accepted</span>
+            {% elseif application.currentStatus == 'pending' %}
+                <span class="status status-pending">Pending</span>
+            {% else %}
+                <span class="status status-rejected">{{ application.currentStatus }}</span>
+            {% endif %}
+        </div>
+
+        <div class="data-card-body">
+            <div class="data-card-field">
+                <span class="data-card-label">Candidate Email</span>
+                <span class="data-card-value">{{ application.email }}</span>
+            </div>
+            <div class="data-card-field">
+                <span class="data-card-label">Phone</span>
+                <span class="data-card-value">{{ application.phone }}</span>
+            </div>
+            <div class="data-card-field">
+                <span class="data-card-label">Expected Salary</span>
+                <span class="data-card-value">{{ application.expectedSalary }}</span>
+            </div>
+            <div class="data-card-field">
+                <span class="data-card-label">Experience</span>
+                <span class="data-card-value">{{ application.experienceYears }} years</span>
+            </div>
+            <div class="data-card-field">
+                <span class="data-card-label">Availability</span>
+                <span class="data-card-value">{{ application.availabilityDate ? application.availabilityDate|date('Y-m-d') : 'N/A' }}</span>
+            </div>
+            <div class="data-card-field">
+                <span class="data-card-label">Portfolio</span>
+                <span class="data-card-value">
+                    <a href="{{ application.portfolioUrl }}" target="_blank" rel="noreferrer">{{ application.portfolioUrl }}</a>
+                </span>
+            </div>
+        </div>
+
+        <div style="margin-top: 16px;">
+            <span class="data-card-label">Resume</span>
+            <div class="data-card-value">
+                {% if application.resumePath %}
+                    <a href="{{ asset('uploads/resumes/' ~ application.resumePath) }}" target="_blank" rel="noreferrer">{{ application.resumePath }}</a>
+                {% else %}
+                    No resume uploaded
+                {% endif %}
+            </div>
+        </div>
+
+        <div style="margin-top: 16px;">
+            <span class="data-card-label">Cover Letter</span>
+            <div class="data-card-value">{{ application.coverLetter }}</div>
+        </div>
+    </div>
+
+    <div class="card" style="padding: 20px; margin-top: 0;">
+        <div class="ai-review-panel">
+            <div class="top-bar">
+                <h3>AI Review Assistant</h3>
+                <button type="button" class="btn btn-primary" data-ai-review-trigger>Generate AI Review</button>
+            </div>
+            <p>Use AI to compare this application against the job offer and draft a score plus recruiter review note. You can still edit everything before saving.</p>
+            <div class="ai-review-status" data-ai-review-status></div>
+        </div>
+
+        <div class="top-bar">
+            <h3>Decision</h3>
+            <div class="actions">
+                {% if application.currentStatus == 'pending' %}
+                    <a class="btn btn-success" href="{{ path('app_application_accept', {'applicationId': application.applicationId}) }}">
+                        Accept
+                    </a>
+                    <a class="btn btn-danger" href="{{ path('app_application_reject', {'applicationId': application.applicationId}) }}">
+                        Reject
+                    </a>
+                {% else %}
+                    <span class="data-card-subtitle">This application has already been processed.</span>
+                {% endif %}
+
+                <form method="post"
+                      action="{{ path('app_application_delete', {'applicationId': application.applicationId}) }}"
+                      onsubmit="return confirm('Are you sure you want to delete this application?');"
+                      style="margin: 0;">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ application.applicationId) }}">
+                    <button class="btn btn-danger" type="submit">Delete</button>
+                </form>
+            </div>
+        </div>
+
+        {{ form_start(review_form, {'attr': {'novalidate': 'novalidate'}}) }}
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Score</label>
+                    {{ form_widget(review_form.score) }}
+                    {{ form_errors(review_form.score) }}
+                </div>
+
+                <div class="form-group full">
+                    <label>Review Note</label>
+                    {{ form_widget(review_form.reviewNote) }}
+                    {{ form_errors(review_form.reviewNote) }}
+                </div>
+            </div>
+
+            <button class="btn btn-primary">Save Review</button>
+        {{ form_end(review_form) }}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        (function () {
+            const trigger = document.querySelector('[data-ai-review-trigger]');
+            const statusBox = document.querySelector('[data-ai-review-status]');
+            const scoreInput = document.getElementById('{{ review_form.score.vars.id }}');
+            const noteInput = document.getElementById('{{ review_form.reviewNote.vars.id }}');
+            const aiReviewUrl = '{{ path('app_application_ai_review', {'applicationId': application.applicationId}) }}';
+
+            if (!trigger || !statusBox || !scoreInput || !noteInput) {
+                return;
+            }
+
+            function setStatus(message, type) {
+                statusBox.textContent = message;
+                statusBox.className = 'ai-review-status is-visible';
+
+                if (type) {
+                    statusBox.classList.add(type);
+                }
+            }
+
+            trigger.addEventListener('click', async function () {
+                trigger.disabled = true;
+                setStatus('Reading the application and generating a recruiter review...', 'is-loading');
+
+                try {
+                    const response = await fetch(aiReviewUrl, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    const responseText = await response.text();
+                    let payload = null;
+
+                    try {
+                        payload = JSON.parse(responseText);
+                    } catch (parseError) {
+                        throw new Error('AI review returned an unexpected response. Please refresh and try again.');
+                    }
+
+                    if (!response.ok || !payload.success) {
+                        throw new Error(payload.message || 'We could not generate the AI review.');
+                    }
+
+                    if (payload.review && payload.review.score !== null && payload.review.score !== undefined) {
+                        scoreInput.value = payload.review.score;
+                    }
+
+                    if (payload.review && payload.review.reviewNote) {
+                        noteInput.value = payload.review.reviewNote;
+                    }
+
+                    setStatus(payload.message || 'AI review is ready. Please review it before saving.', 'is-success');
+                } catch (error) {
+                    setStatus(error.message || 'AI review failed. You can still write the review manually.', 'is-error');
+                } finally {
+                    trigger.disabled = false;
+                }
+            });
+        })();
+    </script>
 {% endblock %}

@@ -18,27 +18,32 @@
     </div>
 
     {{ form_start(form) }}
+    {{ form_errors(form) }}
 
     <div class="form-grid">
 
         <div class="form-group">
             <label>Role Name</label>
             {{ form_widget(form.name, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.name) }}
         </div>
 
         <div class="form-group">
             <label>Status</label>
             {{ form_widget(form.status, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.status) }}
         </div>
 
         <div class="form-group full">
             <label>Description</label>
             {{ form_widget(form.description, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.description) }}
         </div>
 
         <div class="form-group full">
             <label>Default Dashboard</label>
             {{ form_widget(form.defaultDashboard, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.defaultDashboard) }}
         </div>
 
     </div>

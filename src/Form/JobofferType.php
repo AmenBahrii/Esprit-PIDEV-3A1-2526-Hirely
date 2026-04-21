@@ -30,8 +30,15 @@ class JobofferType extends AbstractType
             ->add('salary')
             ->add('location')
             ->add('experienceRequired')
-            ->add('publicationDate')
-            ->add('status')
+        
+            ->add('status', ChoiceType::class, [
+    'choices' => [
+        'Open' => 'Open',
+        'Closed' => 'Closed',
+    ],
+    'placeholder' => 'Select status',
+    'attr' => ['class' => 'form-input']
+])
             
         ;
     }
