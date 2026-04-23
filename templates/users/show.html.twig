@@ -1,0 +1,68 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% set force_sidebar = true %}
+{% set topbar_title = 'User Profile' %}
+{% set topbar_subtitle = 'Profile details and contact card' %}
+
+{% block title %}User Profile{% endblock %}
+
+{% block admin_content %}
+    <section class="module-page">
+        <div class="module-hero">
+            <div class="module-hero-copy">
+                <span class="module-eyebrow">User Module</span>
+                <h1 class="module-title">{{ user.firstName }} {{ user.lastName }}</h1>
+                <p class="module-subtitle">A quick account summary with contact, role, and platform status.</p>
+            </div>
+            <div class="module-actions">
+                <a href="{{ path('app_admin_users_edit', {'id': user.id}) }}" class="btn-primary topbar-logout-link">Edit user</a>
+                <a href="{{ path('app_admin_users_index') }}" class="btn-secondary topbar-logout-link">Back to users</a>
+            </div>
+        </div>
+
+        <div class="module-grid">
+            <article class="module-card">
+                <div class="module-card-header">
+                    <div>
+                        <span class="module-eyebrow">Identity</span>
+                        <h2 class="module-card-title">{{ user.firstName }} {{ user.lastName }}</h2>
+                    </div>
+                    <span class="status-badge {{ (user.status ?? 'inactive')|lower }}">{{ (user.status ?? 'inactive')|title }}</span>
+                </div>
+
+                <div class="module-card-meta">
+                    <div class="module-meta-item">
+                        <span class="module-meta-label">Email</span>
+                        <span class="module-meta-value">{{ user.email }}</span>
+                    </div>
+                    <div class="module-meta-item">
+                        <span class="module-meta-label">Role</span>
+                        <span class="module-meta-value">{{ user.role ? user.role.name|title : 'Unassigned' }}</span>
+                    </div>
+                    <div class="module-meta-item">
+                        <span class="module-meta-label">Google sign-in</span>
+                        <span class="module-meta-value">{{ user.googleId ? 'Linked' : 'Email only' }}</span>
+                    </div>
+                    <div class="module-meta-item">
+                        <span class="module-meta-label">Profile image</span>
+                        <span class="module-meta-value">{{ user.profilePic ? 'Available' : 'Not set' }}</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="module-card">
+                <div class="module-card-header">
+                    <div>
+                        <span class="module-eyebrow">Contact QR</span>
+                        <h2 class="module-card-title">vCard snapshot</h2>
+                    </div>
+                </div>
+
+                <img src="{{ contact_qr_url }}" alt="Contact QR" style="width: 220px; max-width: 100%; border-radius: 22px;">
+                <div class="module-card-actions">
+                    <a href="{{ contact_qr_url }}" target="_blank" rel="noopener" class="btn-secondary topbar-logout-link">Open QR</a>
+                </div>
+            </article>
+        </div>
+    </section>
+{% endblock %}

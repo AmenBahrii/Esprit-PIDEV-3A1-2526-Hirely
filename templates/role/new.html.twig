@@ -1,0 +1,25 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% set force_sidebar = true %}
+{% set topbar_title = 'Create Role' %}
+{% set topbar_subtitle = 'Define a new access profile' %}
+
+{% block title %}New Role{% endblock %}
+
+{% block admin_content %}
+    <section class="module-page">
+        <div class="module-hero">
+            <div class="module-hero-copy">
+                <span class="module-eyebrow">Role Module</span>
+                <h1 class="module-title">Create a new role</h1>
+                <p class="module-subtitle">Set the role label, default dashboard, and current activation state.</p>
+            </div>
+            <div class="module-actions">
+                <a href="{{ path('app_admin_role_index') }}" class="btn-secondary topbar-logout-link">Back to roles</a>
+            </div>
+        </div>
+        <div class="module-panel">
+            {{ include('role/_form.html.twig', {button_label: 'Create role'}) }}
+        </div>
+    </section>
+{% endblock %}

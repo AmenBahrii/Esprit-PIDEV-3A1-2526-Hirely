@@ -129,7 +129,7 @@
                     </div>
                     <div class="record-stat">
                         <span class="record-stat-label">{{ plans_results_ui.tasks }}</span>
-                        <span class="record-stat-value">{{ plan.onboardingtasks|length }} task(s)</span>
+                        <span class="record-stat-value">{{ plan_task_totals[plan.planId]|default(0) }} task(s)</span>
                     </div>
                     <div class="record-stat record-stat-wide">
                         <span class="record-stat-label">{{ plans_results_ui.qr_access }}</span>

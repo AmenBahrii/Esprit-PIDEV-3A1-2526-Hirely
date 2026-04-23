@@ -1,0 +1,28 @@
+{% extends 'security/base_auth.html.twig' %}
+
+{% block title %}Complete Google Sign-In - Hirely{% endblock %}
+
+{% block auth_body %}
+    <div class="auth-header">
+        <h1 class="auth-brand">Hirely</h1>
+        <h2 class="auth-title">Finish your account</h2>
+        <p class="auth-text">We found your Google profile. Choose the workspace you want to use inside Hirely before we sign you in.</p>
+    </div>
+
+    <div class="auth-note-card">
+        <h3>{{ profile.name ?: profile.email }}</h3>
+        <p>{{ profile.email }}</p>
+    </div>
+
+    <form method="post" class="auth-form" novalidate>
+        <div class="auth-actions">
+            <button type="submit" name="role" value="candidate" class="btn-primary topbar-logout-link">Continue as candidate</button>
+            <button type="submit" name="role" value="recruiter" class="btn-secondary topbar-logout-link">Continue as recruiter</button>
+        </div>
+    </form>
+
+    <p class="auth-footer">
+        Prefer email login instead?
+        <a href="{{ path('app_login') }}">Back to login</a>
+    </p>
+{% endblock %}

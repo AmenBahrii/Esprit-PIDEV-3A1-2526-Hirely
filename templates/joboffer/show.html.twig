@@ -1,0 +1,85 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% set force_sidebar = false %}
+{% set topbar_title = 'Job Offer Details' %}
+{% set topbar_subtitle = 'Role brief and recruiting conditions' %}
+
+{% block title %}Job Offer{% endblock %}
+
+{% block admin_content %}
+    <section class="module-page">
+        <div class="module-section-head">
+            <div class="module-section-copy">
+                <span class="module-eyebrow">{{ joboffer.contractType ?: 'Role brief' }}</span>
+                <h1 class="module-section-title">{{ joboffer.title ?: 'Untitled job offer' }}</h1>
+                <p class="module-section-text">{{ joboffer.description ?: 'No description provided.' }}</p>
+            </div>
+
+            <div class="module-section-actions">
+                {% if can_edit %}
+                    <a href="{{ path('app_workspace_joboffer_edit', {'id': joboffer.id}) }}"
+                       class="btn-primary topbar-logout-link">
+                        Edit offer
+                    </a>
+                {% endif %}
+
+                {% if can_apply %}
+                    <a href="{{ path('app_workspace_application_new', {'jobOfferId': joboffer.id}) }}"
+                       class="btn-primary topbar-logout-link">
+                        Apply now
+                    </a>
+                {% endif %}
+
+                <a href="{{ path('app_workspace_joboffer_index') }}"
+                   class="btn-secondary topbar-logout-link">
+                    Back to job offers
+                </a>
+            </div>
+        </div>
+
+        <div class="module-grid">
+            <article class="module-card">
+                <div class="module-card-header">
+                    <div>
+                        <span class="module-eyebrow">Offer snapshot</span>
+                        <h2 class="module-card-title">{{ joboffer.title ?: 'Untitled job offer' }}</h2>
+                    </div>
+                    <span class="status-badge {{ (joboffer.status ?: 'unknown')|lower }}">
+                        {{ (joboffer.status ?: 'Unknown')|title }}
+                    </span>
+                </div>
+
+                <div class="module-card-meta">
+                    <div class="module-meta-item">
+                        <span class="module-meta-label">Location</span>
+                        <span class="module-meta-value">{{ joboffer.location ?: 'Not set' }}</span>
+                    </div>
+                    <div class="module-meta-item">
+                        <span class="module-meta-label">Salary</span>
+                        <span class="module-meta-value">{{ joboffer.salary ?: 'N/A' }}</span>
+                    </div>
+                    <div class="module-meta-item">
+                        <span class="module-meta-label">Experience required</span>
+                        <span class="module-meta-value">{{ joboffer.experienceRequired ?: 0 }} years</span>
+                    </div>
+                    <div class="module-meta-item">
+                        <span class="module-meta-label">Published</span>
+                        <span class="module-meta-value">
+                            {{ joboffer.publicationDate ? joboffer.publicationDate|date('Y-m-d') : 'Not set' }}
+                        </span>
+                    </div>
+                    <div class="module-meta-item">
+                        <span class="module-meta-label">Recruiter</span>
+                        <span class="module-meta-value">
+                            {% if joboffer.user %}
+                                {{ (joboffer.user.firstName ~ ' ' ~ joboffer.user.lastName)|trim ?: joboffer.user.email }}
+                            {% else %}
+                                Unassigned
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </section>
+{% endblock %}

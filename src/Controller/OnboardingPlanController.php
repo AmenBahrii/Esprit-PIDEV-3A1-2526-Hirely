@@ -48,10 +48,11 @@ final class OnboardingPlanController extends AbstractController
         ];
         $plans = $viewer ? $planRepository->findVisibleFor($viewer, $searchTerm, $caseSensitive, $filters) : [];
         $plansWereSynced = false;
-        $statusSummaryByPlanId = $taskRepository->getStatusSummaryForPlanIds(array_map(
+        $planIds = array_map(
             static fn (Onboardingplan $plan): int => (int) $plan->getPlanId(),
             $plans
-        ));
+        );
+        $statusSummaryByPlanId = $taskRepository->getStatusSummaryForPlanIds($planIds);
 
         foreach ($plans as $plan) {
             $planId = (int) $plan->getPlanId();
@@ -69,10 +70,11 @@ final class OnboardingPlanController extends AbstractController
             'selected_status' => $filters['status'],
             'selected_sort' => $filters['sort'],
             'overdue_only' => $filters['overdue_only'],
+            'plan_task_totals' => $this->buildPlanTaskTotals($statusSummaryByPlanId),
             'plan_metrics' => $this->buildPlanMetrics($plans),
             'plan_flow_panel' => $this->buildPlanFlowPanel(
                 $plans,
-                $taskRepository->findGroupedByPlanIds(array_map(static fn (Onboardingplan $plan): int => (int) $plan->getPlanId(), $plans)),
+                $taskRepository->findGroupedByPlanIds($planIds),
                 $onboardingFlowService,
                 $onboardingFlowPresenter,
                 $selectedLanguage
@@ -382,6 +384,21 @@ final class OnboardingPlanController extends AbstractController
             'completed' => $completed,
             'active' => $active,
         ];
+    }
+
+    /**
+     * @param array<int, array{total: int, completed: int, in_progress: int, blocked: int, on_hold: int, not_started: int}> $statusSummaryByPlanId
+     * @return array<int, int>
+     */
+    private function buildPlanTaskTotals(array $statusSummaryByPlanId): array
+    {
+        $taskTotals = [];
+
+        foreach ($statusSummaryByPlanId as $planId => $summary) {
+            $taskTotals[(int) $planId] = (int) ($summary['total'] ?? 0);
+        }
+
+        return $taskTotals;
     }
 
     /**

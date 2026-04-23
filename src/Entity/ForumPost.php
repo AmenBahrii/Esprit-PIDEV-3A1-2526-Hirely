@@ -156,7 +156,7 @@ class ForumPost
         return $this;
     }
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'editedForumPosts')]
     #[ORM\JoinColumn(name: 'edited_by', referencedColumnName: 'user_id')]
     private ?User $editedByUser = null;
 

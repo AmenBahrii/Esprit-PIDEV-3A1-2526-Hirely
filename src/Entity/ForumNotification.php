@@ -43,7 +43,7 @@ class ForumNotification
         return $this;
     }
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'actorForumNotifications')]
     #[ORM\JoinColumn(name: 'actor_user_id', referencedColumnName: 'user_id')]
     private ?User $actorUser = null;
 

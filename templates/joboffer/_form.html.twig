@@ -1,0 +1,584 @@
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+>
+
+<style>
+    .joboffer-form-shell {
+        gap: 22px;
+    }
+
+    .joboffer-location-row {
+        display: flex;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .joboffer-location-row .form-input {
+        flex: 1;
+    }
+
+    .joboffer-map-trigger {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 54px;
+        min-width: 54px;
+        border: 1px solid rgba(121, 97, 255, 0.14);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.94);
+        color: var(--hirely-orange);
+        cursor: pointer;
+        box-shadow: 0 16px 34px rgba(30, 28, 71, 0.08);
+        transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    }
+
+    .joboffer-map-trigger:hover {
+        transform: translateY(-1px);
+        border-color: rgba(255, 107, 53, 0.34);
+        box-shadow: 0 20px 38px rgba(30, 28, 71, 0.12);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 245, 240, 0.95));
+    }
+
+    .joboffer-map-trigger svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .joboffer-inline-hint {
+        margin: 0;
+        color: rgba(35, 30, 83, 0.58);
+        font-size: 0.84rem;
+        line-height: 1.55;
+    }
+
+    .joboffer-map-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 1200;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: rgba(15, 23, 42, 0.46);
+        backdrop-filter: blur(10px);
+    }
+
+    .joboffer-map-modal.is-open {
+        display: flex;
+    }
+
+    .joboffer-map-card {
+        width: min(100%, 920px);
+        max-height: calc(100vh - 48px);
+        overflow: hidden;
+        border-radius: 30px;
+        border: 1px solid rgba(121, 97, 255, 0.12);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(251, 247, 255, 0.95));
+        box-shadow: 0 32px 70px rgba(15, 23, 42, 0.22);
+        display: grid;
+        grid-template-rows: auto auto auto 1fr auto;
+    }
+
+    .joboffer-map-header,
+    .joboffer-map-search,
+    .joboffer-map-status,
+    .joboffer-map-footer {
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+
+    .joboffer-map-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding-top: 22px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid rgba(121, 97, 255, 0.1);
+    }
+
+    .joboffer-map-title {
+        margin: 0;
+        color: #231e53;
+        font-size: 1.2rem;
+        font-weight: 800;
+    }
+
+    .joboffer-map-close {
+        width: 42px;
+        height: 42px;
+        border: none;
+        border-radius: 14px;
+        background: rgba(35, 30, 83, 0.06);
+        color: #231e53;
+        font-size: 1.45rem;
+        line-height: 1;
+        cursor: pointer;
+    }
+
+    .joboffer-map-search {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        padding-top: 18px;
+        padding-bottom: 12px;
+    }
+
+    .joboffer-map-results {
+        display: none;
+        margin: 0 24px 12px;
+        padding: 0;
+        list-style: none;
+        border: 1px solid rgba(121, 97, 255, 0.1);
+        border-radius: 20px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.98);
+    }
+
+    .joboffer-map-results.has-results {
+        display: block;
+    }
+
+    .joboffer-map-results button {
+        width: 100%;
+        padding: 14px 16px;
+        border: none;
+        border-bottom: 1px solid rgba(121, 97, 255, 0.08);
+        background: transparent;
+        color: #231e53;
+        font: inherit;
+        font-weight: 600;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .joboffer-map-results li:last-child button {
+        border-bottom: none;
+    }
+
+    .joboffer-map-results button:hover {
+        background: rgba(255, 107, 53, 0.08);
+    }
+
+    .joboffer-map-status {
+        min-height: 20px;
+        padding-bottom: 12px;
+        color: rgba(35, 30, 83, 0.58);
+        font-size: 0.85rem;
+    }
+
+    .joboffer-map-status.is-error {
+        color: #b91c1c;
+    }
+
+    .joboffer-map-canvas {
+        min-height: 360px;
+        height: min(52vh, 470px);
+        margin: 0 24px 20px;
+        border-radius: 24px;
+        overflow: hidden;
+        border: 1px solid rgba(121, 97, 255, 0.1);
+    }
+
+    .joboffer-map-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding-top: 16px;
+        padding-bottom: 22px;
+        border-top: 1px solid rgba(121, 97, 255, 0.1);
+    }
+
+    .joboffer-map-preview {
+        color: rgba(35, 30, 83, 0.62);
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    .joboffer-map-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        justify-content: flex-end;
+    }
+
+    @media (max-width: 720px) {
+        .joboffer-map-modal {
+            padding: 14px;
+        }
+
+        .joboffer-map-search,
+        .joboffer-map-footer {
+            grid-template-columns: 1fr;
+            display: grid;
+        }
+
+        .joboffer-map-results {
+            margin-left: 14px;
+            margin-right: 14px;
+        }
+
+        .joboffer-map-header,
+        .joboffer-map-search,
+        .joboffer-map-status,
+        .joboffer-map-footer {
+            padding-left: 14px;
+            padding-right: 14px;
+        }
+
+        .joboffer-map-canvas {
+            height: 44vh;
+            margin-left: 14px;
+            margin-right: 14px;
+        }
+    }
+</style>
+
+{{ form_start(form, {'attr': {'class': 'module-page joboffer-form-shell', 'novalidate': 'novalidate'}}) }}
+    <div class="module-form-grid">
+        <div class="module-field full">
+            <label>Title</label>
+            {{ form_widget(form.title, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.title) }}
+        </div>
+
+        <div class="module-field full">
+            <label>Description</label>
+            {{ form_widget(form.description, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.description) }}
+        </div>
+
+        <div class="module-field">
+            <label>Contract type</label>
+            {{ form_widget(form.contractType, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.contractType) }}
+        </div>
+
+        <div class="module-field">
+            <label>Status</label>
+            {{ form_widget(form.status, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.status) }}
+        </div>
+
+        <div class="module-field">
+            <label>Salary</label>
+            {{ form_widget(form.salary, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.salary) }}
+        </div>
+
+        <div class="module-field full">
+            <label>Location</label>
+            <div class="joboffer-location-row">
+                {{ form_widget(form.location, {'attr': {'class': 'form-input', 'data-location-input': 'true'}}) }}
+                <button type="button" class="joboffer-map-trigger" data-map-open aria-label="Open location picker">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M12 21s6-5.686 6-11a6 6 0 1 0-12 0c0 5.314 6 11 6 11Z" stroke="currentColor" stroke-width="1.8"/>
+                        <circle cx="12" cy="10" r="2.5" stroke="currentColor" stroke-width="1.8"/>
+                    </svg>
+                </button>
+            </div>
+            <p class="joboffer-inline-hint">Type a city manually or use the map picker to search and drop the location directly into the form.</p>
+            {{ form_errors(form.location) }}
+        </div>
+
+        <div class="module-field full">
+            <label>Experience required</label>
+            {{ form_widget(form.experienceRequired, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.experienceRequired) }}
+        </div>
+    </div>
+
+    <div class="inline-actions">
+        <button type="submit" class="btn-primary topbar-logout-link">{{ button_label|default('Save job offer') }}</button>
+    </div>
+{{ form_end(form) }}
+
+<div class="joboffer-map-modal" data-map-modal>
+    <div class="joboffer-map-card" role="dialog" aria-modal="true" aria-labelledby="joboffer-map-title">
+        <div class="joboffer-map-header">
+            <h3 class="joboffer-map-title" id="joboffer-map-title">Choose job location</h3>
+            <button type="button" class="joboffer-map-close" data-map-close aria-label="Close map picker">&times;</button>
+        </div>
+
+        <div class="joboffer-map-search">
+            <input type="text" class="form-input" data-map-search-input placeholder="Search for a city, address, or area">
+            <button type="button" class="btn-secondary topbar-logout-link" data-map-search-button>Search</button>
+        </div>
+
+        <ul class="joboffer-map-results" data-map-search-results></ul>
+
+        <div class="joboffer-map-status" data-map-status>Click on the map or search for a place to fill the location field.</div>
+
+        <div id="joboffer-location-map" class="joboffer-map-canvas" data-map-canvas></div>
+
+        <div class="joboffer-map-footer">
+            <div class="joboffer-map-preview" data-map-selection-preview>No location selected yet.</div>
+
+            <div class="joboffer-map-actions">
+                <button type="button" class="btn-secondary topbar-logout-link" data-map-current-location>Use my location</button>
+                <button type="button" class="btn-primary topbar-logout-link" data-map-apply>Use this location</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+></script>
+
+<script>
+    (() => {
+        const modal = document.querySelector('[data-map-modal]');
+        const openButton = document.querySelector('[data-map-open]');
+        const closeButton = document.querySelector('[data-map-close]');
+        const applyButton = document.querySelector('[data-map-apply]');
+        const currentLocationButton = document.querySelector('[data-map-current-location]');
+        const searchInput = document.querySelector('[data-map-search-input]');
+        const searchButton = document.querySelector('[data-map-search-button]');
+        const searchResults = document.querySelector('[data-map-search-results]');
+        const statusBox = document.querySelector('[data-map-status]');
+        const selectionPreview = document.querySelector('[data-map-selection-preview]');
+        const locationInput = document.querySelector('[data-location-input]');
+        const mapCanvas = document.querySelector('[data-map-canvas]');
+
+        if (!modal || !openButton || !locationInput || !mapCanvas || typeof L === 'undefined') {
+            return;
+        }
+
+        let map;
+        let marker;
+        let selectedLocation = {
+            label: locationInput.value || '',
+            lat: null,
+            lon: null
+        };
+
+        const defaultCoords = [9.0820, 8.6753];
+
+        const setStatus = (message, isError = false) => {
+            statusBox.textContent = message;
+            statusBox.classList.toggle('is-error', Boolean(isError));
+        };
+
+        const updatePreview = () => {
+            selectionPreview.textContent = selectedLocation.label || 'No location selected yet.';
+        };
+
+        const clearSearchResults = () => {
+            searchResults.innerHTML = '';
+            searchResults.classList.remove('has-results');
+        };
+
+        const placeMarker = (lat, lon) => {
+            if (!map) {
+                return;
+            }
+
+            if (!marker) {
+                marker = L.marker([lat, lon]).addTo(map);
+            } else {
+                marker.setLatLng([lat, lon]);
+            }
+
+            map.setView([lat, lon], 15);
+        };
+
+        const ensureMap = () => {
+            if (map) {
+                map.invalidateSize();
+                return;
+            }
+
+            map = L.map(mapCanvas).setView(defaultCoords, 6);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            map.on('click', (event) => {
+                selectCoordinates(event.latlng.lat, event.latlng.lng);
+            });
+        };
+
+        const openModal = () => {
+            modal.classList.add('is-open');
+            document.body.style.overflow = 'hidden';
+            ensureMap();
+            map.invalidateSize();
+            updatePreview();
+
+            if (locationInput.value.trim() !== '') {
+                searchInput.value = locationInput.value.trim();
+            }
+        };
+
+        const closeModal = () => {
+            modal.classList.remove('is-open');
+            document.body.style.overflow = '';
+        };
+
+        const reverseGeocode = async (lat, lon) => {
+            const url = new URL('https://nominatim.openstreetmap.org/reverse');
+            url.searchParams.set('format', 'jsonv2');
+            url.searchParams.set('lat', lat);
+            url.searchParams.set('lon', lon);
+            url.searchParams.set('zoom', '18');
+            url.searchParams.set('addressdetails', '1');
+
+            const response = await fetch(url.toString(), {
+                headers: { 'Accept': 'application/json' }
+            });
+
+            if (!response.ok) {
+                throw new Error('Could not retrieve the address for that location.');
+            }
+
+            return response.json();
+        };
+
+        const searchLocation = async (query) => {
+            const url = new URL('https://nominatim.openstreetmap.org/search');
+            url.searchParams.set('format', 'jsonv2');
+            url.searchParams.set('q', query);
+            url.searchParams.set('limit', '5');
+
+            const response = await fetch(url.toString(), {
+                headers: { 'Accept': 'application/json' }
+            });
+
+            if (!response.ok) {
+                throw new Error('Could not search for that location.');
+            }
+
+            return response.json();
+        };
+
+        const selectCoordinates = async (lat, lon) => {
+            placeMarker(lat, lon);
+            setStatus('Loading address from the map...');
+
+            try {
+                const result = await reverseGeocode(lat, lon);
+                selectedLocation = {
+                    label: result.display_name || `${lat.toFixed(5)}, ${lon.toFixed(5)}`,
+                    lat,
+                    lon
+                };
+                updatePreview();
+                setStatus('Location selected from the map.');
+            } catch (error) {
+                selectedLocation = {
+                    label: `${lat.toFixed(5)}, ${lon.toFixed(5)}`,
+                    lat,
+                    lon
+                };
+                updatePreview();
+                setStatus(error.message || 'Could not resolve the selected location.', true);
+            }
+        };
+
+        const handleSearch = async () => {
+            const query = searchInput.value.trim();
+            if (!query) {
+                clearSearchResults();
+                setStatus('Type a location to search first.', true);
+                return;
+            }
+
+            setStatus('Searching for locations...');
+            clearSearchResults();
+
+            try {
+                const results = await searchLocation(query);
+                if (!Array.isArray(results) || results.length === 0) {
+                    setStatus('No matching places were found.', true);
+                    return;
+                }
+
+                searchResults.classList.add('has-results');
+
+                results.forEach((result) => {
+                    const item = document.createElement('li');
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.textContent = result.display_name;
+                    button.addEventListener('click', () => {
+                        const lat = parseFloat(result.lat);
+                        const lon = parseFloat(result.lon);
+
+                        selectedLocation = {
+                            label: result.display_name,
+                            lat,
+                            lon
+                        };
+
+                        placeMarker(lat, lon);
+                        updatePreview();
+                        clearSearchResults();
+                        setStatus('Location found. You can use it now or choose another point on the map.');
+                    });
+                    item.appendChild(button);
+                    searchResults.appendChild(item);
+                });
+            } catch (error) {
+                setStatus(error.message || 'Location search failed.', true);
+            }
+        };
+
+        openButton.addEventListener('click', openModal);
+        closeButton.addEventListener('click', closeModal);
+
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
+
+        applyButton.addEventListener('click', () => {
+            if (!selectedLocation.label) {
+                setStatus('Pick a location from the map or search first.', true);
+                return;
+            }
+
+            locationInput.value = selectedLocation.label;
+            closeModal();
+        });
+
+        currentLocationButton.addEventListener('click', () => {
+            if (!navigator.geolocation) {
+                setStatus('Your browser does not support location access.', true);
+                return;
+            }
+
+            setStatus('Getting your current location...');
+            navigator.geolocation.getCurrentPosition(
+                (position) => selectCoordinates(position.coords.latitude, position.coords.longitude),
+                () => setStatus('Could not get your current location.', true)
+            );
+        });
+
+        searchButton.addEventListener('click', handleSearch);
+        searchInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                handleSearch();
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && modal.classList.contains('is-open')) {
+                closeModal();
+            }
+        });
+
+        updatePreview();
+    })();
+</script>

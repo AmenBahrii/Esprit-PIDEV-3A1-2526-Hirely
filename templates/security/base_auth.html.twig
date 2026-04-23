@@ -1,0 +1,194 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .auth-shell {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 32px 18px;
+            background:
+                radial-gradient(circle at top left, rgba(207, 36, 170, 0.18), transparent 32%),
+                radial-gradient(circle at top right, rgba(117, 15, 121, 0.16), transparent 30%),
+                linear-gradient(145deg, #4b1653 0%, #171b35 56%, #6c245f 100%);
+        }
+
+        .auth-card {
+            width: min(100%, 460px);
+            padding: 32px;
+            border-radius: 28px;
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
+        }
+
+        .auth-header {
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .auth-brand {
+            margin: 0 0 6px;
+            color: #231e53;
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1.05;
+        }
+
+        .auth-title {
+            margin: 0;
+            color: #231e53;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .auth-text {
+            margin: 8px 0 0;
+            color: #64748b;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .flash-stack {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .auth-form {
+            display: grid;
+            gap: 14px;
+        }
+
+        .auth-field {
+            display: grid;
+            gap: 8px;
+        }
+
+        .auth-field label,
+        .auth-label {
+            color: #231e53;
+            font-size: 0.92rem;
+            font-weight: 700;
+        }
+
+        .auth-actions {
+            display: grid;
+            gap: 12px;
+            margin-top: 6px;
+        }
+
+        .auth-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+            color: #5f6b85;
+        }
+
+        .auth-note-card {
+            margin-top: 18px;
+            padding: 16px 18px;
+            border-radius: 18px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+        .auth-note-card h3 {
+            margin: 0 0 8px;
+            color: #231e53;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .auth-note-card p {
+            margin: 0;
+            color: #64748b;
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+
+        .field-hint {
+            margin: 0;
+            color: #64748b;
+            font-size: 0.8rem;
+            line-height: 1.5;
+        }
+
+        .field-error-box,
+        .form-shell-error-box {
+            padding: 10px 12px;
+            border-radius: 14px;
+            background: #fff1f2;
+            border: 1px solid #fecdd3;
+        }
+
+        .field-errors,
+        .field-errors ul,
+        .form-shell-error,
+        .form-shell-error ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            color: #b91c1c;
+            font-size: 0.82rem;
+            line-height: 1.45;
+        }
+
+        .auth-footer {
+            margin-top: 18px;
+            text-align: center;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .auth-footer a,
+        .auth-meta a {
+            color: #ef7511;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .auth-footer a:hover,
+        .auth-meta a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 640px) {
+            .auth-shell {
+                align-items: flex-start;
+                padding: 24px 14px;
+            }
+
+            .auth-card {
+                padding: 24px 20px;
+                border-radius: 24px;
+            }
+
+            .auth-meta {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="auth-shell">
+        <div class="auth-card">
+            {% for label, messages in app.flashes %}
+                {% if messages is not empty %}
+                    <div class="flash-stack">
+                        {% for message in messages %}
+                            <div class="flash-message {{ label }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+            {% block auth_body %}{% endblock %}
+        </div>
+    </div>
+{% endblock %}

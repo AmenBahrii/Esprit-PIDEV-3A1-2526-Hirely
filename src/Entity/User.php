@@ -6,12 +6,16 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-
 use App\Repository\UserRepository;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'users')]
-class User
+#[UniqueEntity(fields: ['email'], message: 'There is already an account with this email.')]
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -58,6 +62,7 @@ class User
     }
 
     #[ORM\Column(type: 'string', nullable: true)]
+    #[Assert\Email(message: 'Please provide a valid email address.')]
     private ?string $email = null;
 
     public function getEmail(): ?string
@@ -83,6 +88,33 @@ class User
     {
         $this->password = $password;
         return $this;
+    }
+
+    public function getUserIdentifier(): string
+    {
+        return (string) ($this->email ?? '');
+    }
+
+    public function getRoles(): array
+    {
+        $roleName = strtoupper(trim((string) $this->getRole()?->getName()));
+        $roles = ['ROLE_USER'];
+
+        if ('' === $roleName) {
+            return $roles;
+        }
+
+        if (!str_starts_with($roleName, 'ROLE_')) {
+            $roleName = 'ROLE_' . $roleName;
+        }
+
+        $roles[] = $roleName;
+
+        return array_values(array_unique($roles));
+    }
+
+    public function eraseCredentials(): void
+    {
     }
 
     #[ORM\ManyToOne(targetEntity: Role::class, inversedBy: 'users')]
@@ -439,6 +471,18 @@ class User
     public function getUserId(): ?int
     {
         return $this->user_id;
+    }
+
+    public function getId(): ?int
+    {
+        return $this->user_id;
+    }
+
+    public function setId(int $id): static
+    {
+        $this->user_id = $id;
+
+        return $this;
     }
 
     public function getFirstName(): ?string

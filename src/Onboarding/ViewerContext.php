@@ -7,6 +7,7 @@ use App\Entity\Onboardingtask;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Bundle\SecurityBundle\Security;
 
 final class ViewerContext
 {
@@ -15,20 +16,21 @@ final class ViewerContext
     public const ROLE_ADMIN = 3;
 
     private const SESSION_KEY = 'onboarding_viewer_user_id';
-    private const DEMO_USERS_BY_ROLE = [
-        self::ROLE_ADMIN => 99,
-        self::ROLE_RECRUITER => 4,
-        self::ROLE_CANDIDATE => 7,
-    ];
 
     public function __construct(
         private readonly RequestStack $requestStack,
         private readonly UserRepository $userRepository,
+        private readonly Security $security,
     ) {
     }
 
     public function getCurrentUser(): ?User
     {
+        $authenticatedUser = $this->security->getUser();
+        if ($authenticatedUser instanceof User) {
+            return $authenticatedUser;
+        }
+
         $request = $this->requestStack->getCurrentRequest();
         $session = $request?->getSession();
 
@@ -63,22 +65,19 @@ final class ViewerContext
      */
     public function getAvailableUsers(): array
     {
-        $users = [];
-
-        foreach (self::DEMO_USERS_BY_ROLE as $roleId => $userId) {
-            $user = $this->userRepository->find($userId);
-            if (!$user || $roleId !== $user->getRole()?->getRoleId()) {
-                continue;
-            }
-
-            $users[] = $user;
+        if ($this->security->getUser() instanceof User) {
+            return [];
         }
 
-        return $users;
+        return array_values($this->getDemoUsersIndexedByRole());
     }
 
     public function setViewerUserId(?int $viewerUserId): bool
     {
+        if ($this->security->getUser() instanceof User) {
+            return false;
+        }
+
         $session = $this->requestStack->getCurrentRequest()?->getSession();
         if (!$session) {
             return false;
@@ -244,11 +243,43 @@ final class ViewerContext
             return null;
         }
 
-        if (($user->getUserId() ?? 0) !== (self::DEMO_USERS_BY_ROLE[$roleId] ?? 0)) {
+        $availableUsers = $this->getDemoUsersIndexedByRole();
+        if (($user->getUserId() ?? 0) !== ($availableUsers[$roleId]?->getUserId() ?? 0)) {
             return null;
         }
 
         return $user;
+    }
+
+    /**
+     * @return array<int, User>
+     */
+    private function getDemoUsersIndexedByRole(): array
+    {
+        $usersByRole = [];
+        $availableUsers = $this->userRepository->findBy([], ['user_id' => 'ASC']);
+
+        foreach ($availableUsers as $user) {
+            $roleId = $user->getRole()?->getRoleId();
+            if (!\in_array($roleId, [self::ROLE_ADMIN, self::ROLE_RECRUITER, self::ROLE_CANDIDATE], true)) {
+                continue;
+            }
+
+            if (isset($usersByRole[$roleId])) {
+                continue;
+            }
+
+            $usersByRole[$roleId] = $user;
+        }
+
+        $orderedUsers = [];
+        foreach ([self::ROLE_ADMIN, self::ROLE_RECRUITER, self::ROLE_CANDIDATE] as $roleId) {
+            if (isset($usersByRole[$roleId])) {
+                $orderedUsers[$roleId] = $usersByRole[$roleId];
+            }
+        }
+
+        return $orderedUsers;
     }
 
     private function belongsToCurrentUser(?User $user): bool

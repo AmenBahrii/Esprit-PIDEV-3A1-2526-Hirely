@@ -364,6 +364,17 @@ final class OnboardingTaskController extends AbstractController
             'low' => 'Low',
         ];
 
+        $translatedUi = $libreTranslateService->translateMap($uiTexts, $selectedLanguage);
+        $translatedStatuses = $libreTranslateService->translateMap($statusTexts, $selectedLanguage);
+
+        if (LibreTranslateService::DEFAULT_LANGUAGE === $selectedLanguage) {
+            return [
+                'ui' => $translatedUi,
+                'statuses' => $translatedStatuses,
+                'tasks' => [],
+            ];
+        }
+
         $taskTexts = [];
         foreach ($tasks as $task) {
             $taskTexts['task_title_' . $task->getTaskId()] = $task->getTitle() ?: $uiTexts['untitled_task'];
@@ -372,8 +383,6 @@ final class OnboardingTaskController extends AbstractController
             $taskTexts['task_attachment_value_' . $task->getTaskId()] = $task->hasAttachment() ? $task->getAttachmentLabel() : $uiTexts['not_attached'];
         }
 
-        $translatedUi = $libreTranslateService->translateMap($uiTexts, $selectedLanguage);
-        $translatedStatuses = $libreTranslateService->translateMap($statusTexts, $selectedLanguage);
         $translatedTasks = $libreTranslateService->translateMap($taskTexts, $selectedLanguage);
 
         $tasksById = [];

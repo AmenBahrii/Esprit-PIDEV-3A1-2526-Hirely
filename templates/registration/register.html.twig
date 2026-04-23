@@ -1,0 +1,108 @@
+{% extends 'security/base_auth.html.twig' %}
+
+{% block title %}Register - Hirely{% endblock %}
+
+{% block auth_body %}
+    <div class="auth-header">
+        <h1 class="auth-brand">Hirely</h1>
+        <h2 class="auth-title">Create your account</h2>
+        <p class="auth-text">Join as a candidate or recruiter and keep the same access flow used across the rest of the platform.</p>
+    </div>
+
+    {{ form_start(registrationForm, {'attr': {'class': 'auth-form', 'novalidate': 'novalidate'}}) }}
+        {% if registrationForm.vars.errors|length > 0 %}
+            <div class="form-shell-error-box">
+                <div class="form-shell-error">{{ form_errors(registrationForm) }}</div>
+            </div>
+        {% endif %}
+
+        <div class="auth-field">
+            <label class="auth-label">First name</label>
+            {{ form_widget(registrationForm.firstName, {'attr': {'class': 'form-input'}}) }}
+            <p class="field-hint">Use your real first name.</p>
+            {% if registrationForm.firstName.vars.errors|length > 0 %}
+                <div class="field-error-box">
+                    <div class="field-errors">{{ form_errors(registrationForm.firstName) }}</div>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="auth-field">
+            <label class="auth-label">Last name</label>
+            {{ form_widget(registrationForm.lastName, {'attr': {'class': 'form-input'}}) }}
+            <p class="field-hint">Use your real last name.</p>
+            {% if registrationForm.lastName.vars.errors|length > 0 %}
+                <div class="field-error-box">
+                    <div class="field-errors">{{ form_errors(registrationForm.lastName) }}</div>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="auth-field">
+            <label class="auth-label">Email</label>
+            {{ form_widget(registrationForm.email, {'attr': {'class': 'form-input'}}) }}
+            <p class="field-hint">Use an email address you can access later.</p>
+            {% if registrationForm.email.vars.errors|length > 0 %}
+                <div class="field-error-box">
+                    <div class="field-errors">{{ form_errors(registrationForm.email) }}</div>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="auth-field">
+            <label class="auth-label">Password</label>
+            {{ form_widget(registrationForm.plainPassword, {'attr': {'class': 'form-input'}}) }}
+            <p class="field-hint">Choose a strong password with at least 6 characters.</p>
+            {% if registrationForm.plainPassword.vars.errors|length > 0 %}
+                <div class="field-error-box">
+                    <div class="field-errors">{{ form_errors(registrationForm.plainPassword) }}</div>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="auth-field">
+            <label class="auth-label">Account type</label>
+            {{ form_widget(registrationForm.role, {'attr': {'class': 'form-input'}}) }}
+            <p class="field-hint">Choose whether you join as a candidate or recruiter.</p>
+            {% if registrationForm.role.vars.errors|length > 0 %}
+                <div class="field-error-box">
+                    <div class="field-errors">{{ form_errors(registrationForm.role) }}</div>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="auth-field">
+            <label>
+                {{ form_widget(registrationForm.agreeTerms) }}
+                I agree to the platform terms
+            </label>
+            <p class="field-hint">You need to accept the terms before creating the account.</p>
+            {% if registrationForm.agreeTerms.vars.errors|length > 0 %}
+                <div class="field-error-box">
+                    <div class="field-errors">{{ form_errors(registrationForm.agreeTerms) }}</div>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="auth-actions">
+            <button class="btn-primary topbar-logout-link" type="submit">Create account</button>
+            <a href="{{ path('app_login') }}" class="btn-secondary topbar-logout-link">Back to login</a>
+        </div>
+
+        {% if google_auth_enabled|default(false) %}
+            <div class="auth-actions">
+                <a href="{{ path('app_google_connect') }}" class="btn-secondary topbar-logout-link">Continue with Google</a>
+            </div>
+        {% endif %}
+    {{ form_end(registrationForm) }}
+
+    <div class="auth-note-card">
+        <h3>Admin accounts stay managed internally</h3>
+        <p>This registration flow is for recruiters and candidates. Administrative users are still created from the user management module.</p>
+    </div>
+
+    <p class="auth-footer">
+        Already have an account?
+        <a href="{{ path('app_login') }}">Sign in</a>
+    </p>
+{% endblock %}

@@ -20,6 +20,7 @@
         let timerId = null;
         let activeRequest = null;
         let requestVersion = 0;
+        const searchDelay = Math.max(120, Number.parseInt(form.dataset.liveSearchDelay || '220', 10) || 220);
 
         const syncToggleState = () => {
             const caseSensitive = '1' === caseSensitiveField.value;
@@ -89,7 +90,7 @@
 
         const queueSearch = () => {
             window.clearTimeout(timerId);
-            timerId = window.setTimeout(renderResults, 220);
+            timerId = window.setTimeout(renderResults, searchDelay);
         };
 
         syncToggleState();

@@ -1,13 +1,31 @@
-{% set admin_area = app.request.attributes.get('_route') starts with 'app_admin' %}
-{% set dashboard_route = admin_area ? 'app_admin' : 'app_workspace' %}
-{% set plans_route = admin_area ? 'app_admin_plans' : 'app_workspace_plans' %}
-{% set plans_active = app.request.attributes.get('_route') starts with (admin_area ? 'app_admin_plans' : 'app_workspace_plans') or app.request.attributes.get('_route') starts with (admin_area ? 'app_admin_plan_tasks' : 'app_workspace_plan_tasks') %}
+{% set current_route = app.request.attributes.get('_route') %}
+{% set admin_area = current_route starts with 'app_admin' %}
+{% set shell_admin = admin_area or (force_sidebar|default(false) and viewer_context.admin) %}
+{% set dashboard_route = shell_admin ? 'app_admin' : 'app_workspace' %}
+{% set plans_route = shell_admin ? 'app_admin_plans' : 'app_workspace_plans' %}
+{% set plans_active =
+    current_route starts with (shell_admin ? 'app_admin_plans' : 'app_workspace_plans')
+    or current_route starts with (shell_admin ? 'app_admin_plan_tasks' : 'app_workspace_plan_tasks')
+%}
+{% set joboffers_route = shell_admin ? 'app_admin_joboffer_index' : 'app_workspace_joboffer_index' %}
+{% set joboffers_active =
+    current_route starts with 'app_admin_joboffer'
+    or current_route starts with 'app_workspace_joboffer'
+%}
+{% set applications_route = shell_admin ? 'app_admin_application_index' : 'app_workspace_application_index' %}
+{% set applications_active =
+    current_route starts with 'app_admin_application'
+    or current_route starts with 'app_workspace_application'
+%}
+
 {% set shell_ui = onboarding_language.translateMap({
-    topbar_title: admin_area ? 'Admin Dashboard' : viewer_context.workspaceTitle,
-    topbar_subtitle: 'Onboarding coordination',
+    topbar_title: shell_admin ? 'Admin Dashboard' : viewer_context.workspaceTitle,
+    topbar_subtitle: 'Recruitment and onboarding workspace',
     dashboard: 'Dashboard',
     my_onboarding: 'My Onboarding',
     onboarding_plans: 'Onboarding Plans',
+    job_offers: 'Job Offers',
+    applications: 'Applications',
     live_workspace: 'Live workspace',
     command_surface: 'Command surface',
     connected_view: 'Connected view'
@@ -17,12 +35,12 @@
     <div class="topbar-layout">
         <div class="topbar-copy">
             <div class="topbar-kicker-row">
-                <span class="topbar-kicker">{{ admin_area ? shell_ui.command_surface : shell_ui.connected_view }}</span>
+                <span class="topbar-kicker">{{ shell_admin ? shell_ui.command_surface : shell_ui.connected_view }}</span>
                 <span class="topbar-kicker-dot"></span>
                 <span class="topbar-kicker">{{ shell_ui.live_workspace }}</span>
             </div>
-            <div class="topbar-title">{{ shell_ui.topbar_title }}</div>
-            <div class="topbar-subtitle">{{ shell_ui.topbar_subtitle }}</div>
+            <div class="topbar-title">{{ topbar_title|default(shell_ui.topbar_title) }}</div>
+            <div class="topbar-subtitle">{{ topbar_subtitle|default(shell_ui.topbar_subtitle) }}</div>
         </div>
 
         <div class="viewer-panel">
@@ -40,18 +58,38 @@
                     </select>
                 </form>
             {% endif %}
+
             <div class="viewer-summary">
                 <span class="{{ viewer_context.roleBadgeClass }}">{{ viewer_context.roleName }}</span>
                 <div class="viewer-name">{{ viewer_context.currentUserDisplayName }}</div>
             </div>
+
+            {% if app.user %}
+                <a href="{{ path('app_logout') }}" class="btn-secondary topbar-logout-link">Logout</a>
+            {% endif %}
         </div>
     </div>
 
-    {% if not admin_area %}
+    {% if not shell_admin and not force_sidebar|default(false) %}
         <nav class="workspace-nav">
-            <a href="{{ path(dashboard_route) }}" class="workspace-nav-link {{ app.request.attributes.get('_route') == dashboard_route ? 'active' : '' }}">{{ shell_ui.dashboard }}</a>
-            <a href="{{ path(plans_route) }}" class="workspace-nav-link {{ plans_active ? 'active' : '' }}">
+            <a href="{{ path(dashboard_route) }}"
+               class="workspace-nav-link {{ current_route == dashboard_route ? 'active' : '' }}">
+                {{ shell_ui.dashboard }}
+            </a>
+
+            <a href="{{ path(plans_route) }}"
+               class="workspace-nav-link {{ plans_active ? 'active' : '' }}">
                 {{ viewer_context.candidate ? shell_ui.my_onboarding : shell_ui.onboarding_plans }}
+            </a>
+
+            <a href="{{ path(joboffers_route) }}"
+               class="workspace-nav-link {{ joboffers_active ? 'active' : '' }}">
+                {{ shell_ui.job_offers }}
+            </a>
+
+            <a href="{{ path(applications_route) }}"
+               class="workspace-nav-link {{ applications_active ? 'active' : '' }}">
+                {{ shell_ui.applications }}
             </a>
         </nav>
     {% endif %}

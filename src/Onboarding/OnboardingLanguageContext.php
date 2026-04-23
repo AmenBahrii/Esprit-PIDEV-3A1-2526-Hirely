@@ -70,6 +70,14 @@ final class OnboardingLanguageContext
     public function translateMap(array $texts, ?string $language = null): array
     {
         $language ??= $this->getCurrentLanguage();
+
+        if (
+            LibreTranslateService::DEFAULT_LANGUAGE === $language
+            || !$this->libreTranslateService->isEnabled()
+        ) {
+            return $this->normalizeTextMap($texts);
+        }
+
         $cacheKey = $language . ':' . md5(serialize($texts));
 
         if (!isset($this->translationCache[$cacheKey])) {
@@ -77,6 +85,21 @@ final class OnboardingLanguageContext
         }
 
         return $this->translationCache[$cacheKey];
+    }
+
+    /**
+     * @param array<string, string|null> $texts
+     * @return array<string, string>
+     */
+    private function normalizeTextMap(array $texts): array
+    {
+        $normalized = [];
+
+        foreach ($texts as $key => $text) {
+            $normalized[$key] = trim((string) $text);
+        }
+
+        return $normalized;
     }
 
     private function getStoredLanguage(Request $request): string

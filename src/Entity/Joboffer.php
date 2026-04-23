@@ -15,7 +15,7 @@ class Joboffer
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(name: 'jobOfferId', type: 'integer')]
     private ?int $jobOfferId = null;
 
     public function getJobOfferId(): ?int
@@ -23,9 +23,21 @@ class Joboffer
         return $this->jobOfferId;
     }
 
+    public function getId(): ?int
+    {
+        return $this->jobOfferId;
+    }
+
     public function setJobOfferId(int $jobOfferId): self
     {
         $this->jobOfferId = $jobOfferId;
+        return $this;
+    }
+
+    public function setId(int $id): self
+    {
+        $this->jobOfferId = $id;
+
         return $this;
     }
 
@@ -57,7 +69,7 @@ class Joboffer
         return $this;
     }
 
-    #[ORM\Column(type: 'string', nullable: true)]
+    #[ORM\Column(name: 'contractType', type: 'string', nullable: true)]
     private ?string $contractType = null;
 
     public function getContractType(): ?string
@@ -72,14 +84,14 @@ class Joboffer
     }
 
     #[ORM\Column(type: 'decimal', nullable: true)]
-    private ?float $salary = null;
+    private ?string $salary = null;
 
-    public function getSalary(): ?float
+    public function getSalary(): ?string
     {
         return $this->salary;
     }
 
-    public function setSalary(?float $salary): self
+    public function setSalary(?string $salary): self
     {
         $this->salary = $salary;
         return $this;
@@ -99,7 +111,7 @@ class Joboffer
         return $this;
     }
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(name: 'experienceRequired', type: 'integer', nullable: true)]
     private ?int $experienceRequired = null;
 
     public function getExperienceRequired(): ?int
@@ -113,7 +125,7 @@ class Joboffer
         return $this;
     }
 
-    #[ORM\Column(type: 'date', nullable: true)]
+    #[ORM\Column(name: 'publicationDate', type: 'date', nullable: true)]
     private ?\DateTimeInterface $publicationDate = null;
 
     public function getPublicationDate(): ?\DateTimeInterface

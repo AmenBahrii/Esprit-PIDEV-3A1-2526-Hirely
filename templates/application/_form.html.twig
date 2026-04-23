@@ -1,0 +1,256 @@
+<style>
+    .application-file-row {
+        display: flex;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .application-file-row .form-input {
+        flex: 1;
+    }
+
+    .application-file-trigger {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 54px;
+        min-width: 54px;
+        border: 1px solid rgba(121, 97, 255, 0.14);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.94);
+        color: var(--hirely-orange);
+        cursor: pointer;
+        box-shadow: 0 16px 34px rgba(30, 28, 71, 0.08);
+        transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    }
+
+    .application-file-trigger:hover {
+        transform: translateY(-1px);
+        border-color: rgba(255, 107, 53, 0.34);
+        box-shadow: 0 20px 38px rgba(30, 28, 71, 0.12);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 245, 240, 0.95));
+    }
+
+    .application-file-trigger svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .application-inline-hint {
+        margin: 0;
+        color: rgba(35, 30, 83, 0.58);
+        font-size: 0.84rem;
+        line-height: 1.55;
+    }
+
+    .application-autofill-status {
+        display: none;
+        margin-top: 12px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        font-size: 0.88rem;
+        line-height: 1.6;
+    }
+
+    .application-autofill-status.is-visible {
+        display: block;
+    }
+
+    .application-autofill-status.is-loading {
+        background: #fff6ea;
+        border: 1px solid #ffd8a8;
+        color: #9a5313;
+    }
+
+    .application-autofill-status.is-success {
+        background: #eefaf3;
+        border: 1px solid #b9e6c8;
+        color: #1e6d3d;
+    }
+
+    .application-autofill-status.is-error {
+        background: #fff1f1;
+        border: 1px solid #ffc9c9;
+        color: #b02a37;
+    }
+</style>
+
+{% set can_resume_autofill = is_granted('ROLE_CANDIDATE') and application is defined and application.jobOffer is not null %}
+{% set resume_autofill_url = can_resume_autofill ? path('app_workspace_application_resume_autofill', {jobOfferId: application.jobOffer.id}) : '' %}
+
+{{ form_start(form, {'attr': {'class': 'module-page', 'novalidate': 'novalidate'}}) }}
+    <div class="module-form-grid">
+        <div class="module-field">
+            <label>Email</label>
+            {{ form_widget(form.email, {'attr': {'class': 'form-input', 'readonly': can_resume_autofill ? 'readonly' : false}}) }}
+            {{ form_errors(form.email) }}
+        </div>
+
+        <div class="module-field">
+            <label>Phone</label>
+            {{ form_widget(form.phone, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.phone) }}
+        </div>
+
+        <div class="module-field">
+            <label>Expected salary</label>
+            {{ form_widget(form.expectedSalary, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.expectedSalary) }}
+        </div>
+
+        <div class="module-field">
+            <label>Experience years</label>
+            {{ form_widget(form.experienceYears, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.experienceYears) }}
+        </div>
+
+        <div class="module-field">
+            <label>Availability date</label>
+            {{ form_widget(form.availabilityDate, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.availabilityDate) }}
+        </div>
+
+        <div class="module-field">
+            <label>Portfolio URL</label>
+            {{ form_widget(form.portfolioUrl, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.portfolioUrl) }}
+        </div>
+
+        <div class="module-field full">
+            <label>Resume upload</label>
+            <div class="module-file-upload">
+                <div class="application-file-row">
+                    <input type="text" class="form-input" data-resume-file-name placeholder="Choose your resume file" readonly>
+                    <button type="button" class="application-file-trigger" data-resume-picker-open aria-label="Choose resume file">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H9l1.4 1.8c.3.39.77.62 1.26.62H18.5A2.5 2.5 0 0 1 21 9.92V16.5A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5v-9Z" stroke="currentColor" stroke-width="1.7"/>
+                            <path d="M8.5 12h7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div style="display:none;">
+                    {{ form_widget(form.resumeFile, {'attr': {'data-resume-file-input': 'true', 'accept': '.pdf,.doc,.docx,.rtf,.txt'}}) }}
+                </div>
+
+                <p class="application-inline-hint">
+                    Upload a resume to attach it to the application{% if can_resume_autofill %} and let Hirely prefill the phone, portfolio, experience, and cover letter draft{% endif %}.
+                </p>
+
+                {% if application.resumePath %}
+                    <span class="module-panel-text">Current file: {{ application.resumePath }}</span>
+                {% endif %}
+
+                <div class="application-autofill-status" data-resume-autofill-status></div>
+                {{ form_errors(form.resumeFile) }}
+            </div>
+        </div>
+
+        <div class="module-field full">
+            <label>Cover letter</label>
+            {{ form_widget(form.coverLetter, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.coverLetter) }}
+        </div>
+
+        {% if form.currentStatus is defined %}
+            <div class="module-field">
+                <label>Current status</label>
+                {{ form_widget(form.currentStatus, {'attr': {'class': 'form-input'}}) }}
+                {{ form_errors(form.currentStatus) }}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="inline-actions">
+        <button type="submit" class="btn-primary topbar-logout-link">{{ button_label|default('Save application') }}</button>
+    </div>
+{{ form_end(form) }}
+
+<script>
+    (() => {
+        const openButton = document.querySelector('[data-resume-picker-open]');
+        const hiddenFileInput = document.querySelector('[data-resume-file-input]');
+        const fileNameInput = document.querySelector('[data-resume-file-name]');
+        const statusBox = document.querySelector('[data-resume-autofill-status]');
+        const autofillUrl = {{ resume_autofill_url|json_encode|raw }};
+        const fieldMap = {
+            phone: document.getElementById('{{ form.phone.vars.id }}'),
+            portfolioUrl: document.getElementById('{{ form.portfolioUrl.vars.id }}'),
+            experienceYears: document.getElementById('{{ form.experienceYears.vars.id }}'),
+            coverLetter: document.getElementById('{{ form.coverLetter.vars.id }}')
+        };
+
+        if (!openButton || !hiddenFileInput || !fileNameInput) {
+            return;
+        }
+
+        const setStatus = (message, type) => {
+            if (!statusBox) {
+                return;
+            }
+
+            statusBox.textContent = message;
+            statusBox.className = 'application-autofill-status is-visible';
+
+            if (type) {
+                statusBox.classList.add(type);
+            }
+        };
+
+        const fillField = (fieldName, value) => {
+            if (!value || !fieldMap[fieldName]) {
+                return;
+            }
+
+            fieldMap[fieldName].value = value;
+        };
+
+        const runResumeAutofill = async (file) => {
+            if (!autofillUrl) {
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('resume', file);
+
+            setStatus('Reading the resume and filling the form...', 'is-loading');
+
+            try {
+                const response = await fetch(autofillUrl, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                const payload = await response.json();
+
+                if (!response.ok || !payload.success) {
+                    throw new Error(payload.message || 'Resume autofill is unavailable right now.');
+                }
+
+                Object.entries(payload.fields || {}).forEach(([fieldName, value]) => {
+                    fillField(fieldName, value);
+                });
+
+                setStatus(payload.message || 'Resume data was added to the form.', 'is-success');
+            } catch (error) {
+                setStatus(error.message || 'Resume autofill failed. You can still complete the form manually.', 'is-error');
+            }
+        };
+
+        openButton.addEventListener('click', () => {
+            hiddenFileInput.click();
+        });
+
+        hiddenFileInput.addEventListener('change', () => {
+            if (!hiddenFileInput.files || hiddenFileInput.files.length === 0) {
+                return;
+            }
+
+            const file = hiddenFileInput.files[0];
+            fileNameInput.value = file.name;
+            runResumeAutofill(file);
+        });
+    })();
+</script>

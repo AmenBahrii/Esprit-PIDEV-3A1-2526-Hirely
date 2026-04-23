@@ -1,0 +1,32 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% set force_sidebar = false %}
+{% set topbar_title = 'Submit Application' %}
+{% set topbar_subtitle = 'Apply to the selected job offer' %}
+
+{% block title %}New Application{% endblock %}
+
+{% block admin_content %}
+    <section class="module-page">
+        <div class="module-section-head">
+            <div class="module-section-copy">
+                <span class="module-eyebrow">Application Module</span>
+                <h1 class="module-section-title">Complete your application</h1>
+                <p class="module-section-text">
+                    Fill your contact details, upload a resume, and optionally use AI autofill before sending your application.
+                </p>
+            </div>
+
+            <div class="module-section-actions">
+                <a href="{{ path('app_workspace_joboffer_index') }}"
+                   class="btn-secondary topbar-logout-link">
+                    Back to jobs
+                </a>
+            </div>
+        </div>
+
+        <div class="module-panel">
+            {{ include('application/_form.html.twig', { button_label: 'Submit application' }) }}
+        </div>
+    </section>
+{% endblock %}

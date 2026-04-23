@@ -307,6 +307,8 @@ button {
     flex-direction: column;
     min-width: 0;
     position: relative;
+    overflow: visible;
+    isolation: isolate;
 }
 
 .shell-backdrop {
@@ -314,6 +316,7 @@ button {
     inset: 0;
     overflow: hidden;
     pointer-events: none;
+    z-index: 0;
 }
 
 .shell-glow {
@@ -352,7 +355,9 @@ button {
 .topbar {
     position: relative;
     background: transparent;
-    padding: 22px 28px 0;
+    padding: 22px 28px 18px;
+    z-index: 120;
+    isolation: isolate;
 }
 
 .topbar-layout {
@@ -366,6 +371,9 @@ button {
     backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.64);
     box-shadow: 0 16px 36px rgba(35, 30, 83, 0.08);
+    position: relative;
+    z-index: 2;
+    overflow: visible;
 }
 
 .topbar-copy {
@@ -449,6 +457,7 @@ button {
     padding: 20px 28px 32px;
     position: relative;
     z-index: 1;
+    overflow: visible;
 }
 
 .content-stage {
@@ -1977,9 +1986,9 @@ body {
 .topbar {
     position: relative;
     top: auto;
-    z-index: 1;
+    z-index: 120;
     background: transparent;
-    padding: 22px 28px 0;
+    padding: 22px 28px 18px;
     overflow: visible;
 }
 
@@ -2001,6 +2010,7 @@ body {
     max-width: 1540px;
     width: 100%;
     margin: 0 auto;
+    z-index: 1;
 }
 
 .admin-content::before {
@@ -3865,7 +3875,7 @@ body {
 
 @media (max-width: 700px) {
     .topbar {
-        padding: 16px 18px 0;
+        padding: 16px 18px 14px;
     }
 
     .admin-content {
@@ -3964,7 +3974,7 @@ body.immersive-ui-ready::after {
 
 .topbar-layout {
     position: relative;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .topbar-layout::after {

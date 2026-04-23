@@ -15,10 +15,15 @@ class Application
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(name: 'applicationId', type: 'integer')]
     private ?int $applicationId = null;
 
     public function getApplicationId(): ?int
+    {
+        return $this->applicationId;
+    }
+
+    public function getId(): ?int
     {
         return $this->applicationId;
     }
@@ -29,7 +34,14 @@ class Application
         return $this;
     }
 
-    #[ORM\Column(type: 'date', nullable: true)]
+    public function setId(int $id): self
+    {
+        $this->applicationId = $id;
+
+        return $this;
+    }
+
+    #[ORM\Column(name: 'applicationDate', type: 'date', nullable: true)]
     private ?\DateTimeInterface $applicationDate = null;
 
     public function getApplicationDate(): ?\DateTimeInterface
@@ -43,7 +55,7 @@ class Application
         return $this;
     }
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(name: 'coverLetter', type: 'text', nullable: true)]
     private ?string $coverLetter = null;
 
     public function getCoverLetter(): ?string
@@ -57,7 +69,7 @@ class Application
         return $this;
     }
 
-    #[ORM\Column(type: 'string', nullable: true)]
+    #[ORM\Column(name: 'currentStatus', type: 'string', nullable: true)]
     private ?string $currentStatus = null;
 
     public function getCurrentStatus(): ?string
@@ -71,7 +83,7 @@ class Application
         return $this;
     }
 
-    #[ORM\Column(type: 'string', nullable: true)]
+    #[ORM\Column(name: 'resumePath', type: 'string', nullable: true)]
     private ?string $resumePath = null;
 
     public function getResumePath(): ?string
@@ -85,7 +97,7 @@ class Application
         return $this;
     }
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(name: 'lastUpdateDate', type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $lastUpdateDate = null;
 
     public function getLastUpdateDate(): ?\DateTimeInterface
@@ -129,21 +141,21 @@ class Application
         return $this;
     }
 
-    #[ORM\Column(type: 'decimal', nullable: true)]
-    private ?float $expectedSalary = null;
+    #[ORM\Column(name: 'expectedSalary', type: 'decimal', nullable: true)]
+    private ?string $expectedSalary = null;
 
-    public function getExpectedSalary(): ?float
+    public function getExpectedSalary(): ?string
     {
         return $this->expectedSalary;
     }
 
-    public function setExpectedSalary(?float $expectedSalary): self
+    public function setExpectedSalary(?string $expectedSalary): self
     {
         $this->expectedSalary = $expectedSalary;
         return $this;
     }
 
-    #[ORM\Column(type: 'date', nullable: true)]
+    #[ORM\Column(name: 'availabilityDate', type: 'date', nullable: true)]
     private ?\DateTimeInterface $availabilityDate = null;
 
     public function getAvailabilityDate(): ?\DateTimeInterface
@@ -185,7 +197,7 @@ class Application
         return $this;
     }
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(name: 'experienceYears', type: 'integer', nullable: true)]
     private ?int $experienceYears = null;
 
     public function getExperienceYears(): ?int
@@ -199,7 +211,7 @@ class Application
         return $this;
     }
 
-    #[ORM\Column(type: 'string', nullable: true)]
+    #[ORM\Column(name: 'portfolioUrl', type: 'string', nullable: true)]
     private ?string $portfolioUrl = null;
 
     public function getPortfolioUrl(): ?string
@@ -214,20 +226,20 @@ class Application
     }
 
     #[ORM\Column(type: 'decimal', nullable: true)]
-    private ?float $score = null;
+    private ?string $score = null;
 
-    public function getScore(): ?float
+    public function getScore(): ?string
     {
         return $this->score;
     }
 
-    public function setScore(?float $score): self
+    public function setScore(?string $score): self
     {
         $this->score = $score;
         return $this;
     }
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(name: 'reviewNote', type: 'text', nullable: true)]
     private ?string $reviewNote = null;
 
     public function getReviewNote(): ?string

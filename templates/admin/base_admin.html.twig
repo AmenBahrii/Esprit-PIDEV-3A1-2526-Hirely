@@ -3,10 +3,11 @@
 {% block title %}Hirely Admin{% endblock %}
 
 {% set admin_area = app.request.attributes.get('_route') starts with 'app_admin' %}
+{% set shell_sidebar = admin_area or force_sidebar|default(false) %}
 
 {% block body %}
-<div class="admin-shell {{ admin_area ? 'admin-shell-sidebar' : 'admin-shell-workspace' }}">
-    {% if admin_area %}
+<div class="admin-shell {{ shell_sidebar ? 'admin-shell-sidebar' : 'admin-shell-workspace' }}">
+    {% if shell_sidebar %}
         {% include 'admin/Partials/sidebar.html.twig' %}
     {% endif %}
 

@@ -22,6 +22,11 @@ class Role
         return $this->role_id;
     }
 
+    public function getId(): ?int
+    {
+        return $this->role_id;
+    }
+
     public function setRole_id(int $role_id): self
     {
         $this->role_id = $role_id;
