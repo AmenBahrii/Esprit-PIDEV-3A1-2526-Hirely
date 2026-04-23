@@ -1,0 +1,113 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}{{ onboarding_language.translateMap({page_title: 'Onboarding Plans'}).page_title }}{% endblock %}
+
+{% set admin_area = app.request.attributes.get('_route') starts with 'app_admin' %}
+{% set plans_route = admin_area ? 'app_admin_plans' : 'app_workspace_plans' %}
+{% set new_plan_route = admin_area ? 'app_admin_plans_new' : 'app_workspace_plans_new' %}
+{% set template_plan_route = admin_area ? 'app_admin_plans_template' : 'app_workspace_plans_template' %}
+{% set edit_plan_route = admin_area ? 'app_admin_plans_edit' : 'app_workspace_plans_edit' %}
+{% set tasks_route = admin_area ? 'app_admin_plan_tasks' : 'app_workspace_plan_tasks' %}
+{% set delete_plan_route = admin_area ? 'app_admin_plans_delete' : 'app_workspace_plans_delete' %}
+{% set qr_route = admin_area ? 'app_admin_plans_qr' : 'app_workspace_plans_qr' %}
+{% set plans_ui = onboarding_language.translateMap({
+    title_candidate: 'My Onboarding Plans',
+    title_admin: 'Onboarding Plans',
+    intro_candidate: 'Track your onboarding progress and open the tasks inside each plan.',
+    intro_admin: 'Review assigned plans, spot what needs attention, and open the related task flow quickly.',
+    overview_title: 'Plans Overview',
+    overview_kicker: 'Only the essentials are shown here: owner, status, deadline, tasks, and QR access.',
+    add_plan: 'Add Plan',
+    select_template: 'Select Template',
+    find_plan: 'Find a plan',
+    search_placeholder: 'Search by plan number, person, email, status, or QR token',
+    case_on: 'Case Sensitive: On',
+    case_off: 'Case Sensitive: Off',
+    all_statuses: 'All statuses',
+    newest: 'Newest',
+    deadline: 'Deadline',
+    status: 'Status',
+    user_name: 'User name',
+    overdue_only: 'Overdue only',
+    clear: 'Clear',
+    search: 'Search',
+    search_hint: 'Live search refreshes the cards while you type.'
+}) %}
+
+{% block admin_content %}
+<div class="page-header">
+    <h1 class="page-title">{{ viewer_context.candidate ? plans_ui.title_candidate : plans_ui.title_admin }}</h1>
+    <p class="muted-text">
+        {{ viewer_context.candidate
+            ? plans_ui.intro_candidate
+            : plans_ui.intro_admin
+        }}
+    </p>
+</div>
+
+<div class="card card-immersive">
+    <div class="section-header">
+        <div>
+            <h2 class="section-title">{{ plans_ui.overview_title }}</h2>
+            <p class="section-kicker">{{ plans_ui.overview_kicker }}</p>
+        </div>
+        <div class="section-actions">
+            {% if viewer_context.canCreatePlans %}
+                <a href="{{ path(template_plan_route) }}" class="btn-secondary">{{ plans_ui.select_template }}</a>
+                <a href="{{ path(new_plan_route) }}" class="btn-primary">{{ plans_ui.add_plan }}</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <form method="get" action="{{ path(plans_route) }}" class="search-form search-form-panel" data-live-search-form data-live-search-delay="320">
+        <label for="plans-search" class="search-label">{{ plans_ui.find_plan }}</label>
+        <div class="search-controls">
+            <input
+                id="plans-search"
+                type="search"
+                name="q"
+                value="{{ search_term|default('') }}"
+                class="search-input"
+                autocomplete="off"
+                placeholder="{{ plans_ui.search_placeholder }}"
+                data-live-search-input
+            >
+            <input type="hidden" name="lang" value="{{ onboarding_language.currentLanguage }}">
+            <input type="hidden" name="case_sensitive" value="{{ case_sensitive ? '1' : '0' }}" data-live-search-case-sensitive>
+            <button
+                type="button"
+                class="search-toggle{{ case_sensitive ? ' active' : '' }}"
+                data-live-search-toggle
+                aria-pressed="{{ case_sensitive ? 'true' : 'false' }}"
+            >
+                {{ case_sensitive ? plans_ui.case_on : plans_ui.case_off }}
+            </button>
+            <select name="status" class="search-select">
+                <option value="">{{ plans_ui.all_statuses }}</option>
+                {% for label, value in plan_status_choices %}
+                    <option value="{{ value }}" {{ selected_status == value ? 'selected' : '' }}>{{ onboarding_language.translateMap({choice: label}).choice }}</option>
+                {% endfor %}
+            </select>
+            <select name="sort" class="search-select">
+                <option value="newest" {{ selected_sort == 'newest' ? 'selected' : '' }}>{{ plans_ui.newest }}</option>
+                <option value="deadline" {{ selected_sort == 'deadline' ? 'selected' : '' }}>{{ plans_ui.deadline }}</option>
+                <option value="status" {{ selected_sort == 'status' ? 'selected' : '' }}>{{ plans_ui.status }}</option>
+                <option value="user" {{ selected_sort == 'user' ? 'selected' : '' }}>{{ plans_ui.user_name }}</option>
+            </select>
+            <label class="search-check">
+                <input type="checkbox" name="overdue_only" value="1" {{ overdue_only ? 'checked' : '' }}>
+                {{ plans_ui.overdue_only }}
+            </label>
+            <button type="button" class="btn-secondary" data-live-search-clear>{{ plans_ui.clear }}</button>
+            <noscript>
+                <button type="submit" class="btn-primary">{{ plans_ui.search }}</button>
+            </noscript>
+        </div>
+        <p class="search-hint">{{ plans_ui.search_hint }}</p>
+    </form>
+
+    <div data-live-search-results>
+        {% include 'admin/plans/_results.html.twig' %}
+    </div>
+</div>
+{% endblock %}

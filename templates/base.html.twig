@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<<<<<<< HEAD
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -538,6 +539,30 @@
         // Enable smooth scroll behavior
         document.documentElement.style.scrollBehavior = 'smooth';
     </script>
+=======
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Hirely{% endblock %}</title>
+
+    {% block stylesheets %}
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="{{ asset('assets/css/hirely.css') }}?v=20260422-5">
+        <link rel="stylesheet" href="{{ asset('assets/css/integration-modules.css') }}?v=20260422-4">
+    {% endblock %}
+</head>
+<body class="app-root">
+    {% block body %}{% endblock %}
+
+    {% block javascripts %}
+        {{ importmap('app') }}
+        <script src="{{ asset('assets/js/live-search.js') }}?v=20260422-2" defer></script>
+        <script src="{{ asset('assets/js/custom-select.js') }}?v=20260407-1" defer></script>
+        <script src="{{ asset('assets/js/task-attachment-upload.js') }}?v=20260421-1" defer></script>
+        <script src="{{ asset('assets/js/immersive-ui.js') }}?v=20260420-1" defer></script>
+>>>>>>> OnboardingCoordination
     {% endblock %}
 </body>
 </html>

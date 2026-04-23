@@ -1,0 +1,446 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% macro render_field(field) %}
+    {% if field is defined %}
+        <div class="form-field {{ field.vars.errors|length ? 'has-error' : '' }}">
+            {{ form_label(field, null, {'label_attr': {'class': 'form-label'}}) }}
+            <div class="form-widget">
+                {{ form_widget(field, {'attr': {'class': ((field.vars.attr.class|default('') ~ ' form-control')|trim)}}) }}
+            </div>
+            {% if field.vars.help %}
+                <p class="form-help">{{ field.vars.help }}</p>
+            {% endif %}
+            {% if field.vars.errors|length %}
+                <div class="form-error-list">{{ form_errors(field) }}</div>
+            {% endif %}
+        </div>
+    {% endif %}
+{% endmacro %}
+{% import _self as form_ui %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('assets/css/template-picker.css') }}?v=20260421-3">
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        (() => {
+            const initTemplatePicker = () => {
+                const root = document.querySelector('[data-template-picker]');
+                if (!root || root.dataset.templatePickerBound === '1') {
+                    return;
+                }
+
+                root.dataset.templatePickerBound = '1';
+
+                const body = document.body;
+                const gallery = root.querySelector('[data-template-gallery]');
+                const assignment = root.querySelector('[data-template-assignment]');
+                const cards = Array.from(root.querySelectorAll('[data-template-card]'));
+                const inputs = Array.from(root.querySelectorAll('[data-template-input]'));
+                const surfaces = Array.from(root.querySelectorAll('[data-template-open]'));
+                const nextButton = root.querySelector('[data-template-next]');
+                const backButton = root.querySelector('[data-template-back]');
+                const summaryCards = Array.from(root.querySelectorAll('[data-template-summary]'));
+                const modal = document.querySelector('[data-template-modal]');
+                const modalPanels = Array.from(document.querySelectorAll('[data-template-modal-panel]'));
+                const closeControls = Array.from(document.querySelectorAll('[data-template-modal-close]'));
+                const initialStep = root.dataset.initialStep || 'gallery';
+
+                const inputByKey = Object.fromEntries(inputs.map((input) => [input.dataset.templateInput, input]));
+
+                const getSelectedKey = () => {
+                    const checked = inputs.find((input) => input.checked);
+
+                    return checked ? checked.dataset.templateInput : '';
+                };
+
+                const syncSelection = () => {
+                    const selectedKey = getSelectedKey();
+
+                    cards.forEach((card) => {
+                        card.classList.toggle('is-active', card.dataset.templateCard === selectedKey);
+                    });
+
+                    summaryCards.forEach((card) => {
+                        card.hidden = card.dataset.templateSummary !== selectedKey;
+                    });
+
+                    if (nextButton) {
+                        nextButton.disabled = !selectedKey;
+                    }
+                };
+
+                const closeModal = () => {
+                    if (!modal) {
+                        return;
+                    }
+
+                    modal.hidden = true;
+                    modalPanels.forEach((panel) => {
+                        panel.hidden = true;
+                    });
+                    body.classList.remove('template-modal-open');
+                };
+
+                const openModal = (key) => {
+                    if (!modal || !key) {
+                        return;
+                    }
+
+                    modalPanels.forEach((panel) => {
+                        panel.hidden = panel.dataset.templateModalPanel !== key;
+                    });
+
+                    modal.hidden = false;
+                    body.classList.add('template-modal-open');
+                };
+
+                const openGallery = () => {
+                    if (assignment) {
+                        assignment.hidden = true;
+                    }
+                    if (gallery) {
+                        gallery.hidden = false;
+                    }
+                };
+
+                const openAssignment = () => {
+                    if (!getSelectedKey()) {
+                        return;
+                    }
+
+                    if (gallery) {
+                        gallery.hidden = true;
+                    }
+                    if (assignment) {
+                        assignment.hidden = false;
+                    }
+                };
+
+                surfaces.forEach((surface) => {
+                    surface.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        openModal(surface.dataset.templateOpen);
+                    });
+                });
+
+                inputs.forEach((input) => {
+                    input.addEventListener('change', syncSelection);
+                });
+
+                cards.forEach((card) => {
+                    const key = card.dataset.templateCard;
+                    const selectControl = card.querySelector('.template-select-control');
+
+                    selectControl?.addEventListener('click', () => {
+                        const input = inputByKey[key];
+                        if (!input) {
+                            return;
+                        }
+
+                        input.checked = true;
+                        syncSelection();
+                    });
+                });
+
+                nextButton?.addEventListener('click', openAssignment);
+                backButton?.addEventListener('click', openGallery);
+
+                closeControls.forEach((control) => {
+                    control.addEventListener('click', closeModal);
+                });
+
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape' && modal && !modal.hidden) {
+                        closeModal();
+                    }
+                });
+
+                syncSelection();
+
+                if (initialStep === 'assignment' && getSelectedKey()) {
+                    openAssignment();
+                } else {
+                    openGallery();
+                    closeModal();
+                }
+            };
+
+            document.addEventListener('DOMContentLoaded', initTemplatePicker);
+            document.addEventListener('turbo:load', initTemplatePicker);
+        })();
+    </script>
+{% endblock %}
+
+{% block title %}{{ onboarding_language.translateMap({page_title: page_title}).page_title }}{% endblock %}
+
+{% set admin_area = app.request.attributes.get('_route') starts with 'app_admin' %}
+{% set plans_route = admin_area ? 'app_admin_plans' : 'app_workspace_plans' %}
+{% set show_assignment_step = selected_template_key is not empty and form.vars.submitted %}
+{% set template_ui = onboarding_language.translateMap({
+    intro: 'Select a ready onboarding plan, inspect the included tasks, then assign it to the right user.',
+    gallery_title: 'Choose a template',
+    gallery_text: 'Each card represents a complete onboarding plan you can reuse instantly.',
+    tasks_title: 'Tasks inside this template',
+    tasks_text: 'Review the full task sequence before moving forward.',
+    best_fit: 'Best fit',
+    duration: 'Duration',
+    tasks_short: 'tasks',
+    select_template: 'Select this template',
+    selected_template: 'Selected',
+    next: 'Next',
+    assignment_title: 'Assign template',
+    assignment_text: 'Pick the user and deadline, then add the plan with all of its tasks.',
+    selected_plan: 'Selected plan',
+    included_tasks: 'Included tasks',
+    back_to_templates: 'Back to templates',
+    back_to_plans: 'Go back to plans',
+    add: 'Add Plan',
+    cancel: 'Cancel',
+    review_title: 'Please review the highlighted fields',
+    review_text: 'Some information is missing or invalid. Correct the details below and save again.'
+}) %}
+
+{% block admin_content %}
+<div class="page-header">
+    <h1 class="page-title">{{ onboarding_language.translateMap({page_title: page_title}).page_title }}</h1>
+    <p class="muted-text">{{ template_ui.intro }}</p>
+</div>
+
+<div class="card card-immersive">
+    {{ form_start(form, {
+        'attr': {
+            'novalidate': 'novalidate',
+            'class': 'form-shell template-picker-page',
+            'data-template-picker': '',
+            'data-initial-template': selected_template_key|default(''),
+            'data-initial-step': show_assignment_step ? 'assignment' : 'gallery'
+        }
+    }) }}
+        {% if not form.vars.valid and form.vars.submitted %}
+            <div class="form-error-banner">
+                <div class="form-error-banner-title">{{ template_ui.review_title }}</div>
+                <p class="form-error-banner-text">{{ template_ui.review_text }}</p>
+                {% if form.vars.errors|length %}
+                    <div class="form-error-list">{{ form_errors(form) }}</div>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        {% if form.templateKey.vars.errors|length %}
+            <div class="form-error-list">{{ form_errors(form.templateKey) }}</div>
+        {% endif %}
+
+        <section class="template-gallery-view" data-template-gallery {% if show_assignment_step %}hidden{% endif %}>
+            <div class="section-header template-section-header">
+                <div>
+                    <h2 class="section-title">{{ template_ui.gallery_title }}</h2>
+                    <p class="section-kicker">{{ template_ui.gallery_text }}</p>
+                </div>
+            </div>
+
+            <div class="record-grid template-record-grid">
+                {% for templateField in form.templateKey %}
+                    {% set template = templates_catalog[templateField.vars.value] ?? null %}
+                    {% if template %}
+                        <article class="record-card plan-card template-plan-card template-card-{{ template.accent }}" data-template-card="{{ template.key }}">
+                            <button type="button" class="template-plan-surface" data-template-open="{{ template.key }}">
+                                <div class="record-card-top">
+                                    <div class="record-heading">
+                                        <p class="record-eyebrow">{{ template.name }}</p>
+                                        <h3 class="record-title template-plan-title">{{ template.summary }}</h3>
+                                    </div>
+                                    <div class="record-chip-stack">
+                                        <span class="status-pill status-pending">{{ template.tasks|length }} {{ template_ui.tasks_short }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="record-stats record-stats-plan template-record-stats">
+                                    <div class="record-stat">
+                                        <span class="record-stat-label">{{ template_ui.best_fit }}</span>
+                                        <span class="record-stat-value">{{ template.audience }}</span>
+                                    </div>
+                                    <div class="record-stat">
+                                        <span class="record-stat-label">{{ template_ui.duration }}</span>
+                                        <span class="record-stat-value">{{ template.estimated_duration }}</span>
+                                    </div>
+                                </div>
+                            </button>
+
+                            <label class="template-select-control neon-checkbox" for="{{ templateField.vars.id }}" aria-label="{{ template_ui.select_template }}" title="{{ template_ui.select_template }}">
+                                {{ form_widget(templateField, {'attr': {'class': 'template-card-input', 'data-template-input': template.key}}) }}
+                                <span class="neon-checkbox__frame">
+                                    <span class="neon-checkbox__glow"></span>
+                                    <span class="neon-checkbox__borders">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </span>
+                                    <span class="neon-checkbox__box"></span>
+                                    <span class="neon-checkbox__check-container">
+                                        <svg viewBox="0 0 24 24" class="neon-checkbox__check" aria-hidden="true">
+                                            <path d="M4 12.5l5 5L20 6.5"></path>
+                                        </svg>
+                                    </span>
+                                    <span class="neon-checkbox__particles" aria-hidden="true">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </span>
+                                    <span class="neon-checkbox__rings" aria-hidden="true">
+                                        <span class="ring"></span>
+                                        <span class="ring"></span>
+                                        <span class="ring"></span>
+                                    </span>
+                                    <span class="neon-checkbox__sparks" aria-hidden="true">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </span>
+                                </span>
+                            </label>
+                        </article>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <div class="template-gallery-actions">
+                <button type="button" class="btn-primary" data-template-next disabled>{{ template_ui.next }}</button>
+                <a href="{{ path(plans_route) }}" class="btn-secondary">{{ template_ui.cancel }}</a>
+            </div>
+        </section>
+
+        <section class="template-assignment-view" data-template-assignment {% if not show_assignment_step %}hidden{% endif %}>
+            <div class="template-assignment-header">
+                <button type="button" class="btn-secondary" data-template-back>{{ template_ui.back_to_templates }}</button>
+                <div>
+                    <h2 class="section-title">{{ template_ui.assignment_title }}</h2>
+                    <p class="section-kicker">{{ template_ui.assignment_text }}</p>
+                </div>
+            </div>
+
+            <div class="template-assignment-layout">
+                <div class="template-assignment-summary">
+                    {% for template in templates_catalog %}
+                        <div class="template-assignment-card template-card-{{ template.key ? template.accent : 'orange' }}" data-template-summary="{{ template.key }}" {% if template.key != selected_template_key %}hidden{% endif %}>
+                            <div class="template-assignment-card-head">
+                                <div>
+                                    <p class="record-eyebrow">{{ template_ui.selected_plan }}</p>
+                                    <h3 class="record-title template-plan-title">{{ template.name }}</h3>
+                                </div>
+                                <span class="status-pill status-pending">{{ template.tasks|length }} {{ template_ui.tasks_short }}</span>
+                            </div>
+
+                            <div class="record-stats record-stats-plan template-record-stats">
+                                <div class="record-stat">
+                                    <span class="record-stat-label">{{ template_ui.best_fit }}</span>
+                                    <span class="record-stat-value">{{ template.audience }}</span>
+                                </div>
+                                <div class="record-stat">
+                                    <span class="record-stat-label">{{ template_ui.duration }}</span>
+                                    <span class="record-stat-value">{{ template.estimated_duration }}</span>
+                                </div>
+                            </div>
+
+                            <div class="template-assignment-task-grid">
+                                {% for task in template.tasks %}
+                                    <article class="record-card task-card compact template-assignment-task-card">
+                                        <div class="record-card-top">
+                                            <div class="record-heading">
+                                                <p class="record-eyebrow">Task {{ loop.index }}</p>
+                                                <h4 class="record-title template-task-card-title">{{ task.title }}</h4>
+                                            </div>
+                                        </div>
+                                        <p class="record-description">{{ task.description }}</p>
+                                    </article>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <aside class="template-assignment-form-card">
+                    <div class="template-form-fields">
+                        {{ form_ui.render_field(form.user) }}
+                        {{ form_ui.render_field(form.deadline) }}
+                    </div>
+
+                    <div class="form-actions template-form-actions">
+                        <button type="submit" class="btn-primary">{{ template_ui.add }}</button>
+                        <a href="{{ path(plans_route) }}" class="btn-secondary">{{ template_ui.cancel }}</a>
+                    </div>
+                </aside>
+            </div>
+        </section>
+    {{ form_end(form) }}
+</div>
+
+<div class="template-modal" data-template-modal hidden>
+    <div class="template-modal-backdrop" data-template-modal-close></div>
+    <div class="template-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="template-modal-title">
+        <div class="template-modal-header">
+            <div>
+                <h2 class="section-title" id="template-modal-title">{{ template_ui.tasks_title }}</h2>
+                <p class="section-kicker">{{ template_ui.tasks_text }}</p>
+            </div>
+            <button type="button" class="btn-secondary" data-template-modal-close>{{ template_ui.back_to_plans }}</button>
+        </div>
+
+        <div class="template-modal-content">
+            {% for template in templates_catalog %}
+                <section class="template-modal-panel" data-template-modal-panel="{{ template.key }}" hidden>
+                    <div class="template-modal-summary">
+                        <div class="record-card-top">
+                            <div class="record-heading">
+                                <p class="record-eyebrow">{{ template.name }}</p>
+                                <h3 class="record-title template-plan-title">{{ template.summary }}</h3>
+                            </div>
+                            <div class="record-chip-stack">
+                                <span class="status-pill status-pending">{{ template.tasks|length }} {{ template_ui.tasks_short }}</span>
+                            </div>
+                        </div>
+
+                        <div class="record-stats record-stats-plan template-record-stats">
+                            <div class="record-stat">
+                                <span class="record-stat-label">{{ template_ui.best_fit }}</span>
+                                <span class="record-stat-value">{{ template.audience }}</span>
+                            </div>
+                            <div class="record-stat">
+                                <span class="record-stat-label">{{ template_ui.duration }}</span>
+                                <span class="record-stat-value">{{ template.estimated_duration }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="template-modal-task-grid">
+                        {% for task in template.tasks %}
+                            <article class="record-card task-card compact template-assignment-task-card">
+                                <div class="record-card-top">
+                                    <div class="record-heading">
+                                        <p class="record-eyebrow">Task {{ loop.index }}</p>
+                                        <h4 class="record-title template-task-card-title">{{ task.title }}</h4>
+                                    </div>
+                                </div>
+                                <p class="record-description">{{ task.description }}</p>
+                            </article>
+                        {% endfor %}
+                    </div>
+                </section>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

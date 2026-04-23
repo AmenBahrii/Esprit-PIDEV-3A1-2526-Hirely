@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% extends "base.html.twig" %}
 
 {% block title %}Application - {{ application.candidate_name }} - Hirely{% endblock %}
@@ -81,4 +82,250 @@
             </div>
         </div>
     </div>
+=======
+{% extends 'admin/base_admin.html.twig' %}
+
+{% set force_sidebar = false %}
+{% set topbar_title = 'Application Details' %}
+{% set topbar_subtitle = 'Review candidate information and workflow status' %}
+
+{% block title %}Application Details{% endblock %}
+
+{% block admin_content %}
+    <style>
+        .ai-review-panel {
+            padding: 16px 18px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 107, 53, 0.14);
+            background: linear-gradient(180deg, rgba(255, 247, 243, 0.92), rgba(255, 255, 255, 0.98));
+        }
+
+        .ai-review-panel p {
+            margin: 8px 0 0;
+            color: rgba(35, 30, 83, 0.62);
+            font-size: 0.92rem;
+            line-height: 1.65;
+        }
+
+        .ai-review-status {
+            display: none;
+            margin-top: 12px;
+            padding: 12px 14px;
+            border-radius: 16px;
+            font-size: 0.86rem;
+            line-height: 1.55;
+        }
+
+        .ai-review-status.is-visible {
+            display: block;
+        }
+
+        .ai-review-status.is-loading {
+            background: #fff6ea;
+            border: 1px solid #ffd8a8;
+            color: #9a5313;
+        }
+
+        .ai-review-status.is-success {
+            background: #eefaf3;
+            border: 1px solid #b9e6c8;
+            color: #1e6d3d;
+        }
+
+        .ai-review-status.is-error {
+            background: #fff1f1;
+            border: 1px solid #ffc9c9;
+            color: #b02a37;
+        }
+    </style>
+
+    <section class="module-page">
+        <div class="module-section-head">
+            <div class="module-section-copy">
+                <span class="module-eyebrow">{{ application.jobOffer ? application.jobOffer.title : 'Application' }}</span>
+                <h1 class="module-section-title">{{ application.email ?: 'Application #' ~ application.id }}</h1>
+                <p class="module-section-text">
+                    {{ application.reviewNote ?: 'Open the candidate details, resume, and workflow status for this application.' }}
+                </p>
+            </div>
+
+            <div class="module-section-actions">
+                <a href="{{ path('app_workspace_application_index') }}"
+                   class="btn-secondary topbar-logout-link">
+                    Back to applications
+                </a>
+
+                {% if viewer_context.candidate and application.currentStatus|default('pending')|lower == 'pending' %}
+                    <form method="post"
+                          action="{{ path('app_workspace_application_delete', {'id': application.id}) }}"
+                          onsubmit="return confirm('Delete this application?');">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ application.id) }}">
+                        <button class="btn-primary topbar-logout-link" type="submit">Delete application</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="module-grid">
+            <article class="module-card">
+                <div class="module-card-header">
+                    <div>
+                        <span class="module-eyebrow">Application snapshot</span>
+                        <h2 class="module-card-title">{{ application.jobOffer ? application.jobOffer.title : 'No linked job offer' }}</h2>
+                    </div>
+                    <span class="status-badge {{ application.currentStatus|default('pending')|lower }}">
+                        {{ application.currentStatus|default('Pending')|title }}
+                    </span>
+                </div>
+
+                <div class="module-card-meta">
+                    <div class="module-meta-item">
+                        <span class="module-meta-label">Phone</span>
+                        <span class="module-meta-value">{{ application.phone ?: 'Not provided' }}</span>
+                    </div>
+                    <div class="module-meta-item">
+                        <span class="module-meta-label">Expected salary</span>
+                        <span class="module-meta-value">{{ application.expectedSalary ?: 'N/A' }}</span>
+                    </div>
+                    <div class="module-meta-item">
+                        <span class="module-meta-label">Experience</span>
+                        <span class="module-meta-value">{{ application.experienceYears ?: 0 }} years</span>
+                    </div>
+                    <div class="module-meta-item">
+                        <span class="module-meta-label">Portfolio</span>
+                        <span class="module-meta-value">
+                            {% if application.portfolioUrl %}
+                                <a href="{{ application.portfolioUrl }}" target="_blank" rel="noopener">{{ application.portfolioUrl }}</a>
+                            {% else %}
+                                Not provided
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="module-meta-item">
+                        <span class="module-meta-label">Resume</span>
+                        <span class="module-meta-value">
+                            {% if application.resumePath %}
+                                <a href="{{ asset('uploads/resumes/' ~ application.resumePath) }}" target="_blank" rel="noopener">Open resume</a>
+                            {% else %}
+                                No file
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="module-meta-item">
+                        <span class="module-meta-label">AI score</span>
+                        <span class="module-meta-value">{{ application.score is not null ? application.score ~ '/100' : 'Pending' }}</span>
+                    </div>
+                </div>
+
+                <p class="module-card-description">{{ application.coverLetter ?: 'No cover letter provided.' }}</p>
+            </article>
+
+            {% if viewer_context.recruiter and review_form %}
+                <article class="module-card">
+                    <div class="module-card-header">
+                        <div>
+                            <span class="module-eyebrow">Recruiter Review</span>
+                            <h2 class="module-card-title">Decision workspace</h2>
+                        </div>
+                    </div>
+
+                    <div class="ai-review-panel">
+                        <div class="module-card-actions" style="justify-content: space-between; align-items: center;">
+                            <strong class="module-card-title" style="font-size: 1rem;">AI Review Assistant</strong>
+                            <button class="btn-secondary topbar-logout-link" type="button" id="ai-review-trigger">Generate AI review</button>
+                        </div>
+                        <p>Use AI to compare this application against the job offer and draft a score plus recruiter note before you save.</p>
+                        <div class="ai-review-status" id="ai-review-status"></div>
+                    </div>
+
+                    {{ form_start(review_form, {'attr': {'class': 'module-page'}}) }}
+                        <div class="module-form-grid">
+                            <div class="module-field">
+                                <label>Score</label>
+                                {{ form_widget(review_form.score, {'attr': {'class': 'form-input'}}) }}
+                            </div>
+                            <div class="module-field full">
+                                <label>Review note</label>
+                                {{ form_widget(review_form.reviewNote, {'attr': {'class': 'form-input'}}) }}
+                            </div>
+                        </div>
+                        <div class="inline-actions">
+                            <button class="btn-primary topbar-logout-link" type="submit">Save review</button>
+                        </div>
+                    {{ form_end(review_form) }}
+
+                    <div class="inline-actions">
+                        <form method="post" action="{{ path('app_workspace_application_accept', {'id': application.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('application_accept_' ~ application.id) }}">
+                            <button class="btn-primary topbar-logout-link" type="submit">Accept</button>
+                        </form>
+
+                        <form method="post" action="{{ path('app_workspace_application_reject', {'id': application.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('application_reject_' ~ application.id) }}">
+                            <button class="btn-secondary topbar-logout-link" type="submit">Reject</button>
+                        </form>
+                    </div>
+                </article>
+
+                <script>
+                    (function () {
+                        const trigger = document.getElementById('ai-review-trigger');
+                        const statusBox = document.getElementById('ai-review-status');
+                        if (!trigger) {
+                            return;
+                        }
+
+                        const setStatus = (message, tone) => {
+                            if (!statusBox) {
+                                return;
+                            }
+
+                            statusBox.textContent = message;
+                            statusBox.className = 'ai-review-status is-visible';
+
+                            if (tone) {
+                                statusBox.classList.add(tone);
+                            }
+                        };
+
+                        trigger.addEventListener('click', async function () {
+                            trigger.disabled = true;
+                            setStatus('Reading the application and preparing the recruiter review...', 'is-loading');
+
+                            try {
+                                const response = await fetch('{{ path('app_workspace_application_ai_review', {'id': application.id}) }}', {
+                                    method: 'POST',
+                                    headers: {'X-Requested-With': 'XMLHttpRequest'}
+                                });
+
+                                const payload = await response.json();
+
+                                if (!response.ok || !payload.success) {
+                                    throw new Error(payload.message || 'The AI review could not be generated.');
+                                }
+
+                                const scoreInput = document.getElementById('{{ review_form.score.vars.id }}');
+                                const noteInput = document.getElementById('{{ review_form.reviewNote.vars.id }}');
+
+                                if (scoreInput && payload.review.score !== null) {
+                                    scoreInput.value = payload.review.score;
+                                }
+
+                                if (noteInput && payload.review.reviewNote) {
+                                    noteInput.value = payload.review.reviewNote;
+                                }
+
+                                setStatus(payload.message || 'AI review is ready. Review the draft and save when you are happy with it.', 'is-success');
+                            } catch (error) {
+                                setStatus(error.message || 'AI review failed. You can still write the review manually.', 'is-error');
+                            } finally {
+                                trigger.disabled = false;
+                            }
+                        });
+                    })();
+                </script>
+            {% endif %}
+        </div>
+    </section>
+>>>>>>> OnboardingCoordination
 {% endblock %}

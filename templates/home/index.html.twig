@@ -1,0 +1,59 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hirely Home{% endblock %}
+
+{% set dashboard_route = viewer_context.admin ? 'app_admin' : 'app_workspace' %}
+{% set plans_route = viewer_context.admin ? 'app_admin_plans' : 'app_workspace_plans' %}
+
+{% block body %}
+<div class="home-wrap">
+    <div class="card home-card">
+        <div class="brand-row">
+            <img src="{{ asset('assets/img/logo-hirely-light.png') }}" alt="Hirely Logo" class="brand-logo">
+            <div>
+                <h1 class="page-title">Hirely Symfony</h1>
+                <div class="page-subtitle">Onboarding Coordination Module</div>
+            </div>
+        </div>
+
+        <div class="home-intro">
+            <p class="muted-text">
+                Choose an account below to preview the onboarding experience before authentication is connected.
+            </p>
+        </div>
+
+        <div class="home-switcher">
+            <form method="post" action="{{ path('app_viewer_switch') }}" class="viewer-switcher home">
+                <input type="hidden" name="_token" value="{{ csrf_token('switch_viewer') }}">
+                <input type="hidden" name="redirect_to" value="{{ app.request.requestUri }}">
+                <label class="viewer-switcher-label" for="home_viewer_user_id">Preview as</label>
+                <select id="home_viewer_user_id" name="viewer_user_id" class="viewer-select" onchange="this.form.submit()">
+                    {% for user in viewer_context.availableUsers %}
+                        <option value="{{ user.userId }}" {{ viewer_context.currentUser and viewer_context.currentUser.userId == user.userId ? 'selected' : '' }}>
+                            {{ user.firstName }} {{ user.lastName }} • {{ user.role.name|capitalize }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+
+        <div class="record-grid" style="margin-top: 26px;">
+            <article class="record-card compact">
+                <p class="record-eyebrow">Active Role</p>
+                <h3 class="record-title">{{ viewer_context.roleName }}</h3>
+                <p class="muted-text">Current viewer: {{ viewer_context.currentUserDisplayName }}</p>
+            </article>
+
+            <article class="record-card compact">
+                <p class="record-eyebrow">Dashboard</p>
+                <h3 class="record-title">{{ viewer_context.admin ? 'Admin Backend' : viewer_context.workspaceTitle }}</h3>
+                <p class="muted-text">Open the area that matches the selected account.</p>
+                <div class="record-actions actions-cell">
+                    <a href="{{ path(dashboard_route) }}" class="btn-primary">Open Dashboard</a>
+                    <a href="{{ path(plans_route) }}" class="btn-secondary">Open Plans</a>
+                </div>
+            </article>
+        </div>
+    </div>
+</div>
+{% endblock %}

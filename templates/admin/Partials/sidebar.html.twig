@@ -1,0 +1,90 @@
+{% set current_route = app.request.attributes.get('_route') %}
+{% set admin_area = current_route starts with 'app_admin' %}
+{% set shell_admin = admin_area or (force_sidebar|default(false) and viewer_context.admin) %}
+{% set dashboard_route = shell_admin ? 'app_admin' : 'app_workspace' %}
+{% set plans_route = shell_admin ? 'app_admin_plans' : 'app_workspace_plans' %}
+{% set plans_active =
+    current_route starts with (shell_admin ? 'app_admin_plans' : 'app_workspace_plans')
+    or current_route starts with (shell_admin ? 'app_admin_plan_tasks' : 'app_workspace_plan_tasks')
+%}
+{% set joboffers_route = shell_admin ? 'app_admin_joboffer_index' : 'app_workspace_joboffer_index' %}
+{% set joboffers_active =
+    current_route starts with 'app_admin_joboffer'
+    or current_route starts with 'app_workspace_joboffer'
+%}
+{% set applications_route = shell_admin ? 'app_admin_application_index' : 'app_workspace_application_index' %}
+{% set applications_active =
+    current_route starts with 'app_admin_application'
+    or current_route starts with 'app_workspace_application'
+%}
+
+{% set sidebar_ui = onboarding_language.translateMap({
+    admin_backend: 'Admin Backend',
+    frontend_workspace: 'Frontend Workspace',
+    dashboard: 'Dashboard',
+    my_onboarding: 'My Onboarding',
+    onboarding_plans: 'Onboarding Plans',
+    job_offers: 'Job Offers',
+    applications: 'Applications',
+    users: 'Users',
+    roles: 'Roles',
+    control_center: 'Control Center',
+    role_mode: 'Role mode',
+    synchronized: 'Synchronized',
+    workspace_ready: 'Workspace ready'
+}) %}
+
+<aside class="sidebar">
+    <div class="sidebar-shell">
+        <div class="sidebar-brand">
+            <img src="{{ asset('assets/img/logo-hirely-light.png') }}" alt="Hirely Logo" class="sidebar-logo">
+            <div>
+                <div class="sidebar-title">Hirely</div>
+                <div class="sidebar-subtitle">{{ shell_admin ? sidebar_ui.admin_backend : sidebar_ui.frontend_workspace }}</div>
+            </div>
+        </div>
+
+        <div class="sidebar-status-panel">
+            <span class="sidebar-status-eyebrow">{{ sidebar_ui.control_center }}</span>
+            <strong class="sidebar-status-title">{{ sidebar_ui.workspace_ready }}</strong>
+            <div class="sidebar-status-meta">
+                <span>{{ sidebar_ui.role_mode }}</span>
+                <span>{{ sidebar_ui.synchronized }}</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ path(dashboard_route) }}"
+               class="sidebar-link {{ current_route == dashboard_route ? 'active' : '' }}">
+                {{ sidebar_ui.dashboard }}
+            </a>
+
+            <a href="{{ path(plans_route) }}"
+               class="sidebar-link {{ plans_active ? 'active' : '' }}">
+                {{ viewer_context.candidate ? sidebar_ui.my_onboarding : sidebar_ui.onboarding_plans }}
+            </a>
+
+            <a href="{{ path(joboffers_route) }}"
+               class="sidebar-link {{ joboffers_active ? 'active' : '' }}">
+                {{ sidebar_ui.job_offers }}
+            </a>
+
+            <a href="{{ path(applications_route) }}"
+               class="sidebar-link {{ applications_active ? 'active' : '' }}">
+                {{ sidebar_ui.applications }}
+            </a>
+
+            {% if viewer_context.admin %}
+                <a href="{{ path('app_admin_users_index') }}"
+                   class="sidebar-link {{ current_route starts with 'app_users' or current_route starts with 'app_admin_users' ? 'active' : '' }}">
+                    {{ sidebar_ui.users }}
+                </a>
+
+                <a href="{{ path('app_admin_role_index') }}"
+                   class="sidebar-link {{ current_route starts with 'app_role' or current_route starts with 'app_admin_role' ? 'active' : '' }}">
+                    {{ sidebar_ui.roles }}
+                </a>
+            {% endif %}
+        </nav>
+    </div>
+</aside>

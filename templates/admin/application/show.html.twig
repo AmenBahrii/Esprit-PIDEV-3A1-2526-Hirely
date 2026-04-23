@@ -1,0 +1,117 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% set force_sidebar = true %}
+{% set topbar_title = 'Application Details' %}
+{% set topbar_subtitle = 'Review candidate information and workflow status' %}
+
+{% block title %}Application Details{% endblock %}
+
+{% block admin_content %}
+    <section class="module-page">
+        <div class="module-section-head">
+            <div class="module-section-copy">
+                <span class="module-eyebrow">{{ application.jobOffer ? application.jobOffer.title : 'Application' }}</span>
+                <h1 class="module-section-title">{{ application.email ?: 'Application #' ~ application.id }}</h1>
+                <p class="module-section-text">
+                    {{ application.reviewNote ?: 'Review the candidate details, attached resume, and current workflow status.' }}
+                </p>
+            </div>
+
+            <div class="module-section-actions">
+                <a href="{{ path('app_admin_application_edit', {'id': application.id}) }}"
+                   class="btn-primary topbar-logout-link">
+                    Edit application
+                </a>
+
+                <a href="{{ path('app_admin_application_index') }}"
+                   class="btn-secondary topbar-logout-link">
+                    Back to applications
+                </a>
+            </div>
+        </div>
+
+        <div class="module-grid">
+            <article class="module-card">
+                <div class="module-card-header">
+                    <div>
+                        <span class="module-eyebrow">Application snapshot</span>
+                        <h2 class="module-card-title">
+                            {{ application.jobOffer ? application.jobOffer.title : 'No linked job offer' }}
+                        </h2>
+                    </div>
+                    <span class="status-badge {{ application.currentStatus|default('pending')|lower }}">
+                        {{ application.currentStatus|default('Pending')|title }}
+                    </span>
+                </div>
+
+                <div class="module-card-meta">
+                    <div class="module-meta-item">
+                        <span class="module-meta-label">Phone</span>
+                        <span class="module-meta-value">{{ application.phone ?: 'Not provided' }}</span>
+                    </div>
+
+                    <div class="module-meta-item">
+                        <span class="module-meta-label">Expected salary</span>
+                        <span class="module-meta-value">{{ application.expectedSalary ?: 'N/A' }}</span>
+                    </div>
+
+                    <div class="module-meta-item">
+                        <span class="module-meta-label">Experience</span>
+                        <span class="module-meta-value">{{ application.experienceYears ?: 0 }} years</span>
+                    </div>
+
+                    <div class="module-meta-item">
+                        <span class="module-meta-label">Portfolio</span>
+                        <span class="module-meta-value">
+                            {% if application.portfolioUrl %}
+                                <a href="{{ application.portfolioUrl }}" target="_blank" rel="noopener">
+                                    {{ application.portfolioUrl }}
+                                </a>
+                            {% else %}
+                                Not provided
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div class="module-meta-item">
+                        <span class="module-meta-label">Resume</span>
+                        <span class="module-meta-value">
+                            {% if application.resumePath %}
+                                <a href="{{ asset('uploads/resumes/' ~ application.resumePath) }}" target="_blank" rel="noopener">
+                                    Open resume
+                                </a>
+                            {% else %}
+                                No file
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div class="module-meta-item">
+                        <span class="module-meta-label">AI score</span>
+                        <span class="module-meta-value">
+                            {{ application.score is not null ? application.score ~ '/100' : 'Pending' }}
+                        </span>
+                    </div>
+                </div>
+
+                <p class="module-card-description">
+                    {{ application.coverLetter ?: 'No cover letter provided.' }}
+                </p>
+
+                <div class="module-card-actions">
+                    <a href="{{ path('app_admin_application_edit', {'id': application.id}) }}"
+                       class="btn-primary topbar-logout-link">
+                        Edit
+                    </a>
+
+                    <form method="post"
+                          action="{{ path('app_admin_application_delete', {'id': application.id}) }}"
+                          onsubmit="return confirm('Delete this application?');">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ application.id) }}">
+                        <button class="btn-secondary topbar-logout-link" type="submit">Delete</button>
+                    </form>
+                </div>
+            </article>
+        </div>
+    </section>
+{% endblock %}

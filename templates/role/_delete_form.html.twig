@@ -1,0 +1,4 @@
+<form method="post" action="{{ path('app_admin_role_delete', {'id': role.id}) }}" onsubmit="return confirm('Delete this role?');">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ role.id) }}">
+    <button class="btn-secondary topbar-logout-link" type="submit">Delete</button>
+</form>

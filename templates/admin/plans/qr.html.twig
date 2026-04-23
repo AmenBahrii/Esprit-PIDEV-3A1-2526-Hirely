@@ -1,0 +1,78 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}{{ onboarding_language.translateMap({page_title: 'Plan QR Code'}).page_title }}{% endblock %}
+
+{% set admin_area = app.request.attributes.get('_route') starts with 'app_admin' %}
+{% set plans_route = admin_area ? 'app_admin_plans' : 'app_workspace_plans' %}
+{% set tasks_route = admin_area ? 'app_admin_plan_tasks' : 'app_workspace_plan_tasks' %}
+{% set public_qr_url = public_qr_base_url ~ path('app_public_plan_qr', {token: plan.qrToken}) %}
+{% set qr_ui = onboarding_language.translateMap({
+    page_title: 'Plan QR Code',
+    page_text: 'QR code for plan #%plan_id% assigned to %candidate%.',
+    token_label: 'QR Token',
+    ready_to_share: 'Ready to share',
+    ready_text: 'This QR now opens a public token-based page showing the plan details, task list, and attachment links for mobile viewing.',
+    plan: 'Plan',
+    status: 'Status',
+    token: 'Token',
+    mobile_url: 'Mobile URL',
+    back_to_plans: 'Back to Plans',
+    open_tasks: 'Open Tasks',
+    open_public_view: 'Open Public View',
+    pending: 'Pending',
+    in_progress: 'In Progress',
+    completed: 'Completed',
+    on_hold: 'On Hold'
+}) %}
+{% set page_text = qr_ui.page_text|replace({
+    '%plan_id%': plan.planId,
+    '%candidate%': plan.user.firstName ~ ' ' ~ plan.user.lastName
+}) %}
+
+{% block admin_content %}
+<div class="page-header">
+    <h1 class="page-title">{{ qr_ui.page_title }}</h1>
+    <p class="muted-text">{{ page_text }}</p>
+</div>
+
+<div class="card qr-card">
+    <div class="qr-preview">
+        <img
+            src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&data={{ public_qr_url|url_encode }}"
+            alt="QR code for onboarding plan {{ plan.planId }}"
+            class="qr-image"
+        >
+    </div>
+
+    <div class="qr-details">
+        <p class="record-eyebrow">{{ qr_ui.token_label }}</p>
+        <h2 class="section-title">{{ qr_ui.ready_to_share }}</h2>
+        <p class="muted-text">{{ qr_ui.ready_text }}</p>
+
+        <div class="record-meta">
+            <div class="record-meta-item">
+                <span class="record-meta-label">{{ qr_ui.plan }}</span>
+                <span class="record-meta-value">#{{ plan.planId }}</span>
+            </div>
+            <div class="record-meta-item">
+                <span class="record-meta-label">{{ qr_ui.status }}</span>
+                <span class="record-meta-value">{{ qr_ui[plan.status] ?? (plan.status|replace({'_': ' '})|title) }}</span>
+            </div>
+            <div class="record-meta-item" style="grid-column: 1 / -1;">
+                <span class="record-meta-label">{{ qr_ui.token }}</span>
+                <span class="record-meta-value">{{ plan.qrToken }}</span>
+            </div>
+            <div class="record-meta-item" style="grid-column: 1 / -1;">
+                <span class="record-meta-label">{{ qr_ui.mobile_url }}</span>
+                <span class="record-meta-value">{{ public_qr_url }}</span>
+            </div>
+        </div>
+
+        <div class="actions-cell record-actions">
+            <a href="{{ path(plans_route) }}" class="btn-secondary">{{ qr_ui.back_to_plans }}</a>
+            <a href="{{ path(tasks_route, {id: plan.planId}) }}" class="btn-primary">{{ qr_ui.open_tasks }}</a>
+            <a href="{{ public_qr_url }}" target="_blank" rel="noreferrer" class="btn-secondary">{{ qr_ui.open_public_view }}</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

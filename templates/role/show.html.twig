@@ -1,0 +1,46 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% set force_sidebar = true %}
+{% set topbar_title = 'Role Profile' %}
+{% set topbar_subtitle = 'Access settings overview' %}
+
+{% block title %}Role Profile{% endblock %}
+
+{% block admin_content %}
+    <section class="module-page">
+        <div class="module-hero">
+            <div class="module-hero-copy">
+                <span class="module-eyebrow">Role Module</span>
+                <h1 class="module-title">{{ role.name|title }}</h1>
+                <p class="module-subtitle">{{ role.description ?: 'This role has no description yet.' }}</p>
+            </div>
+            <div class="module-actions">
+                <a href="{{ path('app_admin_role_edit', {'id': role.id}) }}" class="btn-primary topbar-logout-link">Edit role</a>
+                <a href="{{ path('app_admin_role_index') }}" class="btn-secondary topbar-logout-link">Back to roles</a>
+            </div>
+        </div>
+
+        <div class="module-grid">
+            <article class="module-card">
+                <div class="module-card-header">
+                    <div>
+                        <span class="module-eyebrow">Role state</span>
+                        <h2 class="module-card-title">{{ role.name|title }}</h2>
+                    </div>
+                    <span class="status-badge {{ role.status|lower }}">{{ role.status|title }}</span>
+                </div>
+
+                <div class="module-card-meta">
+                    <div class="module-meta-item">
+                        <span class="module-meta-label">Default dashboard</span>
+                        <span class="module-meta-value">{{ role.defaultDashboard ?: 'Not configured' }}</span>
+                    </div>
+                    <div class="module-meta-item">
+                        <span class="module-meta-label">Description</span>
+                        <span class="module-meta-value">{{ role.description ?: 'No description provided' }}</span>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </section>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% set force_sidebar = false %}
+{% set topbar_title = 'Edit Job Offer' %}
+{% set topbar_subtitle = 'Refine the hiring brief and publication status' %}
+
+{% block title %}Edit Job Offer{% endblock %}
+
+{% block admin_content %}
+    <section class="module-page">
+        <div class="module-section-head">
+            <div class="module-section-copy">
+                <span class="module-eyebrow">Job Offer Module</span>
+                <h1 class="module-section-title">{{ joboffer.title ?: 'Edit Job Offer' }}</h1>
+                <p class="module-section-text">
+                    Update the recruiting brief without leaving the shared Hirely shell.
+                </p>
+            </div>
+
+            <div class="module-section-actions">
+                <a href="{{ path('app_workspace_joboffer_show', {'id': joboffer.id}) }}"
+                   class="btn-secondary topbar-logout-link">
+                    View offer
+                </a>
+
+                <a href="{{ path('app_workspace_joboffer_index') }}"
+                   class="btn-secondary topbar-logout-link">
+                    Back to job offers
+                </a>
+            </div>
+        </div>
+
+        <div class="module-panel">
+            {{ include('joboffer/_form.html.twig', { button_label: 'Save changes' }) }}
+        </div>
+    </section>
+{% endblock %}

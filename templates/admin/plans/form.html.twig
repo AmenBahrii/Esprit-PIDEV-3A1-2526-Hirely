@@ -1,0 +1,63 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% macro render_field(field) %}
+    {% if field is defined %}
+        <div class="form-field {{ field.vars.errors|length ? 'has-error' : '' }}">
+            {{ form_label(field, null, {'label_attr': {'class': 'form-label'}}) }}
+            <div class="form-widget">
+                {{ form_widget(field, {'attr': {'class': ((field.vars.attr.class|default('') ~ ' form-control')|trim)}}) }}
+            </div>
+            {% if field.vars.help %}
+                <p class="form-help">{{ field.vars.help }}</p>
+            {% endif %}
+            {% if field.vars.errors|length %}
+                <div class="form-error-list">{{ form_errors(field) }}</div>
+            {% endif %}
+        </div>
+    {% endif %}
+{% endmacro %}
+{% import _self as form_ui %}
+
+{% block title %}{{ onboarding_language.translateMap({page_title: page_title}).page_title }}{% endblock %}
+
+{% set admin_area = app.request.attributes.get('_route') starts with 'app_admin' %}
+{% set plans_route = admin_area ? 'app_admin_plans' : 'app_workspace_plans' %}
+{% set form_ui_text = onboarding_language.translateMap({
+    limited_text: 'Protected plan details stay unchanged here.',
+    full_text: 'Set the owner and timing for this onboarding plan. Status is derived automatically from the plan tasks.',
+    review_title: 'Please review the highlighted fields',
+    review_text: 'Some information is missing or invalid. Correct the details below and save again.',
+    save: 'Save',
+    cancel: 'Cancel'
+}) %}
+
+{% block admin_content %}
+<div class="page-header">
+    <h1 class="page-title">{{ onboarding_language.translateMap({page_title: page_title}).page_title }}</h1>
+    <p class="muted-text">
+        {{ limited_editor ? form_ui_text.limited_text : form_ui_text.full_text }}
+    </p>
+</div>
+
+<div class="card card-immersive">
+    {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'form-shell'}}) }}
+        {% if not form.vars.valid %}
+            <div class="form-error-banner">
+                <div class="form-error-banner-title">{{ form_ui_text.review_title }}</div>
+                <p class="form-error-banner-text">{{ form_ui_text.review_text }}</p>
+                {% if form.vars.errors|length %}
+                    <div class="form-error-list">{{ form_errors(form) }}</div>
+                {% endif %}
+            </div>
+        {% endif %}
+        <div class="form-grid">
+            {% if form.user is defined %}{{ form_ui.render_field(form.user) }}{% endif %}
+            {% if form.deadline is defined %}{{ form_ui.render_field(form.deadline) }}{% endif %}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">{{ form_ui_text.save }}</button>
+            <a href="{{ path(plans_route) }}" class="btn-secondary">{{ form_ui_text.cancel }}</a>
+        </div>
+    {{ form_end(form) }}
+</div>
+{% endblock %}

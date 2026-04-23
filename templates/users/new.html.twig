@@ -1,0 +1,26 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% set force_sidebar = true %}
+{% set topbar_title = 'Create User' %}
+{% set topbar_subtitle = 'Add a new internal account' %}
+
+{% block title %}New User{% endblock %}
+
+{% block admin_content %}
+    <section class="module-page">
+        <div class="module-hero">
+            <div class="module-hero-copy">
+                <span class="module-eyebrow">User Module</span>
+                <h1 class="module-title">Create a new user</h1>
+                <p class="module-subtitle">Set the account identity, role, and current access status.</p>
+            </div>
+            <div class="module-actions">
+                <a href="{{ path('app_admin_users_index') }}" class="btn-secondary topbar-logout-link">Back to users</a>
+            </div>
+        </div>
+
+        <div class="module-panel">
+            {{ include('users/_form.html.twig', {button_label: 'Create user'}) }}
+        </div>
+    </section>
+{% endblock %}

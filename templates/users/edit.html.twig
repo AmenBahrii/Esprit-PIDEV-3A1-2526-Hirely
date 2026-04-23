@@ -1,0 +1,169 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% set force_sidebar = true %}
+{% set topbar_title = 'Edit User' %}
+{% set topbar_subtitle = 'Update account details and access' %}
+
+{% block title %}Edit User{% endblock %}
+
+{% block admin_content %}
+    <style>
+        .identity-camera-shell {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            overflow: hidden;
+            border-radius: 20px;
+            background: #0f172a;
+            margin-top: 14px;
+        }
+
+        .identity-camera-shell video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .identity-action-row {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .identity-status-note {
+            min-height: 20px;
+            color: rgba(35, 30, 83, 0.62);
+            font-size: 0.84rem;
+            line-height: 1.5;
+        }
+
+        .identity-status-note[data-tone="success"] {
+            color: #166534;
+        }
+
+        .identity-status-note[data-tone="error"] {
+            color: #b91c1c;
+        }
+
+        .identity-qr-image {
+            width: min(100%, 220px);
+            border-radius: 22px;
+            border: 1px solid rgba(121, 97, 255, 0.1);
+            background: rgba(255, 255, 255, 0.94);
+            padding: 10px;
+        }
+
+        .identity-qr-code {
+            margin: 0;
+            padding: 14px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.84);
+            border: 1px solid rgba(121, 97, 255, 0.08);
+            color: rgba(35, 30, 83, 0.62);
+            font-size: 0.78rem;
+            line-height: 1.55;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        @media (max-width: 900px) {
+            .identity-action-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+    <section class="module-page">
+        <div class="module-hero">
+            <div class="module-hero-copy">
+                <span class="module-eyebrow">User Module</span>
+                <h1 class="module-title">{{ user.firstName }} {{ user.lastName }}</h1>
+                <p class="module-subtitle">Update profile information, role assignment, and access status without leaving the shared workspace.</p>
+            </div>
+            <div class="module-actions">
+                <a href="{{ path('app_admin_users_show', {'id': user.id}) }}" class="btn-secondary topbar-logout-link">View profile</a>
+                <a href="{{ path('app_admin_users_index') }}" class="btn-secondary topbar-logout-link">Back to users</a>
+            </div>
+        </div>
+
+        <div class="module-panel">
+            {{ include('users/_form.html.twig', {button_label: 'Save changes'}) }}
+        </div>
+
+        <div class="module-grid">
+            <article class="module-card">
+                <div class="module-card-header">
+                    <div>
+                        <span class="module-eyebrow">Google Sign-In</span>
+                        <h2 class="module-card-title">{{ user.googleId ? 'Google connected' : 'Google not connected yet' }}</h2>
+                    </div>
+                    <span class="status-badge {{ user.googleId ? 'active' : 'pending' }}">
+                        {{ user.googleId ? 'Linked' : 'Not linked' }}
+                    </span>
+                </div>
+
+                <p class="module-card-description">
+                    Link a Google account so this user can sign in with Google using the same authentication flow available on the login and registration pages.
+                </p>
+
+                <div class="module-card-actions">
+                    <a href="{{ path('app_google_connect_link') }}" class="btn-primary topbar-logout-link">
+                        {{ user.googleId ? 'Reconnect Google' : 'Connect Google' }}
+                    </a>
+                </div>
+            </article>
+
+            <article class="module-card"
+                     data-face-enroll
+                     data-enroll-url="{{ path('app_face_auth_enroll', {id: user.id}) }}"
+                     data-remove-url="{{ path('app_face_auth_remove', {id: user.id}) }}"
+                     data-enroll-csrf="{{ csrf_token('face_enroll_' ~ user.id) }}"
+                     data-remove-csrf="{{ csrf_token('face_remove_' ~ user.id) }}">
+                <div class="module-card-header">
+                    <div>
+                        <span class="module-eyebrow">Face ID</span>
+                        <h2 class="module-card-title">{{ user.faceData ? 'Face profile enrolled' : 'Face profile not enrolled yet' }}</h2>
+                    </div>
+                    <span class="status-badge {{ user.faceData ? 'active' : 'pending' }}" data-face-badge>
+                        {{ user.faceData ? 'Enrolled' : 'Not enrolled' }}
+                    </span>
+                </div>
+
+                <p class="module-card-description">
+                    Capture the user face profile once here so the same account can sign in later through camera verification from the login screen.
+                </p>
+
+                <div class="identity-camera-shell">
+                    <video playsinline muted></video>
+                </div>
+
+                <div class="identity-action-row">
+                    <button type="button" class="btn-secondary topbar-logout-link" data-enroll-start>Open camera</button>
+                    <button type="button" class="btn-primary topbar-logout-link" data-enroll-save>Save Face ID</button>
+                    <button type="button" class="btn-secondary topbar-logout-link" data-enroll-remove>Remove Face ID</button>
+                </div>
+
+                <div class="identity-status-note" data-enroll-status></div>
+            </article>
+
+            <article class="module-card">
+                <div class="module-card-header">
+                    <div>
+                        <span class="module-eyebrow">Contact QR</span>
+                        <h2 class="module-card-title">Share account contact</h2>
+                    </div>
+                </div>
+
+                <p class="module-card-description">
+                    Scan this QR code on a phone to create a contact card with the user name, email, role, and Hirely status.
+                </p>
+
+                <img src="{{ contact_qr_url }}" alt="Contact QR code for {{ user.firstName }} {{ user.lastName }}" class="identity-qr-image">
+
+                <pre class="identity-qr-code">{{ contact_vcard }}</pre>
+            </article>
+        </div>
+    </section>
+
+    <script src="{{ asset('assets/js/face-auth.js') }}?v=20260422-1"></script>
+{% endblock %}

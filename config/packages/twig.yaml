@@ -1,5 +1,15 @@
 twig:
+<<<<<<< HEAD
   default_path: '%kernel.project_dir%/templates'
   debug: '%kernel.debug%'
   strict_variables: '%kernel.debug%'
   exception_controller: null
+=======
+    file_name_pattern: '*.twig'
+    globals:
+        onboarding_language: '@App\Onboarding\OnboardingLanguageContext'
+
+when@test:
+    twig:
+        strict_variables: true
+>>>>>>> OnboardingCoordination

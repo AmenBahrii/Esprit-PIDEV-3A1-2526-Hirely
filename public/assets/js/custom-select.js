@@ -1,0 +1,234 @@
+(function () {
+    const SELECTOR = 'select:not([multiple]):not([data-custom-select-ready])';
+
+    const closeAll = (exceptRoot) => {
+        document.querySelectorAll('.custom-select-root.is-open').forEach((root) => {
+            if (root !== exceptRoot) {
+                root.classList.remove('is-open');
+                root.classList.remove('is-open-upward');
+                const trigger = root.querySelector('.custom-select-trigger');
+                if (trigger) {
+                    trigger.setAttribute('aria-expanded', 'false');
+                }
+                const menu = root._customSelectMenu;
+                if (menu) {
+                    menu.classList.remove('is-open');
+                }
+            }
+        });
+    };
+
+    const positionMenu = (wrapper, trigger, menu, list) => {
+        const rect = trigger.getBoundingClientRect();
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+        const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+        const spaceBelow = viewportHeight - rect.bottom - 24;
+        const spaceAbove = rect.top - 24;
+        const openUpward = spaceBelow < 220 && spaceAbove > spaceBelow;
+        const availableSpace = openUpward ? spaceAbove : spaceBelow;
+        const maxHeight = Math.max(140, Math.min(320, availableSpace));
+
+        wrapper.classList.toggle('is-open-upward', openUpward);
+        list.style.maxHeight = `${maxHeight}px`;
+        menu.style.width = `${rect.width}px`;
+        menu.style.minWidth = `${rect.width}px`;
+        menu.style.left = `${Math.max(12, Math.min(rect.left, viewportWidth - rect.width - 12))}px`;
+        menu.style.top = `${openUpward ? rect.top - Math.min(list.offsetHeight || maxHeight, maxHeight) - 10 : rect.bottom + 10}px`;
+
+        const selectedOption = list.querySelector('.custom-select-option.is-selected');
+        if (selectedOption) {
+            selectedOption.scrollIntoView({ block: 'nearest' });
+        }
+    };
+
+    const createOptionButton = (select, option, list, trigger) => {
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'custom-select-option';
+        item.dataset.value = option.value;
+        item.textContent = option.textContent;
+        item.disabled = option.disabled;
+
+        const syncSelectedState = () => {
+            const isSelected = select.value === option.value;
+            item.classList.toggle('is-selected', isSelected);
+            item.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+        };
+
+        item.addEventListener('click', () => {
+            if (option.disabled) {
+                return;
+            }
+
+            select.value = option.value;
+            trigger.firstChild.textContent = option.textContent;
+            closeAll();
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+            syncSelectedState();
+            list.querySelectorAll('.custom-select-option').forEach((button) => {
+                if (button !== item) {
+                    button.classList.remove('is-selected');
+                    button.setAttribute('aria-selected', 'false');
+                }
+            });
+            trigger.focus();
+        });
+
+        syncSelectedState();
+
+        return item;
+    };
+
+    const buildCustomSelect = (select) => {
+        select.dataset.customSelectReady = 'true';
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'custom-select-root';
+
+        const inheritedClasses = Array.from(select.classList).filter((className) => className !== 'form-control');
+        if (inheritedClasses.length) {
+            wrapper.classList.add(...inheritedClasses.map((className) => `custom-select-${className}`));
+        }
+
+        select.parentNode.insertBefore(wrapper, select);
+        wrapper.appendChild(select);
+        select.classList.add('custom-select-native');
+
+        const trigger = document.createElement('button');
+        trigger.type = 'button';
+        trigger.className = 'custom-select-trigger';
+        trigger.setAttribute('aria-haspopup', 'listbox');
+        trigger.setAttribute('aria-expanded', 'false');
+
+        const triggerLabel = document.createElement('span');
+        triggerLabel.className = 'custom-select-trigger-label';
+        trigger.appendChild(triggerLabel);
+
+        const triggerIcon = document.createElement('span');
+        triggerIcon.className = 'custom-select-trigger-icon';
+        triggerIcon.setAttribute('aria-hidden', 'true');
+        trigger.appendChild(triggerIcon);
+
+        const menu = document.createElement('div');
+        menu.className = 'custom-select-menu';
+        document.body.appendChild(menu);
+        wrapper._customSelectMenu = menu;
+
+        const list = document.createElement('div');
+        list.className = 'custom-select-list';
+        list.setAttribute('role', 'listbox');
+        menu.appendChild(list);
+
+        wrapper.appendChild(trigger);
+
+        const syncFromSelect = () => {
+            const selectedOption = select.options[select.selectedIndex] || select.options[0];
+            triggerLabel.textContent = selectedOption ? selectedOption.textContent : '';
+            trigger.disabled = select.disabled;
+            wrapper.classList.toggle('is-disabled', !!select.disabled);
+
+            list.querySelectorAll('.custom-select-option').forEach((button) => {
+                const isSelected = button.dataset.value === select.value;
+                button.classList.toggle('is-selected', isSelected);
+                button.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+            });
+        };
+
+        Array.from(select.options).forEach((option) => {
+            list.appendChild(createOptionButton(select, option, list, trigger));
+        });
+
+        trigger.addEventListener('click', () => {
+            if (select.disabled) {
+                return;
+            }
+
+            const willOpen = !wrapper.classList.contains('is-open');
+            closeAll(wrapper);
+            wrapper.classList.toggle('is-open', willOpen);
+            trigger.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+            if (willOpen) {
+                menu.classList.add('is-open');
+                positionMenu(wrapper, trigger, menu, list);
+            } else {
+                wrapper.classList.remove('is-open-upward');
+                menu.classList.remove('is-open');
+            }
+        });
+
+        trigger.addEventListener('keydown', (event) => {
+            if (!['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(event.key)) {
+                if ('Escape' === event.key) {
+                    wrapper.classList.remove('is-open');
+                    trigger.setAttribute('aria-expanded', 'false');
+                }
+                return;
+            }
+
+            event.preventDefault();
+
+            const enabledOptions = Array.from(select.options).filter((option) => !option.disabled);
+            const currentIndex = enabledOptions.findIndex((option) => option.value === select.value);
+
+            if ('ArrowDown' === event.key || 'ArrowUp' === event.key) {
+                const direction = 'ArrowDown' === event.key ? 1 : -1;
+                const nextIndex = currentIndex < 0
+                    ? 0
+                    : (currentIndex + direction + enabledOptions.length) % enabledOptions.length;
+
+                select.value = enabledOptions[nextIndex].value;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                syncFromSelect();
+            } else {
+                const isOpen = wrapper.classList.contains('is-open');
+                closeAll(wrapper);
+                wrapper.classList.toggle('is-open', !isOpen);
+                trigger.setAttribute('aria-expanded', !isOpen ? 'true' : 'false');
+                if (!isOpen) {
+                    menu.classList.add('is-open');
+                    positionMenu(wrapper, trigger, menu, list);
+                } else {
+                    wrapper.classList.remove('is-open-upward');
+                    menu.classList.remove('is-open');
+                }
+            }
+        });
+
+        select.addEventListener('change', () => {
+            syncFromSelect();
+            trigger.setAttribute('aria-expanded', wrapper.classList.contains('is-open') ? 'true' : 'false');
+        });
+
+        syncFromSelect();
+    };
+
+    document.addEventListener('click', (event) => {
+        if (!event.target.closest('.custom-select-root, .custom-select-menu')) {
+            closeAll();
+        }
+    });
+
+    window.addEventListener('resize', () => {
+        document.querySelectorAll('.custom-select-root.is-open').forEach((wrapper) => {
+            const trigger = wrapper.querySelector('.custom-select-trigger');
+            const list = wrapper.querySelector('.custom-select-list');
+            const menu = wrapper._customSelectMenu;
+            if (trigger && list && menu) {
+                positionMenu(wrapper, trigger, menu, list);
+            }
+        });
+    });
+
+    window.addEventListener('scroll', () => {
+        document.querySelectorAll('.custom-select-root.is-open').forEach((wrapper) => {
+            const trigger = wrapper.querySelector('.custom-select-trigger');
+            const list = wrapper.querySelector('.custom-select-list');
+            const menu = wrapper._customSelectMenu;
+            if (trigger && list && menu) {
+                positionMenu(wrapper, trigger, menu, list);
+            }
+        });
+    }, true);
+
+    document.querySelectorAll(SELECTOR).forEach(buildCustomSelect);
+})();

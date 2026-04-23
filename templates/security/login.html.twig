@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% extends "base.html.twig" %}
 
 {% block title %}Login - Hirely{% endblock %}
@@ -41,4 +42,158 @@
             </p>
         </div>
     </div>
+=======
+{% extends 'security/base_auth.html.twig' %}
+
+{% block title %}Login - Hirely{% endblock %}
+
+{% block auth_body %}
+    <style>
+        .auth-face-card {
+            margin-top: 8px;
+            padding: 18px;
+        }
+
+        .auth-face-card h3 {
+            margin: 0 0 8px;
+            color: #231e53;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .auth-face-card p {
+            margin: 0 0 12px;
+            color: #64748b;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .auth-face-video {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            overflow: hidden;
+            border-radius: 18px;
+            background: #0f172a;
+            margin-bottom: 12px;
+        }
+
+        .auth-face-video video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .auth-face-actions {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .auth-face-status {
+            min-height: 20px;
+            margin-top: 12px;
+            color: #64748b;
+            font-size: 0.84rem;
+            line-height: 1.5;
+        }
+
+        .auth-face-status[data-tone="success"] {
+            color: #166534;
+        }
+
+        .auth-face-status[data-tone="error"] {
+            color: #b91c1c;
+        }
+    </style>
+
+    <div class="auth-header">
+        <h1 class="auth-brand">Hirely</h1>
+        <h2 class="auth-title">Welcome back</h2>
+        <p class="auth-text">Sign in once and move through onboarding, users, job offers, and applications inside the same connected workspace.</p>
+    </div>
+
+    {% if error %}
+        <div class="flash-message error">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+    {% endif %}
+
+    {% if app.user %}
+        <div class="auth-note-card">
+            <h3>Already signed in</h3>
+            <p>
+                You are connected as {{ app.user.userIdentifier }}.
+                <a href="{{ path('app_logout') }}">Logout</a>
+            </p>
+        </div>
+    {% endif %}
+
+    <form method="post" class="auth-form" novalidate>
+        <div class="auth-field">
+            <label for="inputEmail">Email</label>
+            <input id="inputEmail" type="email" name="email" value="{{ last_username }}" required autofocus class="form-input" placeholder="Enter your email">
+        </div>
+
+        <div class="auth-field">
+            <label for="inputPassword">Password</label>
+            <input id="inputPassword" type="password" name="password" required class="form-input" placeholder="Enter your password">
+        </div>
+
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+        <div class="auth-meta">
+            <label>
+                <input type="checkbox" name="_remember_me">
+                Remember me
+            </label>
+            <span>Secure email access</span>
+        </div>
+
+        <div class="auth-actions">
+            <button class="btn-primary topbar-logout-link" type="submit">Sign in</button>
+            <a href="{{ path('app_register') }}" class="btn-secondary topbar-logout-link">Create account</a>
+        </div>
+
+        {% if google_auth_enabled|default(false) %}
+            <div class="auth-actions">
+                <a href="{{ path('app_google_connect') }}" class="btn-secondary topbar-logout-link">Continue with Google</a>
+            </div>
+        {% endif %}
+    </form>
+
+    <div class="auth-note-card auth-face-card"
+         data-face-login
+         data-login-url="{{ path('app_face_auth_login') }}"
+         data-csrf="{{ csrf_token('face_login') }}">
+        <h3>Face ID Sign-In</h3>
+        <p>Enter your email, open the camera, then verify your face to continue without typing a password.</p>
+
+        <div class="auth-field">
+            <label for="face-login-email">Email</label>
+            <input id="face-login-email" type="email" class="form-input" data-face-email placeholder="Enter your email for Face ID">
+        </div>
+
+        <div class="auth-face-video">
+            <video playsinline muted></video>
+        </div>
+
+        <div class="auth-face-actions">
+            <button type="button" class="btn-secondary topbar-logout-link" data-face-start>Open camera</button>
+            <button type="button" class="btn-primary topbar-logout-link" data-face-verify>Verify face</button>
+        </div>
+
+        <div class="auth-face-status" data-face-status></div>
+    </div>
+
+    <div class="auth-note-card">
+        <h3>One platform, multiple workspaces</h3>
+        <p>Recruiters publish offers and review candidates, candidates track applications and onboarding tasks, and admins manage the full platform from one shell.</p>
+    </div>
+
+    <p class="auth-footer">
+        Need a new account?
+        <a href="{{ path('app_register') }}">Create one here</a>
+    </p>
+
+    <script src="{{ asset('assets/js/face-auth.js') }}?v=20260422-1"></script>
+>>>>>>> OnboardingCoordination
 {% endblock %}

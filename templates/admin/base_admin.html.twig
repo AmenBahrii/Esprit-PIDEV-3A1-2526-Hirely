@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hirely Admin{% endblock %}
+
+{% set admin_area = app.request.attributes.get('_route') starts with 'app_admin' %}
+{% set shell_sidebar = admin_area or force_sidebar|default(false) %}
+
+{% block body %}
+<div class="admin-shell {{ shell_sidebar ? 'admin-shell-sidebar' : 'admin-shell-workspace' }}">
+    {% if shell_sidebar %}
+        {% include 'admin/Partials/sidebar.html.twig' %}
+    {% endif %}
+
+    <div class="admin-main">
+        <div class="shell-backdrop">
+            <span class="shell-glow shell-glow-a"></span>
+            <span class="shell-glow shell-glow-b"></span>
+            <span class="shell-grid"></span>
+        </div>
+        {% include 'admin/Partials/navbar.html.twig' %}
+
+        <main class="admin-content">
+            <div class="content-stage">
+                {% for label, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="flash-message {{ label }}">{{ message }}</div>
+                    {% endfor %}
+                {% endfor %}
+                {% block admin_content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}

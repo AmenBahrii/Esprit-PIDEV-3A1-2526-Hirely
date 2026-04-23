@@ -1,0 +1,32 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% set force_sidebar = false %}
+{% set topbar_title = 'Create Job Offer' %}
+{% set topbar_subtitle = 'Launch a new hiring opportunity' %}
+
+{% block title %}New Job Offer{% endblock %}
+
+{% block admin_content %}
+    <section class="module-page">
+        <div class="module-section-head">
+            <div class="module-section-copy">
+                <span class="module-eyebrow">Job Offer Module</span>
+                <h1 class="module-section-title">Create a job offer</h1>
+                <p class="module-section-text">
+                    Define the role, contract, location, and hiring expectations in one place.
+                </p>
+            </div>
+
+            <div class="module-section-actions">
+                <a href="{{ path('app_workspace_joboffer_index') }}"
+                   class="btn-secondary topbar-logout-link">
+                    Back to job offers
+                </a>
+            </div>
+        </div>
+
+        <div class="module-panel">
+            {{ include('joboffer/_form.html.twig', { button_label: 'Create job offer' }) }}
+        </div>
+    </section>
+{% endblock %}
