@@ -13,6 +13,7 @@ class Interview_evaluations
 {
 
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "integer")]
     private int $evaluation_id;
 

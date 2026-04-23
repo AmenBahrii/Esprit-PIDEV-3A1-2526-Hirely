@@ -11,6 +11,7 @@ class Evaluation_scores
 {
 
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "integer")]
     private int $score_id;
 
@@ -22,8 +23,8 @@ class Evaluation_scores
     #[ORM\JoinColumn(name: 'criteria_id', referencedColumnName: 'criteria_id', onDelete: 'CASCADE')]
     private Evaluation_criteria $criteria_id;
 
-    #[ORM\Column(type: "integer")]
-    private int $score;
+    #[ORM\Column(type: "float")]
+    private float $score;
 
     #[ORM\Column(type: "text")]
     private string $comments;

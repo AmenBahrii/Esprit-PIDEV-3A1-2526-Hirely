@@ -46,6 +46,11 @@ services:
             $model: '%env(string:GROQ_REVIEW_MODEL)%'
             $projectDir: '%kernel.project_dir%'
 
+    App\Service\UserRoleSummaryService:
+        arguments:
+            $groqApiKey: '%env(string:GROQ_API_KEY)%'
+            $model: '%env(string:GROQ_USER_SUMMARY_MODEL)%'
+
     Smalot\PdfParser\Parser: ~
 
     # add more service definitions when explicit configuration is needed

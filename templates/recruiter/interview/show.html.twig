@@ -1,0 +1,167 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Interview Details - Hirely{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3>Interview Details</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Candidate</h6>
+                            <p class="mb-3">
+                                {% if interview.getApplication_id().getUser() %}
+                                    {{ interview.getApplication_id().getUser().getFirstName() }} {{ interview.getApplication_id().getUser().getLastName() }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Job Offer</h6>
+                            <p class="mb-3">
+                                {% if interview.getApplication_id().getJobOffer() %}
+                                    {{ interview.getApplication_id().getJobOffer().title }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Interview Type</h6>
+                            <p class="mb-3">
+                                {% if interview.getInterview_type_id() %}
+                                    {{ interview.getInterview_type_id().getType_name() }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Round</h6>
+                            <p class="mb-3">{{ interview.getInterview_round() }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Scheduled Date</h6>
+                            <p class="mb-3">{{ interview.getScheduled_date().format('F d, Y') }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Time</h6>
+                            <p class="mb-3">
+                                {% if interview.getScheduled_time() %}
+                                    {{ interview.getScheduled_time().format('H:i') }}
+                                {% else %}
+                                    Not set
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Duration</h6>
+                            <p class="mb-3">{{ interview.getDuration_minutes() }} minutes</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Status</h6>
+                            <p class="mb-3">
+                                <span class="badge 
+                                    {% if interview.getStatus() == 'scheduled' %}bg-warning
+                                    {% elseif interview.getStatus() == 'completed' %}bg-success
+                                    {% elseif interview.getStatus() == 'cancelled' %}bg-danger
+                                    {% endif %}">
+                                    {{ interview.getStatus()|capitalize }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Location</h6>
+                            <p class="mb-3">
+                                {% if interview.getLocation() %}
+                                    {{ interview.getLocation() }}
+                                {% else %}
+                                    Not set
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <h6 class="text-muted">Meeting Link</h6>
+                            <p class="mb-3">
+                                {% if interview.getMeeting_link() %}
+                                    <a href="{{ interview.getMeeting_link() }}" target="_blank" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-link"></i> Join Meeting
+                                    </a>
+                                {% else %}
+                                    Not set
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <h6 class="text-muted">Notes</h6>
+                            <p>
+                                {% if interview.getNotes() %}
+                                    {{ interview.getNotes() }}
+                                {% else %}
+                                    No notes
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <div class="d-flex gap-2">
+                    <a href="{{ path('app_interview_index') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+
+                    {% if interview.getStatus() == 'scheduled' %}
+                        <form method="POST" action="{{ path('app_interview_complete', {'interviewId': interview.getInterview_id()}) }}" style="display: inline;">
+                            <button type="submit" class="btn btn-success" onclick="return confirm('Mark this interview as completed?')">
+                                <i class="fas fa-check"></i> Complete
+                            </button>
+                        </form>
+
+                        <a href="{{ path('app_interview_edit', {'interviewId': interview.getInterview_id()}) }}" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+
+                        <form method="POST" action="{{ path('app_interview_cancel', {'interviewId': interview.getInterview_id()}) }}" style="display: inline;">
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Cancel this interview?')">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                        </form>
+                    {% endif %}
+
+                    {% if interview.getStatus() == 'completed' %}
+                        <a href="{{ path('app_evaluation_new', {'interviewId': interview.getInterview_id()}) }}" class="btn btn-success">
+                            <i class="fas fa-star"></i> Create Evaluation
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

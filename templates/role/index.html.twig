@@ -1,81 +1,106 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Roles{% endblock %}
+{% block workspace_title %}Admin Dashboard{% endblock %}
+{% block workspace_subtitle %}Recruitment and onboarding workspace{% endblock %}
 
 {% block body %}
+<section class="workspace-page">
+    <section class="workspace-hero">
+        <div class="workspace-hero-copy">
+            <p class="workspace-kicker">Admin</p>
+            <h2 class="workspace-section-title">Roles and permissions</h2>
+            <p class="workspace-section-copy">Keep role definitions clear, dashboards aligned, and platform permissions easy to manage.</p>
+        </div>
 
-<div class="header">Hirely Dashboard</div>
-<div class="sub-header">Roles Management</div>
+        <div class="workspace-metric-grid" style="max-width: 430px; width: 100%;">
+            <div class="workspace-meta">
+                <span class="workspace-meta-label">Role Groups</span>
+                <span class="workspace-meta-value">{{ roles|length }}</span>
+            </div>
+            <div class="workspace-meta">
+                <span class="workspace-meta-label">Default Focus</span>
+                <span class="workspace-meta-value">Workspace routing</span>
+            </div>
+        </div>
+    </section>
 
-<div class="card">
+    <section class="admin-metrics">
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Roles</div>
+            <div class="admin-metric-value">{{ roles|length }}</div>
+        </article>
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Active Roles</div>
+            <div class="admin-metric-value">{{ roles|filter(role => role.status == 'active')|length }}</div>
+        </article>
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Admin Locked</div>
+            <div class="admin-metric-value">{{ roles|filter(role => role.name == 'Admin')|length }}</div>
+        </article>
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Dashboards</div>
+            <div class="admin-metric-value">{{ roles|map(role => role.defaultDashboard)|filter(dashboard => dashboard)|length }}</div>
+        </article>
+    </section>
 
-    <div class="filters">
-        <input type="text"
-               id="roleSearch"
-               placeholder="Search roles..."
-               class="search-input">
+    <section class="workspace-toolbar">
+        <div class="workspace-toolbar-copy">
+            <span class="workspace-toolbar-label">Search and Sort</span>
+            <span class="workspace-toolbar-subtitle">Search role details and reorder the cards by name or status.</span>
+        </div>
 
-        <select id="roleSort" class="sort-select">
-            <option value="name_asc">Name A-Z</option>
-            <option value="name_desc">Name Z-A</option>
-            <option value="status_asc">Status A-Z</option>
-            <option value="status_desc">Status Z-A</option>
-        </select>
-    </div>
+        <div class="workspace-toolbar-controls">
+            <input type="text" id="roleSearch" placeholder="Search roles..." class="search-input">
 
-    <div class="top-bar">
-        <h3>Roles List</h3>
+            <select id="roleSort" class="sort-select">
+                <option value="name_asc">Name A-Z</option>
+                <option value="name_desc">Name Z-A</option>
+                <option value="status_asc">Status A-Z</option>
+                <option value="status_desc">Status Z-A</option>
+            </select>
 
-        <a href="{{ path('app_role_new') }}" class="btn btn-primary">
-            + Add Role
-        </a>
-    </div>
+            <a href="{{ path('app_role_new') }}" class="btn btn-primary">Add role</a>
+        </div>
+    </section>
 
-    <div class="card-grid" id="roleCards">
+    <div class="workspace-page" id="roleCards">
         {% for role in roles %}
-            <article class="data-card"
+            <article class="workspace-card"
                      data-role-card
                      data-search="{{ role.name ~ ' ' ~ role.description ~ ' ' ~ role.status ~ ' ' ~ role.defaultDashboard }}"
                      data-name="{{ role.name|lower }}"
                      data-status="{{ role.status|lower }}">
-                <div class="data-card-header">
+                <div class="workspace-card-head">
                     <div>
-                        <h4 class="data-card-title">
-                            <span class="role-badge role-{{ role.name|lower }}">
-                                {{ role.name }}
-                            </span>
-                        </h4>
-                        <div class="data-card-subtitle">#{{ role.id }}</div>
+                        <span class="workspace-kicker">Role</span>
+                        <h3 class="data-card-title">
+                            <span class="role-badge role-{{ role.name|lower }}">{{ role.name }}</span>
+                        </h3>
+                        <p class="workspace-card-summary">#{{ role.id }}</p>
                     </div>
 
                     <span class="status-pill">{{ role.status }}</span>
                 </div>
 
-                <div class="data-card-body">
-                    <div class="data-card-field">
-                        <span class="data-card-label">Description</span>
-                        <span class="data-card-value">{{ role.description }}</span>
+                <div class="workspace-meta-grid">
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Description</span>
+                        <span class="workspace-meta-value">{{ role.description }}</span>
                     </div>
-                    <div class="data-card-field">
-                        <span class="data-card-label">Dashboard</span>
-                        <span class="data-card-value">{{ role.defaultDashboard }}</span>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Dashboard</span>
+                        <span class="workspace-meta-value">{{ role.defaultDashboard }}</span>
                     </div>
                 </div>
 
-                <div class="data-card-actions">
-                    <a href="{{ path('app_role_edit', {'id': role.id}) }}"
-                       class="btn btn-edit">
-                        Edit
-                    </a>
-
-                  
+                <div class="workspace-card-actions">
+                    <a href="{{ path('app_role_edit', {'id': role.id}) }}" class="btn btn-edit">Edit</a>
 
                     {% if role.name != 'Admin' %}
-                        <form method="post"
-                              action="{{ path('app_role_delete', {'id': role.id}) }}">
-                            <input type="hidden" name="_token"
-                                   value="{{ csrf_token('delete' ~ role.id) }}">
-                            <button class="btn btn-delete">Delete</button>
+                        <form method="post" action="{{ path('app_role_delete', {'id': role.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ role.id) }}">
+                            <button class="btn btn-delete" type="submit">Delete</button>
                         </form>
                     {% endif %}
                 </div>
@@ -84,8 +109,7 @@
             <div class="empty-state">No roles found</div>
         {% endfor %}
     </div>
-
-</div>
+</section>
 
 <script>
 const roleSearch = document.getElementById('roleSearch');
@@ -127,5 +151,4 @@ function filterAndSortRoles() {
 roleSearch.addEventListener('input', filterAndSortRoles);
 roleSort.addEventListener('change', filterAndSortRoles);
 </script>
-
 {% endblock %}

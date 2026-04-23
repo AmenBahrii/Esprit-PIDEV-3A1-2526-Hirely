@@ -1,53 +1,87 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Applications{% endblock %}
+{% block workspace_title %}Admin Dashboard{% endblock %}
+{% block workspace_subtitle %}Recruitment and onboarding workspace{% endblock %}
 
 {% block body %}
+<section class="workspace-page">
+    <section class="workspace-hero">
+        <div class="workspace-hero-copy">
+            <p class="workspace-kicker">Admin</p>
+            <h2 class="workspace-section-title">Applications command view</h2>
+            <p class="workspace-section-copy">Monitor candidate activity, review statuses, and manage application records from one place.</p>
+        </div>
 
-<div class="header">Hirely Dashboard</div>
-<div class="sub-header">Applications Management</div>
+        <div class="workspace-metric-grid" style="max-width: 430px; width: 100%;">
+            <div class="workspace-meta">
+                <span class="workspace-meta-label">Current Role</span>
+                <span class="workspace-meta-value">Admin</span>
+            </div>
+            <div class="workspace-meta">
+                <span class="workspace-meta-label">Tracked Applications</span>
+                <span class="workspace-meta-value">{{ applications|length }}</span>
+            </div>
+        </div>
+    </section>
 
-<div class="card">
+    <section class="admin-metrics">
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Applications</div>
+            <div class="admin-metric-value">{{ applications|length }}</div>
+        </article>
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Accepted</div>
+            <div class="admin-metric-value">{{ applications|filter(application => application.currentStatus == 'Accepted')|length }}</div>
+        </article>
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Pending</div>
+            <div class="admin-metric-value">{{ applications|filter(application => application.currentStatus == 'pending')|length }}</div>
+        </article>
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Reviewed</div>
+            <div class="admin-metric-value">{{ applications|filter(application => application.reviewNote)|length }}</div>
+        </article>
+    </section>
 
-    <div class="filters">
-        <input type="text"
-               id="applicationSearch"
-               placeholder="Search applications..."
-               class="search-input">
+    <section class="workspace-toolbar">
+        <div class="workspace-toolbar-copy">
+            <span class="workspace-toolbar-label">Search and Sort</span>
+            <span class="workspace-toolbar-subtitle">Search by job title, status, email, phone, or note and reorder the application cards instantly.</span>
+        </div>
 
-        <select id="applicationSort" class="sort-select">
-            <option value="date_desc">Newest</option>
-            <option value="date_asc">Oldest</option>
-            <option value="salary_desc">Salary down</option>
-            <option value="salary_asc">Salary up</option>
-            <option value="experience_desc">Experience down</option>
-            <option value="experience_asc">Experience up</option>
-        </select>
-    </div>
+        <div class="workspace-toolbar-controls">
+            <input type="text" id="applicationSearch" placeholder="Search applications..." class="search-input">
 
-    <div class="top-bar">
-        <h3>Applications List</h3>
-    </div>
+            <select id="applicationSort" class="sort-select">
+                <option value="date_desc">Newest first</option>
+                <option value="date_asc">Oldest first</option>
+                <option value="salary_desc">Salary high to low</option>
+                <option value="salary_asc">Salary low to high</option>
+                <option value="experience_desc">Experience high to low</option>
+                <option value="experience_asc">Experience low to high</option>
+            </select>
+        </div>
+    </section>
 
-    <div class="card-grid" id="applicationCards">
+    <div class="workspace-page" id="applicationCards">
         {% for application in applications %}
-            <article class="data-card"
+            <article class="workspace-card"
                      data-application-card
                      data-search="{{ (application.jobOfferTitle ?: 'Job offer no longer exists') ~ ' ' ~ application.email ~ ' ' ~ application.phone ~ ' ' ~ application.currentStatus ~ ' ' ~ (application.reviewNote ?: '') }}"
                      data-date="{{ application.applicationDate ?: '' }}"
                      data-salary="{{ application.expectedSalary }}"
                      data-experience="{{ application.experienceYears }}">
-                <div class="data-card-header">
+                <div class="workspace-card-head">
                     <div>
-                        <h4 class="data-card-title">
-                            {{ application.jobOfferTitle ?: 'Job offer no longer exists' }}
-                        </h4>
-                        <div class="data-card-subtitle">
+                        <span class="workspace-kicker">Application</span>
+                        <h3 class="data-card-title">{{ application.jobOfferTitle ?: 'Job offer no longer exists' }}</h3>
+                        <p class="workspace-card-summary">
                             {{ application.applicationDate ? application.applicationDate|date('Y-m-d') : 'No date' }}
                             {% if application.jobOfferId and not application.jobOfferTitle %}
-                                · Missing job offer #{{ application.jobOfferId }}
+                                | Missing job offer #{{ application.jobOfferId }}
                             {% endif %}
-                        </div>
+                        </p>
                     </div>
 
                     {% if application.currentStatus == 'Accepted' %}
@@ -59,44 +93,39 @@
                     {% endif %}
                 </div>
 
-                <div class="data-card-body">
-                    <div class="data-card-field">
-                        <span class="data-card-label">Email</span>
-                        <span class="data-card-value">{{ application.email }}</span>
+                <div class="workspace-meta-grid">
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Email</span>
+                        <span class="workspace-meta-value">{{ application.email }}</span>
                     </div>
-                    <div class="data-card-field">
-                        <span class="data-card-label">Phone</span>
-                        <span class="data-card-value">{{ application.phone }}</span>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Phone</span>
+                        <span class="workspace-meta-value">{{ application.phone }}</span>
                     </div>
-                    <div class="data-card-field">
-                        <span class="data-card-label">Expected Salary</span>
-                        <span class="data-card-value">{{ application.expectedSalary }}</span>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Expected Salary</span>
+                        <span class="workspace-meta-value">{{ application.expectedSalary }}</span>
                     </div>
-                    <div class="data-card-field">
-                        <span class="data-card-label">Experience</span>
-                        <span class="data-card-value">{{ application.experienceYears }} yrs</span>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Experience</span>
+                        <span class="workspace-meta-value">{{ application.experienceYears }} years</span>
                     </div>
-                    <div class="data-card-field">
-                        <span class="data-card-label">Score</span>
-                        <span class="data-card-value">{{ application.score is not null ? application.score : 'N/A' }}</span>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Score</span>
+                        <span class="workspace-meta-value">{{ application.score is not null ? application.score : 'N/A' }}</span>
                     </div>
-                    <div class="data-card-field" style="grid-column: 1 / -1;">
-                        <span class="data-card-label">Review Note</span>
-                        <span class="data-card-value">{{ application.reviewNote ?: 'No review note yet' }}</span>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Review Note</span>
+                        <span class="workspace-meta-value">{{ application.reviewNote ?: 'No review note yet' }}</span>
                     </div>
                 </div>
 
-                <div class="data-card-actions">
-                    <a class="btn btn-edit"
-                       href="{{ path('app_application_edit', {'applicationId': application.applicationId}) }}">
-                        Edit
-                    </a>
+                <div class="workspace-card-actions">
+                    <a class="btn btn-edit" href="{{ path('app_application_edit', {'applicationId': application.applicationId}) }}">Edit</a>
 
-                    <form method="post"
-                          action="{{ path('app_application_delete', {'applicationId': application.applicationId}) }}">
-                        <input type="hidden" name="_token"
-                               value="{{ csrf_token('delete' ~ application.applicationId) }}">
-                        <button class="btn btn-delete">Delete</button>
+                    <form method="post" action="{{ path('app_application_delete', {'applicationId': application.applicationId}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ application.applicationId) }}">
+                        <button class="btn btn-delete" type="submit">Delete</button>
                     </form>
                 </div>
             </article>
@@ -104,8 +133,7 @@
             <div class="empty-state">No applications found</div>
         {% endfor %}
     </div>
-
-</div>
+</section>
 
 <script>
 const applicationSearch = document.getElementById('applicationSearch');
@@ -153,5 +181,4 @@ function filterAndSortApplications() {
 applicationSearch.addEventListener('input', filterAndSortApplications);
 applicationSort.addEventListener('change', filterAndSortApplications);
 </script>
-
 {% endblock %}

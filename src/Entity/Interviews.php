@@ -13,6 +13,7 @@ class Interviews
 {
 
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "integer")]
     private int $interview_id;
 
@@ -35,17 +36,17 @@ class Interviews
     #[ORM\Column(type: "date")]
     private \DateTimeInterface $scheduled_date;
 
-    #[ORM\Column(type: "string")]
-    private string $scheduled_time;
+    #[ORM\Column(type: "string", nullable: true)]
+    private ?string $scheduled_time = null;
 
     #[ORM\Column(type: "integer")]
     private int $duration_minutes;
 
-    #[ORM\Column(type: "string", length: 255)]
-    private string $location;
+    #[ORM\Column(type: "string", length: 255, nullable: true)]
+    private ?string $location = null;
 
-    #[ORM\Column(type: "string", length: 500)]
-    private string $meeting_link;
+    #[ORM\Column(type: "string", length: 500, nullable: true)]
+    private ?string $meeting_link = null;
 
     #[ORM\Column(type: "string", length: 30)]
     private string $status;
@@ -53,8 +54,8 @@ class Interviews
     #[ORM\Column(type: "integer")]
     private int $interview_round;
 
-    #[ORM\Column(type: "text")]
-    private string $notes;
+    #[ORM\Column(type: "text", nullable: true)]
+    private ?string $notes = null;
 
     #[ORM\Column(type: "datetime")]
     private \DateTimeInterface $created_at;

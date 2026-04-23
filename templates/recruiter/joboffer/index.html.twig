@@ -1,47 +1,57 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Job Offers{% endblock %}
+{% block workspace_title %}Job Offers{% endblock %}
+{% block workspace_subtitle %}Manage your hiring tracks, publish roles, and keep every opening easy to scan.{% endblock %}
 
 {% block body %}
+<section class="workspace-page">
+    <section class="workspace-hero">
+        <div class="workspace-hero-copy">
+            <p class="workspace-kicker">Job Offer Module</p>
+            <h2 class="workspace-section-title">Manage your hiring tracks</h2>
+            <p class="workspace-section-copy">Review your published offers, update role details, and monitor recruiting activity in one clean view.</p>
+        </div>
 
-<div class="card">
+        <a href="{{ path('app_joboffer_new') }}" class="btn btn-primary big-btn">Add job offer</a>
+    </section>
 
-    <div class="filters">
-        <input type="text"
-               id="jobSearch"
-               placeholder="Search job..."
-               class="search-input">
+    <section class="workspace-toolbar">
+        <div class="workspace-toolbar-copy">
+            <span class="workspace-toolbar-label">Search and Sort</span>
+            <span class="workspace-toolbar-subtitle">Filter by title, location, contract, or status and reorder the visible offers instantly.</span>
+        </div>
 
-        <select id="jobSort" class="sort-select">
-            <option value="date_desc">Newest</option>
-            <option value="date_asc">Oldest</option>
-            <option value="salary_desc">Salary down</option>
-            <option value="salary_asc">Salary up</option>
-            <option value="experience_desc">Experience down</option>
-            <option value="experience_asc">Experience up</option>
-        </select>
-    </div>
+        <div class="workspace-toolbar-controls">
+            <input type="text"
+                   id="jobSearch"
+                   placeholder="Search job title, location, contract, or status"
+                   class="search-input">
 
-    <div class="top-bar">
-        <h3>Job Offers List</h3>
+            <select id="jobSort" class="sort-select">
+                <option value="date_desc">Newest first</option>
+                <option value="date_asc">Oldest first</option>
+                <option value="salary_desc">Salary high to low</option>
+                <option value="salary_asc">Salary low to high</option>
+                <option value="experience_desc">Experience high to low</option>
+                <option value="experience_asc">Experience low to high</option>
+            </select>
+        </div>
+    </section>
 
-        <a href="{{ path('app_joboffer_new') }}" class="btn btn-primary">
-            Add Job Offer
-        </a>
-    </div>
-
-    <div class="card-grid" id="jobCards">
+    <div class="workspace-card-grid" id="jobCards">
         {% for joboffer in joboffers %}
-            <article class="data-card"
+            <article class="workspace-card"
                      data-job-card
                      data-search="{{ joboffer.title ~ ' ' ~ joboffer.location ~ ' ' ~ joboffer.contractType ~ ' ' ~ joboffer.status }}"
                      data-date="{{ joboffer.publicationDate ? joboffer.publicationDate|date('Y-m-d') : '' }}"
                      data-salary="{{ joboffer.salary }}"
                      data-experience="{{ joboffer.experienceRequired }}">
-                <div class="data-card-header">
+                <div class="workspace-card-head">
                     <div>
-                        <h4 class="data-card-title">{{ joboffer.title }}</h4>
-                        <div class="data-card-subtitle">#{{ joboffer.id }} · {{ joboffer.location }}</div>
+                        <span class="workspace-kicker">Job Offer</span>
+                        <h3 class="data-card-title">{{ joboffer.title }}</h3>
+                        <p class="workspace-card-summary">#{{ joboffer.id }} | {{ joboffer.location }}</p>
                     </div>
 
                     {% if joboffer.status == 'Open' %}
@@ -51,36 +61,39 @@
                     {% endif %}
                 </div>
 
-                <div class="data-card-body">
-                    <div class="data-card-field">
-                        <span class="data-card-label">Contract</span>
-                        <span class="data-card-value">{{ joboffer.contractType }}</span>
+                <div class="workspace-meta-grid">
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Location</span>
+                        <span class="workspace-meta-value">{{ joboffer.location }}</span>
                     </div>
-                    <div class="data-card-field">
-                        <span class="data-card-label">Salary</span>
-                        <span class="data-card-value">{{ joboffer.salary }}</span>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Salary</span>
+                        <span class="workspace-meta-value">{{ joboffer.salary }}</span>
                     </div>
-                    <div class="data-card-field">
-                        <span class="data-card-label">Experience</span>
-                        <span class="data-card-value">{{ joboffer.experienceRequired }} yrs</span>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Experience</span>
+                        <span class="workspace-meta-value">{{ joboffer.experienceRequired }} years</span>
                     </div>
-                    <div class="data-card-field">
-                        <span class="data-card-label">Publication Date</span>
-                        <span class="data-card-value">{{ joboffer.publicationDate ? joboffer.publicationDate|date('Y-m-d') : 'N/A' }}</span>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Published</span>
+                        <span class="workspace-meta-value">{{ joboffer.publicationDate ? joboffer.publicationDate|date('Y-m-d') : 'N/A' }}</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Contract</span>
+                        <span class="workspace-meta-value">{{ joboffer.contractType }}</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Status</span>
+                        <span class="workspace-meta-value">{{ joboffer.status }}</span>
                     </div>
                 </div>
 
-                <div class="data-card-actions">
-                    <a class="btn btn-edit"
-                       href="{{ path('app_joboffer_edit', {'id': joboffer.id}) }}">
-                        Edit
-                    </a>
+                <div class="workspace-card-actions">
+                    <a class="btn btn-edit" href="{{ path('app_joboffer_edit', {'id': joboffer.id}) }}">Edit</a>
 
-                    <form method="post"
-                          action="{{ path('app_joboffer_delete', {'id': joboffer.id}) }}">
-                        <input type="hidden" name="_token"
-                               value="{{ csrf_token('delete' ~ joboffer.id) }}">
-                        <button class="btn btn-delete">Delete</button>
+                    <form method="post" action="{{ path('app_joboffer_delete', {'id': joboffer.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ joboffer.id) }}">
+                        <button class="btn btn-delete" type="submit">Delete</button>
                     </form>
                 </div>
             </article>
@@ -88,8 +101,7 @@
             <div class="empty-state">No job offers found</div>
         {% endfor %}
     </div>
-
-</div>
+</section>
 
 <script>
 const jobSearch = document.getElementById('jobSearch');
@@ -137,5 +149,4 @@ function filterAndSortJobs() {
 jobSearch.addEventListener('input', filterAndSortJobs);
 jobSort.addEventListener('change', filterAndSortJobs);
 </script>
-
 {% endblock %}

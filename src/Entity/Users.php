@@ -186,16 +186,16 @@ public function eraseCredentials(): void
         $this->google_id = $value;
     }
 
-    #[ORM\OneToMany(mappedBy: "user", targetEntity: Interviewee_profiles::class)]
+    #[ORM\OneToMany(mappedBy: "user_id", targetEntity: Interviewee_profiles::class)]
     private Collection $interviewee_profiless;
 
     #[ORM\OneToMany(mappedBy: "user", targetEntity: Joboffer::class)]
     private Collection $joboffers;
 
-    #[ORM\OneToMany(mappedBy: "user", targetEntity: Password_reset_otp::class)]
+    #[ORM\OneToMany(mappedBy: "user_id", targetEntity: Password_reset_otp::class)]
     private Collection $password_reset_otps;
 
-    #[ORM\OneToMany(mappedBy: "user", targetEntity: Recruiter_profiles::class)]
+    #[ORM\OneToMany(mappedBy: "user_id", targetEntity: Recruiter_profiles::class)]
     private Collection $recruiter_profiless;
 
     #[ORM\OneToMany(mappedBy: "user", targetEntity: Application::class)]
@@ -237,9 +237,9 @@ public function eraseCredentials(): void
     $this->applications = new ArrayCollection();
     $this->notificationss = new ArrayCollection();
 }
-    #[ORM\OneToMany(mappedBy: "user", targetEntity: Notifications::class)]
+    #[ORM\OneToMany(mappedBy: "user_id", targetEntity: Notifications::class)]
     private Collection $notificationss;
 
-    #[ORM\OneToMany(mappedBy: "recruiter", targetEntity: Interviews::class)]
+    #[ORM\OneToMany(mappedBy: "recruiter_id", targetEntity: Interviews::class)]
     private Collection $interviewss;
 }

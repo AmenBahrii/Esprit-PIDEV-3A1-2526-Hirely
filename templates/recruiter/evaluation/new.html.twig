@@ -1,0 +1,141 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Evaluate Interview - Hirely{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h3>Evaluate Interview</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4 p-3 bg-light rounded">
+                        <h6 class="text-muted">Interview Information</h6>
+                        <p>
+                            <strong>Candidate:</strong> 
+                            {% if interview.getApplication_id().getUser() %}
+                                {{ interview.getApplication_id().getUser().getFirstName() }} {{ interview.getApplication_id().getUser().getLastName() }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </p>
+                        <p>
+                            <strong>Job Offer:</strong> 
+                            {% if interview.getApplication_id().getJobOffer() %}
+                                {{ interview.getApplication_id().getJobOffer().title }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </p>
+                        <p>
+                            <strong>Interview Type:</strong> 
+                            {% if interview.getInterview_type_id() %}
+                                {{ interview.getInterview_type_id().getType_name() }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </p>
+                        <p>
+                            <strong>Interview Date:</strong> 
+                            {{ interview.getScheduled_date().format('F d, Y') }}
+                        </p>
+                    </div>
+
+                    <hr>
+
+                    <h5>Evaluation Criteria</h5>
+                    <div class="mb-4 p-3 bg-light rounded">
+                        {% if criteria is empty %}
+                            <p class="text-muted">No evaluation criteria available.</p>
+                        {% else %}
+                            {% for c in criteria %}
+                                <div class="mb-3">
+                                    <label class="form-label"><strong>{{ c.getCriteria_name() }}</strong></label>
+                                    {% if c.getDescription() %}
+                                        <p class="text-muted small">{{ c.getDescription() }}</p>
+                                    {% endif %}
+                                    <select name="criteria_{{ c.getCriteria_id() }}" class="form-control">
+                                        <option value="">-- Select Score --</option>
+                                        <option value="5">5 - Excellent</option>
+                                        <option value="4">4 - Very Good</option>
+                                        <option value="3">3 - Good</option>
+                                        <option value="2">2 - Fair</option>
+                                        <option value="1">1 - Poor</option>
+                                    </select>
+                                    <input type="text" name="comment_{{ c.getCriteria_id() }}" class="form-control mt-2" 
+                                        placeholder="Optional comment for this criterion">
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <hr>
+
+                    <h5>Overall Evaluation</h5>
+
+                    <div class="mb-3">
+                        <label for="recommendation" class="form-label">Recommendation</label>
+                        <select name="recommendation" id="recommendation" class="form-control" required>
+                            <option value="">-- Select Recommendation --</option>
+                            <option value="strong_yes">Strong Yes</option>
+                            <option value="yes">Yes</option>
+                            <option value="maybe">Maybe</option>
+                            <option value="no">No</option>
+                            <option value="strong_no">Strong No</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="hire_decision" class="form-label">Hire Decision</label>
+                        <select name="hire_decision" id="hire_decision" class="form-control" required>
+                            <option value="">-- Select Decision --</option>
+                            <option value="hire">Hire</option>
+                            <option value="no_hire">No Hire</option>
+                            <option value="maybe">Maybe</option>
+                            <option value="pending">Pending</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="strengths" class="form-label">Strengths</label>
+                        <textarea name="strengths" id="strengths" class="form-control" rows="3" required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="weaknesses" class="form-label">Weaknesses</label>
+                        <textarea name="weaknesses" id="weaknesses" class="form-control" rows="3" required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="general_comments" class="form-label">General Comments</label>
+                        <textarea name="general_comments" id="general_comments" class="form-control" rows="3"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="next_steps" class="form-label">Next Steps</label>
+                        <textarea name="next_steps" id="next_steps" class="form-control" rows="2"></textarea>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" name="is_draft" id="is_draft" class="form-check-input" value="1">
+                        <label class="form-check-label" for="is_draft">
+                            Save as Draft (you can edit later)
+                        </label>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Save Evaluation
+                        </button>
+                        <a href="{{ path('app_interview_show', {'interviewId': interview.getInterview_id()}) }}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

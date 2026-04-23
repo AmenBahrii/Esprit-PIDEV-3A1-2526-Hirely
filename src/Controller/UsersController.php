@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Users;
 use App\Form\UsersType;
+use App\Service\UserRoleSummaryService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,14 +16,50 @@ use Symfony\Component\Routing\Attribute\Route;
 final class UsersController extends AbstractController
 {
     #[Route(name: 'app_users_index', methods: ['GET'])]
-    public function index(EntityManagerInterface $entityManager): Response
+    public function index(EntityManagerInterface $entityManager, UserRoleSummaryService $userRoleSummaryService): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         $users = $entityManager->getRepository(Users::class)->findAll();
+        $connection = $entityManager->getConnection();
+
+        $groupedStats = $connection->fetchAllAssociative(
+            'SELECT
+                u.status AS status,
+                COALESCE(r.name, "Unknown") AS roleName,
+                COUNT(*) AS total
+            FROM users u
+            LEFT JOIN role r ON r.role_id = u.role_id
+            GROUP BY u.status, r.name
+            ORDER BY total DESC, roleName ASC'
+        );
+
+        $googleLinkedUsers = (int) $connection->fetchOne(
+            'SELECT COUNT(*) FROM users WHERE google_id IS NOT NULL AND google_id <> ""'
+        );
+
+        $faceEnabledUsers = (int) $connection->fetchOne(
+            'SELECT COUNT(*) FROM users WHERE face_data IS NOT NULL AND face_data <> ""'
+        );
+
+        $aiUserSummary = $userRoleSummaryService->generateSummary(
+            array_map(static function (array $row): array {
+                return [
+                    'status' => (string) ($row['status'] ?? 'unknown'),
+                    'roleName' => (string) ($row['roleName'] ?? 'Unknown'),
+                    'total' => (int) ($row['total'] ?? 0),
+                ];
+            }, $groupedStats),
+            count($users),
+            $googleLinkedUsers,
+            $faceEnabledUsers
+        );
 
         return $this->render('users/index.html.twig', [
             'users' => $users,
+            'ai_user_summary' => $aiUserSummary,
+            'google_linked_users' => $googleLinkedUsers,
+            'face_enabled_users' => $faceEnabledUsers,
         ]);
     }
 

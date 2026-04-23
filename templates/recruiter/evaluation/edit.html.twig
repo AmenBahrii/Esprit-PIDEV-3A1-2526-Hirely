@@ -1,0 +1,109 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Evaluation - Hirely{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h3>Edit Evaluation</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <h5>Evaluation Criteria</h5>
+                        <div class="mb-4 p-3 bg-light rounded">
+                            {% if criteria is empty %}
+                                <p class="text-muted">No evaluation criteria available.</p>
+                            {% else %}
+                                {% for c in criteria %}
+                                    {% set score = null %}
+                                    {% for s in evaluation.getEvaluation_scores() %}
+                                        {% if s.getCriteria_id().getCriteria_id() == c.getCriteria_id() %}
+                                            {% set score = s %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    <div class="mb-3">
+                                        <label class="form-label"><strong>{{ c.getCriteria_name() }}</strong></label>
+                                        {% if c.getDescription() %}
+                                            <p class="text-muted small">{{ c.getDescription() }}</p>
+                                        {% endif %}
+                                        <select name="criteria_{{ c.getCriteria_id() }}" class="form-control">
+                                            <option value="">-- Select Score --</option>
+                                            <option value="5" {% if score and score.getScore() == 5 %}selected{% endif %}>5 - Excellent</option>
+                                            <option value="4" {% if score and score.getScore() == 4 %}selected{% endif %}>4 - Very Good</option>
+                                            <option value="3" {% if score and score.getScore() == 3 %}selected{% endif %}>3 - Good</option>
+                                            <option value="2" {% if score and score.getScore() == 2 %}selected{% endif %}>2 - Fair</option>
+                                            <option value="1" {% if score and score.getScore() == 1 %}selected{% endif %}>1 - Poor</option>
+                                        </select>
+                                        <input type="text" name="comment_{{ c.getCriteria_id() }}" class="form-control mt-2" 
+                                            placeholder="Optional comment for this criterion"
+                                            value="{{ score ? score.getComments() : '' }}">
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <hr>
+
+                        <h5>Overall Evaluation</h5>
+
+                        <div class="mb-3">
+                            <label for="recommendation" class="form-label">Recommendation</label>
+                            <select name="recommendation" id="recommendation" class="form-control">
+                                <option value="">-- Select Recommendation --</option>
+                                <option value="strong_yes" {% if evaluation.getRecommendation() == 'strong_yes' %}selected{% endif %}>Strong Yes</option>
+                                <option value="yes" {% if evaluation.getRecommendation() == 'yes' %}selected{% endif %}>Yes</option>
+                                <option value="maybe" {% if evaluation.getRecommendation() == 'maybe' %}selected{% endif %}>Maybe</option>
+                                <option value="no" {% if evaluation.getRecommendation() == 'no' %}selected{% endif %}>No</option>
+                                <option value="strong_no" {% if evaluation.getRecommendation() == 'strong_no' %}selected{% endif %}>Strong No</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="hire_decision" class="form-label">Hire Decision</label>
+                            <select name="hire_decision" id="hire_decision" class="form-control">
+                                <option value="">-- Select Decision --</option>
+                                <option value="hire" {% if evaluation.getHire_decision() == 'hire' %}selected{% endif %}>Hire</option>
+                                <option value="no_hire" {% if evaluation.getHire_decision() == 'no_hire' %}selected{% endif %}>No Hire</option>
+                                <option value="maybe" {% if evaluation.getHire_decision() == 'maybe' %}selected{% endif %}>Maybe</option>
+                                <option value="pending" {% if evaluation.getHire_decision() == 'pending' %}selected{% endif %}>Pending</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="strengths" class="form-label">Strengths</label>
+                            <textarea name="strengths" id="strengths" class="form-control" rows="3">{{ evaluation.getStrengths() }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="weaknesses" class="form-label">Weaknesses</label>
+                            <textarea name="weaknesses" id="weaknesses" class="form-control" rows="3">{{ evaluation.getWeaknesses() }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="general_comments" class="form-label">General Comments</label>
+                            <textarea name="general_comments" id="general_comments" class="form-control" rows="3">{{ evaluation.getGeneral_comments() ?? '' }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="next_steps" class="form-label">Next Steps</label>
+                            <textarea name="next_steps" id="next_steps" class="form-control" rows="2">{{ evaluation.getNext_steps() ?? '' }}</textarea>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i> Update Evaluation
+                            </button>
+                            <a href="{{ path('app_evaluation_show', {'evaluationId': evaluation.getEvaluation_id()}) }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

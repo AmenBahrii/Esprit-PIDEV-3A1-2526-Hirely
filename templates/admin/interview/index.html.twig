@@ -1,0 +1,84 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}All Interviews - Hirely{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="mb-4">All Interviews</h1>
+
+            {% if interviews is empty %}
+                <div class="alert alert-info">
+                    <p>No interviews found.</p>
+                </div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Recruiter</th>
+                                <th>Candidate</th>
+                                <th>Job Offer</th>
+                                <th>Interview Type</th>
+                                <th>Scheduled Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for interview in interviews %}
+                                <tr>
+                                    <td>
+                                        {% if interview.getRecruiter_id() %}
+                                            {{ interview.getRecruiter_id().getFirstName() }} {{ interview.getRecruiter_id().getLastName() }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if interview.getApplication_id().getUser() %}
+                                            {{ interview.getApplication_id().getUser().getFirstName() }} {{ interview.getApplication_id().getUser().getLastName() }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if interview.getApplication_id().getJobOffer() %}
+                                            {{ interview.getApplication_id().getJobOffer().title }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if interview.getInterview_type_id() %}
+                                            {{ interview.getInterview_type_id().getType_name() }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ interview.getScheduled_date().format('M d, Y') }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if interview.getStatus() == 'scheduled' %}bg-warning
+                                            {% elseif interview.getStatus() == 'completed' %}bg-success
+                                            {% elseif interview.getStatus() == 'cancelled' %}bg-danger
+                                            {% endif %}">
+                                            {{ interview.getStatus()|capitalize }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{{ path('app_interview_show', {'interviewId': interview.getInterview_id()}) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

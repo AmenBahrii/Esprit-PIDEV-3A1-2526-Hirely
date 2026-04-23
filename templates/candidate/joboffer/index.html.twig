@@ -1,82 +1,96 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Job Offers{% endblock %}
+{% block workspace_title %}Job Offers{% endblock %}
+{% block workspace_subtitle %}Browse open positions with a cleaner navbar experience and quick search tools.{% endblock %}
 
 {% block body %}
+<section class="workspace-page">
+    <section class="workspace-hero">
+        <div class="workspace-hero-copy">
+            <p class="workspace-kicker">Career Board</p>
+            <h2 class="workspace-section-title">Explore open opportunities</h2>
+            <p class="workspace-section-copy">Discover active roles, compare the essentials quickly, and jump straight into an application when something fits.</p>
+        </div>
+    </section>
 
-<div class="header">Hirely Dashboard</div>
-<div class="sub-header">Available Job Offers</div>
+    <section class="workspace-toolbar">
+        <div class="workspace-toolbar-copy">
+            <span class="workspace-toolbar-label">Search and Sort</span>
+            <span class="workspace-toolbar-subtitle">Search by role, location, contract, or status and reorder jobs instantly.</span>
+        </div>
 
-<div class="card">
+        <div class="workspace-toolbar-controls">
+            <input type="text"
+                   id="jobSearch"
+                   placeholder="Search job title, location, contract, or status"
+                   class="search-input">
 
-    <div class="filters">
-        <input type="text"
-               id="jobSearch"
-               placeholder="Search job..."
-               class="search-input">
+            <select id="jobSort" class="sort-select">
+                <option value="date_desc">Newest first</option>
+                <option value="date_asc">Oldest first</option>
+                <option value="salary_desc">Salary high to low</option>
+                <option value="salary_asc">Salary low to high</option>
+                <option value="experience_desc">Experience high to low</option>
+                <option value="experience_asc">Experience low to high</option>
+            </select>
+        </div>
+    </section>
 
-        <select id="jobSort" class="sort-select">
-            <option value="date_desc">Newest</option>
-            <option value="date_asc">Oldest</option>
-            <option value="salary_desc">Salary down</option>
-            <option value="salary_asc">Salary up</option>
-            <option value="experience_desc">Experience down</option>
-            <option value="experience_asc">Experience up</option>
-        </select>
-    </div>
-
-    <div class="top-bar">
-        <h3>Available Jobs</h3>
-    </div>
-
-    <div class="card-grid" id="jobCards">
+    <div class="workspace-card-grid" id="jobCards">
         {% for joboffer in joboffers %}
-            <article class="data-card"
+            <article class="workspace-card"
                      data-job-card
-                     data-search="{{ joboffer.title ~ ' ' ~ joboffer.location ~ ' ' ~ joboffer.contractType }}"
+                     data-search="{{ joboffer.title ~ ' ' ~ joboffer.location ~ ' ' ~ joboffer.contractType ~ ' ' ~ joboffer.status }}"
                      data-date="{{ joboffer.publicationDate ? joboffer.publicationDate|date('Y-m-d') : '' }}"
                      data-salary="{{ joboffer.salary }}"
                      data-experience="{{ joboffer.experienceRequired }}">
-                <div class="data-card-header">
+                <div class="workspace-card-head">
                     <div>
-                        <h4 class="data-card-title">{{ joboffer.title }}</h4>
-                        <div class="data-card-subtitle">{{ joboffer.location }}</div>
+                        <span class="workspace-kicker">Open Role</span>
+                        <h3 class="data-card-title">{{ joboffer.title }}</h3>
+                        <p class="workspace-card-summary">{{ joboffer.location }}</p>
                     </div>
-                    <span class="status status-accepted">Open</span>
+
+                    <span class="status status-accepted">{{ joboffer.status ?: 'Open' }}</span>
                 </div>
 
-                <div class="data-card-body">
-                    <div class="data-card-field">
-                        <span class="data-card-label">Contract</span>
-                        <span class="data-card-value">{{ joboffer.contractType }}</span>
+                <div class="workspace-meta-grid">
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Location</span>
+                        <span class="workspace-meta-value">{{ joboffer.location }}</span>
                     </div>
-                    <div class="data-card-field">
-                        <span class="data-card-label">Salary</span>
-                        <span class="data-card-value">{{ joboffer.salary }}</span>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Salary</span>
+                        <span class="workspace-meta-value">{{ joboffer.salary }}</span>
                     </div>
-                    <div class="data-card-field">
-                        <span class="data-card-label">Experience</span>
-                        <span class="data-card-value">{{ joboffer.experienceRequired }} yrs</span>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Experience</span>
+                        <span class="workspace-meta-value">{{ joboffer.experienceRequired }} years</span>
                     </div>
-                    <div class="data-card-field">
-                        <span class="data-card-label">Publication Date</span>
-                        <span class="data-card-value">{{ joboffer.publicationDate ? joboffer.publicationDate|date('Y-m-d') : 'N/A' }}</span>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Published</span>
+                        <span class="workspace-meta-value">{{ joboffer.publicationDate ? joboffer.publicationDate|date('Y-m-d') : 'N/A' }}</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Contract</span>
+                        <span class="workspace-meta-value">{{ joboffer.contractType }}</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Status</span>
+                        <span class="workspace-meta-value">{{ joboffer.status ?: 'Open' }}</span>
                     </div>
                 </div>
 
-                <div class="data-card-actions">
-                    <a href="{{ path('app_application_new', {'jobOfferId': joboffer.id}) }}"
-                       class="btn btn-primary">
-                        Apply
-                    </a>
+                <div class="workspace-card-actions">
+                    <a href="{{ path('app_application_new', {'jobOfferId': joboffer.id}) }}" class="btn btn-primary">Apply</a>
                 </div>
             </article>
         {% else %}
             <div class="empty-state">No job offers available</div>
         {% endfor %}
     </div>
-
-</div>
+</section>
 
 <script>
 const jobSearch = document.getElementById('jobSearch');
@@ -124,5 +138,4 @@ function filterAndSortJobs() {
 jobSearch.addEventListener('input', filterAndSortJobs);
 jobSort.addEventListener('change', filterAndSortJobs);
 </script>
-
 {% endblock %}

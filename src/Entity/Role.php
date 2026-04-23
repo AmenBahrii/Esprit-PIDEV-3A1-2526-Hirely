@@ -85,7 +85,7 @@ public function getDefaultDashboard(): ?string
         $this->default_dashboard = $value;
     }
 
-    #[ORM\OneToMany(mappedBy: "role_id", targetEntity: Users::class)]
+    #[ORM\OneToMany(mappedBy: "role", targetEntity: Users::class)]
     private Collection $userss;
 
         public function getUserss(): Collection
