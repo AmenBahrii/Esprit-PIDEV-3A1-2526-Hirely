@@ -1,0 +1,58 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Moderate Comment | Hirely{% endblock %}
+{% block workspace_eyebrow %}Moderation Editor{% endblock %}
+{% block workspace_title %}Moderate Comment{% endblock %}
+{% block workspace_subtitle %}Review comment status and moderation notes while keeping the existing comment workflow intact.{% endblock %}
+
+{% block body %}
+    <section class="workspace-page">
+        <section class="forum-page-head">
+            <a href="{{ path('admin_forum_post_show', {id: comment.post.id}) }}" class="btn btn-secondary" data-go-back="true" data-fallback="{{ path('admin_forum_post_show', {id: comment.post.id}) }}">
+                Back
+            </a>
+        </section>
+
+        <section class="workspace-card forum-form-card">
+            <div class="section-header">
+                <div>
+                    <h1 class="section-title">Moderate comment</h1>
+                    <p class="section-kicker">Comment moderation remains unchanged under the new Hirely admin shell.</p>
+                </div>
+            </div>
+
+            {{ form_start(form, {attr: {class: 'forum-form-grid'}}) }}
+                <div class="forum-input-shell">
+                    {{ form_label(form.content) }}
+                    {{ form_widget(form.content) }}
+                    {{ form_errors(form.content) }}
+                </div>
+
+                <div class="forum-form-split">
+                    <div class="forum-input-shell">
+                        {{ form_label(form.status) }}
+                        {{ form_widget(form.status) }}
+                        {{ form_errors(form.status) }}
+                    </div>
+                </div>
+
+                <div class="forum-checkbox-grid">
+                    <div class="forum-checkbox-card">
+                        {{ form_widget(form.isPinned) }}
+                        <span>{{ form.isPinned.vars.label }}</span>
+                    </div>
+                </div>
+
+                <div class="forum-input-shell">
+                    {{ form_label(form.moderationNote) }}
+                    {{ form_widget(form.moderationNote) }}
+                    {{ form_errors(form.moderationNote) }}
+                </div>
+
+                <div class="forum-form-actions">
+                    <button class="btn btn-primary" type="submit">Save moderation</button>
+                </div>
+            {{ form_end(form) }}
+        </section>
+    </section>
+{% endblock %}

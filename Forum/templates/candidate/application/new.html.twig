@@ -1,0 +1,262 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Apply{% endblock %}
+
+{% block body %}
+
+<style>
+    .file-field-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .file-field-row .form-input {
+        flex: 1;
+    }
+
+    .file-picker-trigger {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        min-width: 42px;
+        height: 42px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--accent);
+        box-shadow: var(--shadow-soft);
+        cursor: pointer;
+        transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .file-picker-trigger:hover {
+        transform: translateY(-1px);
+        border-color: rgba(255, 107, 53, 0.38);
+        background: #fff7f3;
+    }
+
+    .file-picker-trigger svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .resume-picker-note {
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
+    }
+
+    .resume-autofill-status {
+        display: none;
+        margin-top: 12px;
+        padding: 12px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .resume-autofill-status.is-visible {
+        display: block;
+    }
+
+    .resume-autofill-status.is-loading {
+        background: #fff6ea;
+        border: 1px solid #ffd8a8;
+        color: #9a5313;
+    }
+
+    .resume-autofill-status.is-success {
+        background: #eefaf3;
+        border: 1px solid #b9e6c8;
+        color: #1e6d3d;
+    }
+
+    .resume-autofill-status.is-error {
+        background: #fff1f1;
+        border: 1px solid #ffc9c9;
+        color: #b02a37;
+    }
+</style>
+
+<div class="header">Hirely Dashboard</div>
+<div class="sub-header">Apply for Job</div>
+
+<div class="card">
+
+    <div class="top-bar">
+        <h3>Application Form</h3>
+
+        <a href="{{ path('app_joboffer_index') }}" class="btn btn-secondary">
+            Back to Jobs
+        </a>
+    </div>
+
+    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+    {{ form_errors(form) }}
+
+    <div class="form-grid">
+
+        <div class="form-group">
+            <label>Email</label>
+            {{ form_widget(form.email, {'attr': {'class': 'form-input', 'readonly': 'readonly'}}) }}
+            {{ form_errors(form.email) }}
+        </div>
+
+        <div class="form-group">
+            <label>Phone</label>
+            {{ form_widget(form.phone, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.phone) }}
+        </div>
+
+        <div class="form-group">
+            <label>Expected Salary</label>
+            {{ form_widget(form.expectedSalary, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.expectedSalary) }}
+        </div>
+
+        <div class="form-group">
+            <label>Experience (years)</label>
+            {{ form_widget(form.experienceYears, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.experienceYears) }}
+        </div>
+
+        <div class="form-group">
+            <label>Availability Date</label>
+            {{ form_widget(form.availabilityDate, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.availabilityDate) }}
+        </div>
+
+        <div class="form-group full">
+            <label>Portfolio URL</label>
+            {{ form_widget(form.portfolioUrl, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.portfolioUrl) }}
+        </div>
+
+        <div class="form-group full">
+            <label>Resume</label>
+            <div class="file-field-row">
+                <input type="text" class="form-input" data-resume-file-name placeholder="Choose your resume file" readonly>
+                <button type="button" class="file-picker-trigger" data-resume-picker-open aria-label="Choose resume from files">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H9l1.4 1.8c.3.39.77.62 1.26.62H18.5A2.5 2.5 0 0 1 21 9.92V16.5A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5v-9Z" stroke="currentColor" stroke-width="1.7"/>
+                        <path d="M8.5 12h7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div style="display:none;">
+                {{ form_widget(form.resumeFile, {'attr': {'data-resume-file-input': 'true', 'accept': '.pdf,.doc,.docx,.rtf'}}) }}
+            </div>
+            <div class="resume-picker-note">Use the folder icon to choose your resume file. Hirely will extract your phone, portfolio, experience, and a draft cover letter automatically. Accepted formats: PDF, DOC, DOCX, RTF.</div>
+            <div class="resume-autofill-status" data-resume-autofill-status></div>
+            {{ form_errors(form.resumeFile) }}
+        </div>
+
+        <div class="form-group full">
+            <label>Cover Letter</label>
+            {{ form_widget(form.coverLetter, {'attr': {'class': 'form-input', 'rows': 4}}) }}
+            {{ form_errors(form.coverLetter) }}
+        </div>
+
+    </div>
+
+    <br>
+
+    <button class="btn btn-primary">
+        Submit Application
+    </button>
+
+    {{ form_end(form) }}
+
+</div>
+
+<script>
+    (function () {
+        const openButton = document.querySelector('[data-resume-picker-open]');
+        const hiddenFileInput = document.querySelector('[data-resume-file-input]');
+        const fileNameInput = document.querySelector('[data-resume-file-name]');
+        const statusBox = document.querySelector('[data-resume-autofill-status]');
+        const autofillUrl = '{{ path('app_application_resume_autofill', {jobOfferId: application.jobOffer.id}) }}';
+        const fieldMap = {
+            phone: document.getElementById('{{ form.phone.vars.id }}'),
+            portfolioUrl: document.getElementById('{{ form.portfolioUrl.vars.id }}'),
+            experienceYears: document.getElementById('{{ form.experienceYears.vars.id }}'),
+            coverLetter: document.getElementById('{{ form.coverLetter.vars.id }}')
+        };
+
+        if (!openButton || !hiddenFileInput || !fileNameInput || !statusBox) {
+            return;
+        }
+
+        function setStatus(message, type) {
+            statusBox.textContent = message;
+            statusBox.className = 'resume-autofill-status is-visible';
+
+            if (type) {
+                statusBox.classList.add(type);
+            }
+        }
+
+        function fillField(fieldName, value) {
+            if (!value || !fieldMap[fieldName]) {
+                return;
+            }
+
+            fieldMap[fieldName].value = value;
+        }
+
+        async function runResumeAutofill(file) {
+            const formData = new FormData();
+            formData.append('resume', file);
+
+            setStatus('Reading the resume and filling the form...', 'is-loading');
+
+            try {
+                const response = await fetch(autofillUrl, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                const responseText = await response.text();
+                let payload = null;
+
+                try {
+                    payload = JSON.parse(responseText);
+                } catch (parseError) {
+                    throw new Error('Resume autofill returned an unexpected response. Please refresh the page and try again.');
+                }
+
+                if (!response.ok || !payload.success) {
+                    throw new Error(payload.message || 'We could not extract data from that resume.');
+                }
+
+                Object.entries(payload.fields || {}).forEach(function ([fieldName, value]) {
+                    fillField(fieldName, value);
+                });
+
+                setStatus(payload.message || 'Resume data was added to the form.', 'is-success');
+            } catch (error) {
+                setStatus(error.message || 'Resume autofill failed. You can still complete the form manually.', 'is-error');
+            }
+        }
+
+        openButton.addEventListener('click', function () {
+            hiddenFileInput.click();
+        });
+
+        hiddenFileInput.addEventListener('change', function () {
+            if (!hiddenFileInput.files || hiddenFileInput.files.length === 0) {
+                return;
+            }
+
+            fileNameInput.value = hiddenFileInput.files[0].name;
+            runResumeAutofill(hiddenFileInput.files[0]);
+        });
+    })();
+</script>
+
+{% endblock %}

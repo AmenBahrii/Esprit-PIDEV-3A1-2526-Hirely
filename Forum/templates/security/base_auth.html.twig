@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}Login{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        html, body {
+            margin: 0;
+            min-height: 100%;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #0f172a;
+        }
+        body[data-theme='light'] {
+    background:
+        radial-gradient(circle at top left, rgba(255, 209, 184, 0.72), transparent 24%),
+        radial-gradient(circle at top right, rgba(230, 226, 255, 0.8), transparent 28%),
+        linear-gradient(135deg, #faf7ff 0%, #f8f8ff 45%, #fdf7f5 100%);
+}
+        body[data-theme='dark'] {
+    background:
+        radial-gradient(circle at top left, rgba(255, 107, 53, 0.16), transparent 24%),
+        radial-gradient(circle at top right, rgba(80, 70, 160, 0.24), transparent 28%),
+        linear-gradient(135deg, #08111f 0%, #0d1729 52%, #111d33 100%);
+}
+        .auth-topbar {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    z-index: 10;
+}
+        .theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 46px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(120, 112, 170, 0.16);
+    background: rgba(255, 255, 255, 0.88);
+    color: #231e53;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 12px 30px rgba(64, 51, 116, 0.08);
+}
+        .theme-toggle-label-dark {
+    opacity: 0.45;
+}
+        body[data-theme='dark'] .theme-toggle {
+    border-color: rgba(148, 163, 184, 0.18);
+    background: rgba(15, 23, 42, 0.88);
+    color: #edf2ff;
+}
+        body[data-theme='dark'] .theme-toggle-label-light {
+    opacity: 0.45;
+}
+        body[data-theme='dark'] .theme-toggle-label-dark {
+    opacity: 1;
+}
+        .login-container {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background:
+        radial-gradient(circle at top left, rgba(207, 36, 170, 0.22), transparent 32%),
+        radial-gradient(circle at top right, rgba(117, 15, 121, 0.22), transparent 30%),
+        linear-gradient(145deg, #640d50, #111827 55%, #851f75);
+    padding: 32px 18px;
+}
+body[data-theme='light'] .login-container {
+    background:
+        radial-gradient(circle at top left, rgba(207, 36, 170, 0.12), transparent 32%),
+        radial-gradient(circle at top right, rgba(117, 15, 121, 0.12), transparent 30%),
+        linear-gradient(145deg, rgba(255,255,255,0.82), rgba(248,245,255,0.92) 55%, rgba(255,245,240,0.9));
+}
+body[data-theme='dark'] .login-container {
+    background:
+        radial-gradient(circle at top left, rgba(207, 36, 170, 0.22), transparent 32%),
+        radial-gradient(circle at top right, rgba(117, 15, 121, 0.22), transparent 30%),
+        linear-gradient(145deg, #640d50, #111827 55%, #851f75);
+}
+
+.login-card {
+    background: rgba(255, 255, 255, 0.96);
+    padding: 32px;
+    border-radius: 8px;
+    width: min(100%, 440px);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
+}
+body[data-theme='dark'] .login-card {
+    background: rgba(15, 23, 42, 0.94);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.login-header h2 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 30px;
+}
+
+.login-header p {
+    color: #475569;
+    font-size: 14px;
+    margin-top: 8px;
+}
+body[data-theme='dark'] .login-header h2,
+body[data-theme='dark'] .auth-panel h3 {
+    color: #f8fbff;
+}
+body[data-theme='dark'] .login-header p,
+body[data-theme='dark'] .auth-panel p,
+body[data-theme='dark'] .signup-section,
+body[data-theme='dark'] .status-text,
+body[data-theme='dark'] .login-options,
+body[data-theme='dark'] .logged-in {
+    color: #b9c3de;
+}
+.btn {
+            padding: 12px 14px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+    background: #ef7511;
+    color: white;
+    box-shadow: 0 10px 20px rgba(37, 99, 235, 0.22);
+}
+
+.btn-secondary {
+    background: #f8fafc;
+    color: #0f172a;
+    border: 1px solid #cbd5e1;
+}
+body[data-theme='dark'] .btn-secondary,
+body[data-theme='dark'] .btn-google {
+    background: rgba(30, 41, 59, 0.92);
+    color: #edf2ff;
+    border-color: rgba(148, 163, 184, 0.18);
+}
+
+.btn-google {
+    background: #ffffff;
+    color: #0f172a;
+    border: 1px solid #dbe3f0;
+}
+
+.btn-danger {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    outline: none;
+    font-size: 14px;
+}
+body[data-theme='dark'] .form-input {
+    background: rgba(15, 23, 42, 0.92);
+    color: #f8fbff;
+    border-color: rgba(148, 163, 184, 0.18);
+}
+
+.form-input:focus {
+    border-color: #eb9925;
+    box-shadow: 0 0 0 3px rgba(138, 96, 17, 0.21);
+}
+
+.login-btn {
+    width: 100%;
+    margin-top: 10px;
+}
+
+.login-options {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+.error {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.logged-in {
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+.flash-list {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.flash {
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.flash-success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.flash-error {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 18px 0;
+    color: #64748b;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+    height: 1px;
+    background: #e2e8f0;
+    flex: 1;
+}
+
+.auth-panel {
+    margin-top: 18px;
+    padding: 18px;
+    border-radius: 8px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+body[data-theme='dark'] .auth-panel {
+    background: rgba(15, 23, 42, 0.9);
+    border-color: rgba(148, 163, 184, 0.18);
+}
+
+.auth-panel h3 {
+    margin: 0 0 8px;
+    color: #0f172a;
+    font-size: 16px;
+}
+
+.auth-panel p {
+    margin: 0 0 14px;
+    color: #475569;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.camera-frame {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    background: #0f172a;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.camera-frame video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.stack {
+    display: grid;
+    gap: 10px;
+}
+
+.row-actions {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.status-text {
+    min-height: 20px;
+    font-size: 13px;
+    color: #475569;
+}
+
+.status-text[data-tone="success"] {
+    color: #166534;
+}
+
+.status-text[data-tone="error"] {
+    color: #b91c1c;
+}
+
+.signup-section,
+.signup-link {
+    margin-top: 18px;
+    text-align: center;
+    color: #475569;
+    font-size: 14px;
+}
+
+.signup-link a,
+.logged-in a {
+    color: #d86b11;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+@media (max-width: 640px) {
+    .login-card {
+        padding: 24px;
+    }
+
+    .row-actions {
+        grid-template-columns: 1fr;
+    }
+}
+    </style>
+</head>
+<body data-theme="light">
+<div class="auth-topbar">
+    <button type="button" class="theme-toggle" data-theme-toggle="true" aria-label="Toggle light and dark mode">
+        <span class="theme-toggle-label-light">Light</span>
+        <span class="theme-toggle-label-dark">Dark</span>
+    </button>
+</div>
+
+{% block body %}{% endblock %}
+
+<script>
+    (() => {
+        const storageKey = 'hirely-theme';
+        const body = document.body;
+        const applyTheme = (theme) => {
+            body.dataset.theme = theme === 'dark' ? 'dark' : 'light';
+        };
+
+        try {
+            applyTheme(localStorage.getItem(storageKey) || 'light');
+        } catch (error) {
+            applyTheme('light');
+        }
+
+        document.querySelectorAll('[data-theme-toggle="true"]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const nextTheme = body.dataset.theme === 'dark' ? 'light' : 'dark';
+                applyTheme(nextTheme);
+                try {
+                    localStorage.setItem(storageKey, nextTheme);
+                } catch (error) {
+                }
+            });
+        });
+    })();
+</script>
+
+</body>
+</html>

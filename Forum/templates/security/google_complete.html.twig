@@ -1,0 +1,40 @@
+{% extends 'security/base_auth.html.twig' %}
+
+{% block title %}Complete Google Sign-In - Hirely{% endblock %}
+
+{% block body %}
+
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <h2>Finish Your Account</h2>
+            <p>We found your Google profile. Choose the account type you want to use in Hirely.</p>
+        </div>
+
+        <div class="flash-list">
+            {% for message in app.flashes('error') %}
+                <div class="flash flash-error">{{ message }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="auth-panel">
+            <h3>{{ profile.name ?: profile.email }}</h3>
+            <p>{{ profile.email }}</p>
+        </div>
+
+        <form method="post" class="stack" style="margin-top: 18px;" novalidate>
+            <button type="submit" name="role" value="candidate" class="btn btn-primary login-btn">
+                Continue as Candidate
+            </button>
+            <button type="submit" name="role" value="recruiter" class="btn btn-secondary login-btn">
+                Continue as Recruiter
+            </button>
+        </form>
+
+        <p class="signup-link">
+            <a href="{{ path('app_login') }}">Back to login</a>
+        </p>
+    </div>
+</div>
+
+{% endblock %}

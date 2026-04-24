@@ -1,0 +1,118 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}AI Feedback | Hirely{% endblock %}
+{% block workspace_eyebrow %}AI Moderation{% endblock %}
+{% block workspace_title %}AI Feedback{% endblock %}
+{% block workspace_subtitle %}Review the moderation output that powers the Symfony forum module while keeping the `hirely5` admin shell.{% endblock %}
+
+{% block body %}
+    <section class="workspace-page" data-dynamic-region="admin-forum-feedback">
+    <section class="workspace-hero">
+        <div class="workspace-hero-copy">
+            <p class="workspace-kicker">AI Moderation</p>
+            <h2 class="workspace-section-title">Feedback and audit history</h2>
+            <p class="workspace-section-copy">
+                Browse stored moderation notes for posts and comments, audit AI behavior, and export the dataset as CSV.
+            </p>
+        </div>
+
+        <div class="workspace-metric-grid">
+            <div class="workspace-meta">
+                <span class="workspace-meta-label">Posts</span>
+                <span class="workspace-meta-value">{{ post_count }}</span>
+            </div>
+            <div class="workspace-meta">
+                <span class="workspace-meta-label">Comments</span>
+                <span class="workspace-meta-value">{{ comment_count }}</span>
+            </div>
+            <div class="workspace-meta">
+                <span class="workspace-meta-label">Fallbacks</span>
+                <span class="workspace-meta-value">{{ fallback_count }}</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="workspace-card forum-toolbar-card">
+        <div class="section-header">
+            <div>
+                <h2 class="section-title">Feedback filter</h2>
+                <p class="section-kicker">Keep the Hirely admin surface while exposing the desktop app's moderation insights.</p>
+            </div>
+            <div class="forum-toolbar-actions">
+                <form method="post" action="{{ path('admin_forum_ai_audit') }}" data-dynamic-form="true" data-dynamic-target="[data-dynamic-region='admin-forum-feedback']">
+                    <input type="hidden" name="_token" value="{{ csrf_token('ai_audit') }}">
+                    <button class="btn btn-secondary" type="submit">AI Audit Pending</button>
+                </form>
+                <a href="{{ path('admin_forum_feedback_export', {filter: filter}) }}" class="btn btn-primary">Export CSV</a>
+            </div>
+        </div>
+
+        <form method="get" class="forum-filter-form forum-filter-form-two" data-auto-submit="true" data-dynamic-form="true" data-dynamic-target="[data-dynamic-region='admin-forum-feedback']" data-dynamic-push-url="true">
+            <div class="forum-input-shell">
+                <label for="feedback-filter">Type</label>
+                <select id="feedback-filter" name="filter">
+                    <option value="all" {{ filter == 'all' ? 'selected' : '' }}>All</option>
+                    <option value="posts" {{ filter == 'posts' ? 'selected' : '' }}>Posts</option>
+                    <option value="comments" {{ filter == 'comments' ? 'selected' : '' }}>Comments</option>
+                </select>
+            </div>
+        </form>
+    </section>
+
+    <section class="forum-feedback-grid">
+        {% for row in rows %}
+            <article class="workspace-card forum-feedback-card">
+                <div class="workspace-card-head">
+                    <div class="forum-status-group">
+                        <span class="status-pill status-pill-role">{{ row.type }}</span>
+                        <span class="status-pill status-pill-{{ row.decision|lower }}">{{ row.decision }}</span>
+                    </div>
+                    <span class="forum-tag">{{ row.category }}</span>
+                </div>
+
+                <div>
+                    <p class="workspace-kicker">{{ row.target }}</p>
+                    <h2 class="data-card-title">Reviewed {{ row.createdAt|date('d M Y - H:i') }}</h2>
+                    <p class="workspace-card-summary">Fallback used: {{ row.fallback }}</p>
+                </div>
+
+                <div class="workspace-meta-grid forum-feedback-meta">
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Toxicity</span>
+                        <span class="workspace-meta-value">{{ row.toxicity }}</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Quality</span>
+                        <span class="workspace-meta-value">{{ row.quality }}</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Duplicate</span>
+                        <span class="workspace-meta-value">{{ row.duplicate }}</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Link threat</span>
+                        <span class="workspace-meta-value">{{ row.linkThreat }}</span>
+                    </div>
+                </div>
+
+                <div class="forum-note-card">
+                    <h3>Stored note</h3>
+                    <p>{{ row.moderationNote }}</p>
+                </div>
+
+                <div class="workspace-card-actions forum-card-actions">
+                    {% if row.postId %}
+                        <a href="{{ path('admin_forum_post_show', {id: row.postId}) }}" class="btn btn-secondary">Open thread</a>
+                    {% endif %}
+                </div>
+            </article>
+        {% else %}
+            <div class="workspace-card forum-empty-card">
+                <p class="workspace-kicker">No analysis</p>
+                <h2 class="data-card-title">No moderation feedback yet</h2>
+                <p class="workspace-card-summary">Run an AI audit or moderate content to populate this view.</p>
+            </div>
+        {% endfor %}
+    </section>
+    </section>
+{% endblock %}

@@ -1,0 +1,150 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin Forum | Hirely{% endblock %}
+{% block workspace_eyebrow %}Admin Backend{% endblock %}
+{% block workspace_title %}Forum Moderation Dashboard{% endblock %}
+{% block workspace_subtitle %}Review forum posts and comments inside the same admin shell structure used by the `hirely5` reference project.{% endblock %}
+
+{% block body %}
+    <section class="workspace-page" data-dynamic-region="admin-forum-dashboard">
+    <section class="workspace-hero">
+        <div class="workspace-hero-copy">
+            <p class="workspace-kicker">Admin Backend</p>
+            <h2 class="workspace-section-title">Moderation overview</h2>
+            <p class="workspace-section-copy">
+                Filter posts, review pending activity, and preserve the existing moderation flow for forum content.
+            </p>
+        </div>
+
+        <div class="workspace-metric-grid">
+            <div class="workspace-meta">
+                <span class="workspace-meta-label">Pending posts</span>
+                <span class="workspace-meta-value">{{ pending_posts }}</span>
+            </div>
+            <div class="workspace-meta">
+                <span class="workspace-meta-label">Pending comments</span>
+                <span class="workspace-meta-value">{{ pending_comments }}</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="admin-metrics">
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Visible results</div>
+            <div class="admin-metric-value">{{ posts.getTotalItemCount }}</div>
+        </article>
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Status filter</div>
+            <div class="admin-metric-value">{{ status|title }}</div>
+        </article>
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Sort order</div>
+            <div class="admin-metric-value">
+                {{ sort == 'old' ? 'Oldest' : (sort == 'liked' ? 'Most liked' : 'Newest') }}
+            </div>
+        </article>
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Search</div>
+            <div class="admin-metric-value">{{ search is not empty ? 'Active' : 'All' }}</div>
+        </article>
+    </section>
+
+    <section class="workspace-card forum-toolbar-card">
+        <div class="section-header">
+            <div>
+                <h2 class="section-title">Moderation filters</h2>
+                <p class="section-kicker">Use the same forum admin logic with the migrated Hirely control surface.</p>
+            </div>
+            <div class="forum-toolbar-actions">
+                <form method="post" action="{{ path('admin_forum_ai_audit') }}" data-dynamic-form="true" data-dynamic-target="[data-dynamic-region='admin-forum-dashboard']">
+                    <input type="hidden" name="_token" value="{{ csrf_token('ai_audit') }}">
+                    <button class="btn btn-secondary" type="submit">AI Audit Pending</button>
+                </form>
+                <a href="{{ path('admin_forum_comments') }}" class="btn btn-secondary">Review comments</a>
+                <a href="{{ path('admin_forum_feedback') }}" class="btn btn-primary">Open AI feedback</a>
+            </div>
+        </div>
+
+        <form method="get" action="{{ path('admin_forum_dashboard') }}" class="forum-filter-form" data-auto-submit="true" data-dynamic-form="true" data-dynamic-target="[data-dynamic-region='admin-forum-dashboard']" data-dynamic-push-url="true">
+            <div class="forum-input-shell">
+                <label for="admin-search">Search posts</label>
+                <input id="admin-search" type="search" name="q" value="{{ search }}" placeholder="Search title or content" data-auto-submit-input="true">
+            </div>
+
+            <div class="forum-input-shell">
+                <label for="admin-status">Status</label>
+                <select id="admin-status" name="status">
+                    <option value="ALL" {{ status == 'ALL' ? 'selected' : '' }}>All statuses</option>
+                    <option value="APPROVED" {{ status == 'APPROVED' ? 'selected' : '' }}>Approved</option>
+                    <option value="PENDING" {{ status == 'PENDING' ? 'selected' : '' }}>Pending</option>
+                    <option value="REJECTED" {{ status == 'REJECTED' ? 'selected' : '' }}>Rejected</option>
+                </select>
+            </div>
+
+            <div class="forum-input-shell">
+                <label for="admin-sort">Sort</label>
+                <select id="admin-sort" name="sort">
+                    <option value="new" {{ sort == 'new' ? 'selected' : '' }}>Newest</option>
+                    <option value="old" {{ sort == 'old' ? 'selected' : '' }}>Oldest</option>
+                    <option value="liked" {{ sort == 'liked' ? 'selected' : '' }}>Most liked</option>
+                </select>
+            </div>
+        </form>
+    </section>
+
+    <section class="forum-record-grid">
+        {% for post in posts %}
+            <article class="workspace-card forum-post-card">
+                <div class="forum-post-header">
+                    <div class="forum-status-group">
+                        <span class="status-pill status-pill-{{ post.status|lower }}">{{ post.status|title }}</span>
+                        {% if post.pinned %}<span class="status-pill status-pill-accent">Pinned</span>{% endif %}
+                        {% if post.locked %}<span class="status-pill status-pill-rejected">Locked</span>{% endif %}
+                        {% if post.tag %}<span class="forum-tag">{{ post.tag }}</span>{% endif %}
+                    </div>
+                    <h2 class="forum-post-title">
+                        <a href="{{ path('admin_forum_post_show', {id: post.id}) }}" class="forum-post-title-link">
+                            {{ post.title }}
+                        </a>
+                    </h2>
+                    <div class="forum-post-byline">
+                        By <a href="{{ path('profile_show', {id: post.author.id}) }}" class="forum-inline-link">{{ post.author.displayName }}</a>
+                        • {{ post.createdAt|date('d M Y') }}
+                        • <span class="workspace-kicker" style="display:inline">ID #{{ post.id }}</span>
+                    </div>
+                </div>
+
+                <div class="forum-post-body">
+                    <p class="forum-post-content">{{ post.content|slice(0, 320) }}{{ post.content|length > 320 ? '...' : '' }}</p>
+                </div>
+
+                <div class="forum-post-footer">
+                    <div class="forum-post-stats">
+                        <span class="forum-stat-item">
+                            <span class="forum-stat-icon">♥</span>
+                            {{ post.likeCount }} likes
+                        </span>
+                        <span class="forum-stat-item">
+                            <span class="forum-stat-icon">💬</span>
+                            {{ post.commentCount }} comments
+                        </span>
+                    </div>
+
+                    <div class="forum-post-actions">
+                        <a href="{{ path('admin_forum_post_show', {id: post.id}) }}" class="forum-action-link">Review Post</a>
+                        <a href="{{ path('admin_forum_post_edit', {id: post.id}) }}" class="forum-action-link secondary">Moderate</a>
+                    </div>
+                </div>
+            </article>
+        {% else %}
+            <div class="workspace-card forum-empty-card">
+                <p class="workspace-kicker">No results</p>
+                <h2 class="data-card-title">No posts matched</h2>
+                <p class="workspace-card-summary">Adjust the moderation filters to review other forum content.</p>
+            </div>
+        {% endfor %}
+    </section>
+
+    {{ knp_pagination_render(posts) }}
+    </section>
+{% endblock %}

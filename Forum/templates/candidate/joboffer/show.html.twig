@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Joboffer{% endblock %}
+
+{% block body %}
+    <h1>Joboffer</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>JobOfferId</th>
+                <td>{{ joboffer.id }}</td>
+            </tr>
+            <tr>
+                <th>Title</th>
+                <td>{{ joboffer.title }}</td>
+            </tr>
+            <tr>
+                <th>Description</th>
+                <td>{{ joboffer.description }}</td>
+            </tr>
+            <tr>
+                <th>ContractType</th>
+                <td>{{ joboffer.contractType }}</td>
+            </tr>
+            <tr>
+                <th>Salary</th>
+                <td>{{ joboffer.salary }}</td>
+            </tr>
+            <tr>
+                <th>Location</th>
+                <td>{{ joboffer.location }}</td>
+            </tr>
+            <tr>
+                <th>ExperienceRequired</th>
+                <td>{{ joboffer.experienceRequired }}</td>
+            </tr>
+            <tr>
+                <th>PublicationDate</th>
+                <td>{{ joboffer.publicationDate ? joboffer.publicationDate|date('Y-m-d') : '' }}</td>
+            </tr>
+            <tr>
+                <th>Status</th>
+                <td>{{ joboffer.status }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_joboffer_index') }}">back to list</a>
+{% endblock %}

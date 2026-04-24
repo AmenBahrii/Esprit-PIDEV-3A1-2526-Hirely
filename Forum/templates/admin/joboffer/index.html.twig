@@ -1,0 +1,172 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Job Offers{% endblock %}
+{% block workspace_title %}Admin Dashboard{% endblock %}
+{% block workspace_subtitle %}Recruitment and onboarding workspace{% endblock %}
+
+{% block body %}
+<section class="workspace-page">
+    <section class="workspace-hero">
+        <div class="workspace-hero-copy">
+            <p class="workspace-kicker">Admin</p>
+            <h2 class="workspace-section-title">Job offers overview</h2>
+            <p class="workspace-section-copy">A focused snapshot of published roles, hiring details, and offer visibility across the platform.</p>
+        </div>
+
+        <div class="workspace-metric-grid" style="max-width: 430px; width: 100%;">
+            <div class="workspace-meta">
+                <span class="workspace-meta-label">Current Role</span>
+                <span class="workspace-meta-value">Admin</span>
+            </div>
+            <div class="workspace-meta">
+                <span class="workspace-meta-label">Visible Offers</span>
+                <span class="workspace-meta-value">{{ joboffers|length }}</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="admin-metrics">
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Visible Offers</div>
+            <div class="admin-metric-value">{{ joboffers|length }}</div>
+        </article>
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Open Offers</div>
+            <div class="admin-metric-value">{{ joboffers|filter(joboffer => joboffer.status == 'Open')|length }}</div>
+        </article>
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Closed Offers</div>
+            <div class="admin-metric-value">{{ joboffers|filter(joboffer => joboffer.status != 'Open')|length }}</div>
+        </article>
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Tracked Locations</div>
+            <div class="admin-metric-value">{{ joboffers|map(joboffer => joboffer.location)|filter(location => location)|length }}</div>
+        </article>
+    </section>
+
+    <section class="workspace-toolbar">
+        <div class="workspace-toolbar-copy">
+            <span class="workspace-toolbar-label">Search and Sort</span>
+            <span class="workspace-toolbar-subtitle">Search job offers by title, location, contract, or status and reorder the cards instantly.</span>
+        </div>
+
+        <div class="workspace-toolbar-controls">
+            <input type="text" id="jobSearch" placeholder="Search job offers..." class="search-input">
+
+            <select id="jobSort" class="sort-select">
+                <option value="date_desc">Newest first</option>
+                <option value="date_asc">Oldest first</option>
+                <option value="salary_desc">Salary high to low</option>
+                <option value="salary_asc">Salary low to high</option>
+                <option value="experience_desc">Experience high to low</option>
+                <option value="experience_asc">Experience low to high</option>
+            </select>
+        </div>
+    </section>
+
+    <div class="workspace-page" id="jobCards">
+        {% for joboffer in joboffers %}
+            <article class="workspace-card"
+                     data-job-card
+                     data-search="{{ joboffer.title ~ ' ' ~ joboffer.location ~ ' ' ~ joboffer.contractType ~ ' ' ~ joboffer.status }}"
+                     data-date="{{ joboffer.publicationDate ? joboffer.publicationDate|date('Y-m-d') : '' }}"
+                     data-salary="{{ joboffer.salary }}"
+                     data-experience="{{ joboffer.experienceRequired }}">
+                <div class="workspace-card-head">
+                    <div>
+                        <span class="workspace-kicker">Job Offer</span>
+                        <h3 class="data-card-title">{{ joboffer.title }}</h3>
+                        <p class="workspace-card-summary">#{{ joboffer.id }} | {{ joboffer.location }}</p>
+                    </div>
+
+                    {% if joboffer.status == 'Open' %}
+                        <span class="status status-accepted">Open</span>
+                    {% else %}
+                        <span class="status status-rejected">{{ joboffer.status }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="workspace-meta-grid">
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Contract</span>
+                        <span class="workspace-meta-value">{{ joboffer.contractType }}</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Location</span>
+                        <span class="workspace-meta-value">{{ joboffer.location }}</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Salary</span>
+                        <span class="workspace-meta-value">{{ joboffer.salary }}</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Experience</span>
+                        <span class="workspace-meta-value">{{ joboffer.experienceRequired }} years</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Published</span>
+                        <span class="workspace-meta-value">{{ joboffer.publicationDate ? joboffer.publicationDate|date('Y-m-d') : 'N/A' }}</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Status</span>
+                        <span class="workspace-meta-value">{{ joboffer.status }}</span>
+                    </div>
+                </div>
+
+                <div class="workspace-card-actions">
+                    <a class="btn btn-view" href="{{ path('app_joboffer_show', {'id': joboffer.id}) }}">View</a>
+                </div>
+            </article>
+        {% else %}
+            <div class="empty-state">No job offers found</div>
+        {% endfor %}
+    </div>
+</section>
+
+<script>
+const jobSearch = document.getElementById('jobSearch');
+const jobSort = document.getElementById('jobSort');
+const jobCardsContainer = document.getElementById('jobCards');
+const jobCards = Array.from(jobCardsContainer.querySelectorAll('[data-job-card]'));
+
+function sortJobCards(cards, sortValue) {
+    const sorted = [...cards];
+
+    sorted.sort((a, b) => {
+        if (sortValue === 'date_asc') {
+            return String(a.dataset.date).localeCompare(String(b.dataset.date));
+        }
+        if (sortValue === 'salary_desc') {
+            return Number(b.dataset.salary) - Number(a.dataset.salary);
+        }
+        if (sortValue === 'salary_asc') {
+            return Number(a.dataset.salary) - Number(b.dataset.salary);
+        }
+        if (sortValue === 'experience_desc') {
+            return Number(b.dataset.experience) - Number(a.dataset.experience);
+        }
+        if (sortValue === 'experience_asc') {
+            return Number(a.dataset.experience) - Number(b.dataset.experience);
+        }
+
+        return String(b.dataset.date).localeCompare(String(a.dataset.date));
+    });
+
+    sorted.forEach(card => jobCardsContainer.appendChild(card));
+}
+
+function filterAndSortJobs() {
+    const search = jobSearch.value.toLowerCase();
+
+    jobCards.forEach(card => {
+        const matches = card.dataset.search.toLowerCase().includes(search);
+        card.style.display = matches ? '' : 'none';
+    });
+
+    sortJobCards(jobCards, jobSort.value);
+}
+
+jobSearch.addEventListener('input', filterAndSortJobs);
+jobSort.addEventListener('change', filterAndSortJobs);
+</script>
+{% endblock %}

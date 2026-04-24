@@ -1,0 +1,243 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}User Profile{% endblock %}
+
+{% block body %}
+<style>
+    .profile-show-grid {
+        display: grid;
+        gap: 20px;
+        grid-template-columns: minmax(0, 1.5fr) minmax(280px, 360px);
+        align-items: start;
+    }
+
+    .profile-show-panel,
+    .qr-panel {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: var(--shadow-soft);
+    }
+
+    .profile-show-panel {
+        padding: 24px;
+    }
+
+    .qr-panel {
+        padding: 20px;
+        text-align: center;
+    }
+
+    .profile-show-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 22px;
+    }
+
+    .profile-show-avatar,
+    .profile-show-placeholder {
+        width: 84px;
+        height: 84px;
+        border-radius: 50%;
+    }
+
+    .profile-show-avatar {
+        object-fit: cover;
+    }
+
+    .profile-show-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--soft-strong);
+        color: var(--green-dark);
+        font-size: 28px;
+        font-weight: 800;
+    }
+
+    .profile-show-meta h2 {
+        margin: 0 0 6px;
+    }
+
+    .profile-show-meta p {
+        margin: 0 0 10px;
+        color: var(--muted);
+    }
+
+    .profile-show-fields {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .profile-show-field {
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--soft);
+    }
+
+    .profile-show-field.full {
+        grid-column: 1 / -1;
+    }
+
+    .profile-show-label {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .profile-show-value {
+        color: var(--ink);
+        font-size: 14px;
+        overflow-wrap: anywhere;
+    }
+
+    .qr-image {
+        width: min(100%, 260px);
+        aspect-ratio: 1;
+        object-fit: contain;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        background: #fff;
+        padding: 10px;
+    }
+
+    .qr-panel h3 {
+        margin: 0 0 10px;
+    }
+
+    .qr-panel p {
+        margin: 0 0 16px;
+        color: var(--muted);
+        line-height: 1.5;
+    }
+
+    .qr-note {
+        margin-top: 14px;
+        font-size: 12px;
+        color: var(--muted);
+        text-align: left;
+    }
+
+    .code-box {
+        margin-top: 14px;
+        padding: 12px;
+        border-radius: 8px;
+        background: var(--soft);
+        text-align: left;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        font-size: 12px;
+        color: var(--muted);
+    }
+
+    @media (max-width: 900px) {
+        .profile-show-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 700px) {
+        .profile-show-fields {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="header">Hirely Dashboard</div>
+<div class="sub-header">User profile and contact QR</div>
+
+<div class="card">
+    <div class="top-bar">
+        <h3>User Profile</h3>
+        <div class="actions">
+            <a href="{{ path('app_users_index') }}" class="btn btn-secondary">Back to Users</a>
+            <a href="{{ path('app_users_edit', {'id': user.id}) }}" class="btn btn-edit">Edit</a>
+            {{ include('users/_delete_form.html.twig') }}
+        </div>
+    </div>
+
+    <div class="profile-show-grid">
+        <section class="profile-show-panel">
+            <div class="profile-show-header">
+                {% if user.profilePic %}
+                    <img src="{{ user.profilePic }}" alt="{{ user.firstName }} {{ user.lastName }}" class="profile-show-avatar">
+                {% else %}
+                    <div class="profile-show-placeholder">
+                        {{ user.firstName|first }}{{ user.lastName|first }}
+                    </div>
+                {% endif %}
+
+                <div class="profile-show-meta">
+                    <h2>{{ user.firstName }} {{ user.lastName }}</h2>
+                    <p>{{ user.email }}</p>
+                    <span class="role-badge role-{{ user.role ? user.role.name|lower : 'user' }}">
+                        {{ user.role ? user.role.name : 'User' }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="profile-show-fields">
+                <div class="profile-show-field">
+                    <span class="profile-show-label">ID</span>
+                    <div class="profile-show-value">{{ user.id }}</div>
+                </div>
+
+                <div class="profile-show-field">
+                    <span class="profile-show-label">Status</span>
+                    <div class="profile-show-value">{{ user.status }}</div>
+                </div>
+
+                <div class="profile-show-field">
+                    <span class="profile-show-label">First Name</span>
+                    <div class="profile-show-value">{{ user.firstName }}</div>
+                </div>
+
+                <div class="profile-show-field">
+                    <span class="profile-show-label">Last Name</span>
+                    <div class="profile-show-value">{{ user.lastName }}</div>
+                </div>
+
+                <div class="profile-show-field full">
+                    <span class="profile-show-label">Email</span>
+                    <div class="profile-show-value">{{ user.email }}</div>
+                </div>
+
+                <div class="profile-show-field full">
+                    <span class="profile-show-label">Profile Picture URL</span>
+                    <div class="profile-show-value">{{ user.profilePic ?: 'No profile picture set' }}</div>
+                </div>
+
+                <div class="profile-show-field">
+                    <span class="profile-show-label">Face Recognition</span>
+                    <div class="profile-show-value">{{ user.faceData ? 'Configured' : 'Not configured' }}</div>
+                </div>
+
+                <div class="profile-show-field">
+                    <span class="profile-show-label">Google Account</span>
+                    <div class="profile-show-value">{{ user.googleId ? 'Linked' : 'Not linked' }}</div>
+                </div>
+            </div>
+        </section>
+
+        <aside class="qr-panel">
+            <h3>Contact QR</h3>
+            <p>Scan this code on a phone to open a contact card with this user's details.</p>
+
+            <img src="{{ contact_qr_url }}" alt="Contact QR code for {{ user.firstName }} {{ user.lastName }}" class="qr-image">
+
+            <div class="qr-note">
+                The QR contains a vCard with the user's name, email, role, and Hirely account status.
+            </div>
+
+            <div class="code-box">{{ contact_vcard }}</div>
+        </aside>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% set current_route = app.request.attributes.get('_route')|default('') %}
+
+<aside class="sidebar forum-sidebar">
+    <div class="sidebar-shell">
+        <div class="sidebar-brand">
+            <img src="{{ asset('assets/img/logo-hirely-light.png') }}" alt="Hirely Logo" class="sidebar-logo">
+            <div>
+                <div class="sidebar-title">Hirely</div>
+                <div class="sidebar-subtitle">Forum Control Center</div>
+            </div>
+        </div>
+
+        <div class="sidebar-status-panel">
+            <span class="sidebar-status-eyebrow">Moderation Shell</span>
+            <strong class="sidebar-status-title">Forum workspace ready</strong>
+            <div class="sidebar-status-meta">
+                <span>{{ app.user.displayName }}</span>
+                <span>{{ is_granted('ROLE_ADMIN') ? 'Admin access' : 'Member access' }}</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ path('admin_forum_dashboard') }}" class="sidebar-link {{ current_route == 'admin_forum_dashboard' ? 'active' : '' }}">
+                Dashboard
+            </a>
+            <a href="{{ path('admin_forum_comments') }}" class="sidebar-link {{ current_route == 'admin_forum_comments' ? 'active' : '' }}">
+                Review Comments
+            </a>
+            <a href="{{ path('admin_forum_feedback') }}" class="sidebar-link {{ current_route == 'admin_forum_feedback' ? 'active' : '' }}">
+                AI Feedback
+            </a>
+            <a href="{{ path('forum_index') }}" class="sidebar-link {{ current_route starts with 'forum_' and not (current_route starts with 'admin_forum_') ? 'active' : '' }}">
+                Forum Feed
+            </a>
+            <a href="{{ path('forum_post_new') }}" class="sidebar-link {{ current_route == 'forum_post_new' ? 'active' : '' }}">
+                Create Post
+            </a>
+            <a href="{{ path('profile_me') }}" class="sidebar-link {{ current_route starts with 'profile_' ? 'active' : '' }}">
+                Profile
+            </a>
+        </nav>
+    </div>
+</aside>

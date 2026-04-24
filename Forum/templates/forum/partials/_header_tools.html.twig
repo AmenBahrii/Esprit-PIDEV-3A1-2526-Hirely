@@ -1,0 +1,45 @@
+<button type="button" class="theme-toggle" data-theme-toggle="true" aria-label="Toggle dark mode">
+    <span class="theme-toggle-label-light">Light</span>
+    <span class="theme-toggle-label-dark">Dark</span>
+</button>
+
+<div class="notification-wrap" data-notification-wrap="true">
+    <button type="button" class="notification-toggle" data-notification-toggle="true" aria-label="Open notifications">
+        <span aria-hidden="true">Notifications</span>
+        {% if notification_menu.unread_count > 0 %}
+            <span class="notification-badge">{{ notification_menu.unread_count > 99 ? '99+' : notification_menu.unread_count }}</span>
+        {% endif %}
+    </button>
+
+    <div class="notification-menu" data-notification-menu="true" hidden>
+        <div class="notification-menu-head">
+            <h3>Notifications</h3>
+            <form method="post" action="{{ path('notification_mark_all_read') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('mark_all_notifications_read') }}">
+                <button class="notification-text-link" type="submit">Mark all read</button>
+            </form>
+        </div>
+
+        <div class="notification-list">
+            {% for item in notification_menu.notifications %}
+                <a class="notification-item {{ item.is_read ? 'is-read' : 'is-unread' }}" href="{{ item.open_url }}">
+                    <span class="notification-item-dot" aria-hidden="true"></span>
+                    <span class="notification-content">
+                        <span class="notification-message">{{ item.message }}</span>
+                        {% if item.created_at %}
+                            <span class="notification-time">{{ item.created_at|date('d M Y - H:i') }}</span>
+                        {% endif %}
+                    </span>
+                </a>
+            {% else %}
+                <div class="notification-empty">
+                    <span>No notifications yet.</span>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="notification-menu-foot">
+            <a href="{{ path('notification_history') }}" class="notification-text-link">View full history</a>
+        </div>
+    </div>
+</div>

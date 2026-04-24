@@ -1,0 +1,77 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Add User{% endblock %}
+
+{% block body %}
+
+<div class="header">Hirely Dashboard</div>
+<div class="sub-header">Create New User</div>
+
+<div class="card">
+
+    <div class="top-bar">
+        <h3>User Form</h3>
+
+        <a href="{{ path('app_users_index') }}" class="btn btn-secondary">
+            Back
+        </a>
+    </div>
+
+    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+    {{ form_errors(form) }}
+
+    <div class="form-grid">
+
+        <div class="form-group">
+            <label>First Name</label>
+            {{ form_widget(form.firstName, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.firstName) }}
+        </div>
+
+        <div class="form-group">
+            <label>Last Name</label>
+            {{ form_widget(form.lastName, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.lastName) }}
+        </div>
+
+        <div class="form-group">
+            <label>Email</label>
+            {{ form_widget(form.email, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.email) }}
+        </div>
+
+        <div class="form-group">
+            <label>Password</label>
+            {{ form_widget(form.plainPassword, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.plainPassword) }}
+        </div>
+
+        <div class="form-group">
+            <label>Status</label>
+            {{ form_widget(form.status, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.status) }}
+        </div>
+
+        <div class="form-group">
+            <label>Role</label>
+            {{ form_widget(form.role, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.role) }}
+        </div>
+
+        <div class="form-group full">
+            <label>Profile Picture (URL)</label>
+            {{ form_widget(form.profilePic, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.profilePic) }}
+        </div>
+
+    </div>
+
+    <br>
+
+    <button class="btn btn-primary">Create User</button>
+
+    {{ form_end(form) }}
+
+</div>
+
+{% endblock %}

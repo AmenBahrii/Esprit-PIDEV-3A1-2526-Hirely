@@ -1,0 +1,113 @@
+{% block topbar_kicker %}{% endblock %}
+{% block topbar_title %}{% endblock %}
+{% block topbar_subtitle %}{% endblock %}
+
+{% set current_route = app.request.attributes.get('_route')|default('') %}
+{% set forum_admin_area = current_route starts with 'admin_forum_' %}
+{% set notification_menu = forum_notification_menu_data(12) %}
+{% set resolved_topbar_kicker = block('topbar_kicker')|trim %}
+{% set resolved_topbar_title = block('topbar_title')|trim %}
+{% set resolved_topbar_subtitle = block('topbar_subtitle')|trim %}
+
+{% if resolved_topbar_kicker == '' %}
+    {% set resolved_topbar_kicker = forum_admin_area ? 'Command Surface' : 'Connected Workspace' %}
+{% endif %}
+{% if resolved_topbar_title == '' %}
+    {% set resolved_topbar_title = forum_admin_area ? 'Forum Moderation' : 'Hirely Forum' %}
+{% endif %}
+{% if resolved_topbar_subtitle == '' %}
+    {% set resolved_topbar_subtitle = forum_admin_area
+        ? 'Moderate posts, comments, likes, and notifications inside the shared Hirely shell.'
+        : 'Posts, comments, likes, and notifications inside the Hirely community workspace.'
+    %}
+{% endif %}
+
+<header class="topbar">
+    <div class="topbar-layout">
+        <div class="topbar-copy">
+            <div class="topbar-kicker-row">
+                <span class="topbar-kicker">{{ resolved_topbar_kicker }}</span>
+                <span class="topbar-kicker-dot"></span>
+                <span class="topbar-kicker">Live forum</span>
+            </div>
+            <div class="topbar-title">{{ resolved_topbar_title }}</div>
+
+        </div>
+
+        <div class="viewer-panel forum-viewer-panel">
+            <div class="notification-wrap" data-notification-wrap="true">
+                <button type="button" class="forum-notification-toggle" data-notification-toggle="true" aria-label="Open notifications">
+                    <span class="forum-notification-icon" aria-hidden="true">&#128276;</span>
+                    {% if notification_menu.unread_count > 0 %}
+                        <span class="notification-badge">{{ notification_menu.unread_count > 99 ? '99+' : notification_menu.unread_count }}</span>
+                    {% endif %}
+                </button>
+
+                <div class="notification-menu" data-notification-menu="true" hidden>
+                    <div class="notification-menu-head">
+                        <h3>Notifications</h3>
+                        <form method="post" action="{{ path('notification_mark_all_read') }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('mark_all_notifications_read') }}">
+                            <button class="notification-text-link" type="submit">Mark all read</button>
+                        </form>
+                    </div>
+
+                    <div class="notification-list">
+                        {% for item in notification_menu.notifications %}
+                            <a class="notification-item {{ item.is_read ? 'is-read' : 'is-unread' }}" href="{{ item.open_url }}">
+                                <span class="notification-item-dot" aria-hidden="true"></span>
+                                <span class="notification-content">
+                                    <span class="notification-message">{{ item.message }}</span>
+                                    {% if item.created_at %}
+                                        <span class="notification-time">{{ item.created_at|date('d M Y - H:i') }}</span>
+                                    {% endif %}
+                                </span>
+                            </a>
+                        {% else %}
+                            <div class="notification-empty">
+                                <span>No notifications yet.</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="notification-menu-foot">
+                        <a href="{{ path('notification_history') }}" class="notification-text-link">View full history</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="viewer-summary">
+                <span class="status-pill status-pill-role">{{ is_granted('ROLE_ADMIN') ? 'Admin' : 'Member' }}</span>
+                <div class="viewer-name">{{ app.user.displayName }}</div>
+            </div>
+
+            <a href="{{ path('profile_me') }}" class="btn-secondary topbar-logout-link">Profile</a>
+            <a href="{{ path('app_logout') }}" class="btn-secondary topbar-logout-link">Logout</a>
+        </div>
+    </div>
+
+    {% if not forum_admin_area %}
+        <nav class="workspace-nav">
+            <a href="{{ path('app_home') }}" class="workspace-nav-link {{ current_route == 'app_home' ? 'active' : '' }}">
+                Home
+            </a>
+            <a href="{{ path('forum_index') }}" class="workspace-nav-link {{ current_route starts with 'forum_' ? 'active' : '' }}">
+                Forum
+            </a>
+            <a href="{{ path('forum_post_new') }}" class="workspace-nav-link {{ current_route == 'forum_post_new' ? 'active' : '' }}">
+                Create Post
+            </a>
+            <a href="{{ path('profile_me') }}" class="workspace-nav-link {{ current_route starts with 'profile_' ? 'active' : '' }}">
+                Profile
+            </a>
+            <a href="{{ path('notification_history') }}" class="workspace-nav-link {{ current_route starts with 'notification_' ? 'active' : '' }}">
+                Notifications
+            </a>
+            {% if is_granted('ROLE_ADMIN') %}
+                <a href="{{ path('admin_forum_dashboard') }}" class="workspace-nav-link {{ current_route starts with 'admin_forum_' ? 'active' : '' }}">
+                    Admin
+                </a>
+            {% endif %}
+        </nav>
+    {% endif %}
+</header>

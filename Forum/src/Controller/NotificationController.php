@@ -1,0 +1,90 @@
+<?php
+
+namespace App\Controller;
+
+use App\Entity\ForumNotification;
+use App\Entity\Users;
+use App\Repository\ForumNotificationRepository;
+use Knp\Component\Pager\PaginatorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+
+#[Route('/notifications')]
+#[IsGranted('IS_AUTHENTICATED_REMEMBERED')]
+class NotificationController extends AbstractController
+{
+    #[Route('', name: 'notification_history')]
+    public function history(Request $request, ForumNotificationRepository $notificationRepository, PaginatorInterface $paginator): Response
+    {
+        $viewer = $this->getCurrentUserEntity();
+        $pagination = $paginator->paginate(
+            $notificationRepository->createHistoryQueryBuilder($viewer),
+            $request->query->getInt('notificationPage', 1),
+            12,
+            [PaginatorInterface::PAGE_PARAMETER_NAME => 'notificationPage']
+        );
+
+        return $this->render('forum/notifications.html.twig', [
+            'notifications' => $pagination,
+        ]);
+    }
+
+    #[Route('/open/{id}', name: 'notification_open', requirements: ['id' => '\d+'])]
+    public function open(int $id, ForumNotificationRepository $notificationRepository): RedirectResponse
+    {
+        $viewer = $this->getCurrentUserEntity();
+        $notification = $notificationRepository->find($id);
+
+        if (!$notification instanceof ForumNotification || $notification->getRecipient()?->getId() !== $viewer->getId()) {
+            return $this->redirectToRoute('app_home');
+        }
+
+        $notificationRepository->markReadForRecipient($notification, $viewer);
+
+        $postId = $notification->getPost()?->getId();
+        if ($postId !== null) {
+            return $this->redirectToRoute('forum_post_show', ['id' => $postId]);
+        }
+
+        $actorId = $notification->getActor()?->getId();
+        if ($actorId !== null) {
+            return $this->redirectToRoute('profile_show', ['id' => $actorId]);
+        }
+
+        return $this->redirectToRoute('app_home');
+    }
+
+    #[Route('/mark-all-read', name: 'notification_mark_all_read', methods: ['POST'])]
+    public function markAllRead(Request $request, ForumNotificationRepository $notificationRepository): RedirectResponse
+    {
+        $viewer = $this->getCurrentUserEntity();
+
+        if ($this->isCsrfTokenValid('mark_all_notifications_read', (string) $request->request->get('_token'))) {
+            $notificationRepository->markAllReadForUser($viewer);
+        }
+
+        $referer = (string) $request->headers->get('referer', '');
+        if ($referer !== '') {
+            return $this->redirect($referer);
+        }
+
+        return $this->redirectToRoute('app_home');
+    }
+
+    private function getCurrentUserEntity(): Users
+    {
+        $user = $this->getUser();
+        if (!$user instanceof Users) {
+            throw $this->createAccessDeniedException();
+        }
+
+        return $user;
+    }
+}
+
+
+

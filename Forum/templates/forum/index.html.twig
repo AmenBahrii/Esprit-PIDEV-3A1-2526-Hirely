@@ -1,0 +1,126 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Forum Feed | Hirely{% endblock %}
+{% block workspace_eyebrow %}Community Feed{% endblock %}
+{% block workspace_title %}Hirely Forum{% endblock %}
+{% block workspace_subtitle %}Browse discussion threads inside the same visual shell, spacing system, and component language used by `hirely5`.{% endblock %}
+
+{% block body %}
+    <section class="workspace-page" data-dynamic-region="forum-index">
+        <section class="workspace-hero">
+            <div class="workspace-hero-copy">
+                <p class="workspace-kicker">Community Feed</p>
+                <h2 class="workspace-section-title">Discuss, react, and follow updates</h2>
+                <p class="workspace-section-copy">
+                    Search posts, open conversations, and keep the full forum behavior while using the `hirely5` workspace shell.
+                </p>
+            </div>
+
+            <div class="workspace-metric-grid">
+                <div class="workspace-meta">
+                    <span class="workspace-meta-label">Visible posts</span>
+                    <span class="workspace-meta-value">{{ posts.getTotalItemCount }}</span>
+                </div>
+                <div class="workspace-meta">
+                    <span class="workspace-meta-label">Available tags</span>
+                    <span class="workspace-meta-value">{{ tags|length }}</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="workspace-toolbar forum-toolbar-card">
+            <div class="workspace-toolbar-copy">
+                <span class="workspace-toolbar-label">Search and Sort</span>
+                <span class="workspace-toolbar-subtitle">Refine the feed without changing post, moderation, or forum behavior.</span>
+            </div>
+
+            <div class="workspace-toolbar-controls">
+                <a href="{{ path('forum_post_new') }}" class="btn btn-primary">New Post</a>
+            </div>
+        </section>
+
+        <section class="workspace-card forum-toolbar-card">
+            <form method="get" action="{{ path('forum_index') }}" class="forum-filter-form" data-auto-submit="true" data-dynamic-form="true" data-dynamic-target="[data-dynamic-region='forum-index']" data-dynamic-push-url="true">
+                <div class="forum-input-shell">
+                    <label for="forum-search">Search</label>
+                    <input id="forum-search" type="search" name="q" value="{{ search }}" placeholder="Search title, content, or tag" data-auto-submit-input="true">
+                </div>
+
+                <div class="forum-input-shell">
+                    <label for="forum-tag">Tag</label>
+                    <select id="forum-tag" name="tag">
+                        <option value="ALL" {{ selected_tag == 'ALL' ? 'selected' : '' }}>All tags</option>
+                        {% for tag in tags %}
+                            <option value="{{ tag }}" {{ selected_tag == tag ? 'selected' : '' }}>{{ tag }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="forum-input-shell">
+                    <label for="forum-sort">Sort</label>
+                    <select id="forum-sort" name="sort">
+                        <option value="new" {{ sort == 'new' ? 'selected' : '' }}>Newest</option>
+                        <option value="old" {{ sort == 'old' ? 'selected' : '' }}>Oldest</option>
+                        <option value="liked" {{ sort == 'liked' ? 'selected' : '' }}>Most liked</option>
+                    </select>
+                </div>
+            </form>
+        </section>
+
+        <section class="forum-record-grid">
+            {% for post in posts %}
+                <article class="workspace-card forum-post-card">
+                    <div class="forum-post-header">
+                        <div class="forum-status-group">
+                            <span class="status-pill status-pill-{{ post.status|lower }}">{{ post.status|title }}</span>
+                            {% if post.pinned %}<span class="status-pill status-pill-accent">Pinned</span>{% endif %}
+                            {% if post.tag %}
+                                <span class="forum-tag">{{ post.tag }}</span>
+                            {% endif %}
+                        </div>
+                        <h2 class="forum-post-title">
+                            <a href="{{ path('forum_post_show', {id: post.id}) }}" class="forum-post-title-link">
+                                {{ post.title }}
+                            </a>
+                        </h2>
+                        <div class="forum-post-byline">
+                            By <a href="{{ path('profile_show', {id: post.author.id}) }}" class="forum-inline-link">{{ post.author.displayName }}</a>
+                            • {{ post.createdAt|date('d M Y') }}
+                        </div>
+                    </div>
+
+                    <div class="forum-post-body">
+                        <p class="forum-post-content">{{ post.content|slice(0, 320) }}{{ post.content|length > 320 ? '...' : '' }}</p>
+                    </div>
+
+                    <div class="forum-post-footer">
+                        <div class="forum-post-stats">
+                            <span class="forum-stat-item">
+                                <span class="forum-stat-icon">♥</span>
+                                {{ post.likeCount }} likes
+                            </span>
+                            <span class="forum-stat-item">
+                                <span class="forum-stat-icon">💬</span>
+                                {{ post.commentCount }} comments
+                            </span>
+                        </div>
+
+                        <div class="forum-post-actions">
+                            {% if app.user.id == post.author.id or is_granted('ROLE_ADMIN') %}
+                                <a href="{{ path('forum_post_edit', {id: post.id}) }}" class="forum-action-link secondary">Edit</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </article>
+            {% else %}
+                <div class="workspace-card forum-empty-card">
+                    <p class="workspace-kicker">No results</p>
+                    <h2 class="data-card-title">No posts found</h2>
+                    <p class="workspace-card-summary">Try a different keyword or create a new discussion.</p>
+                </div>
+            {% endfor %}
+        </section>
+
+        {{ knp_pagination_render(posts) }}
+    </section>
+{% endblock %}

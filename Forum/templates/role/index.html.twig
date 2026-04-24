@@ -1,0 +1,154 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Roles{% endblock %}
+{% block workspace_title %}Admin Dashboard{% endblock %}
+{% block workspace_subtitle %}Recruitment and onboarding workspace{% endblock %}
+
+{% block body %}
+<section class="workspace-page">
+    <section class="workspace-hero">
+        <div class="workspace-hero-copy">
+            <p class="workspace-kicker">Admin</p>
+            <h2 class="workspace-section-title">Roles and permissions</h2>
+            <p class="workspace-section-copy">Keep role definitions clear, dashboards aligned, and platform permissions easy to manage.</p>
+        </div>
+
+        <div class="workspace-metric-grid" style="max-width: 430px; width: 100%;">
+            <div class="workspace-meta">
+                <span class="workspace-meta-label">Role Groups</span>
+                <span class="workspace-meta-value">{{ roles|length }}</span>
+            </div>
+            <div class="workspace-meta">
+                <span class="workspace-meta-label">Default Focus</span>
+                <span class="workspace-meta-value">Workspace routing</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="admin-metrics">
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Roles</div>
+            <div class="admin-metric-value">{{ roles|length }}</div>
+        </article>
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Active Roles</div>
+            <div class="admin-metric-value">{{ roles|filter(role => role.status == 'active')|length }}</div>
+        </article>
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Admin Locked</div>
+            <div class="admin-metric-value">{{ roles|filter(role => role.name == 'Admin')|length }}</div>
+        </article>
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Dashboards</div>
+            <div class="admin-metric-value">{{ roles|map(role => role.defaultDashboard)|filter(dashboard => dashboard)|length }}</div>
+        </article>
+    </section>
+
+    <section class="workspace-toolbar">
+        <div class="workspace-toolbar-copy">
+            <span class="workspace-toolbar-label">Search and Sort</span>
+            <span class="workspace-toolbar-subtitle">Search role details and reorder the cards by name or status.</span>
+        </div>
+
+        <div class="workspace-toolbar-controls">
+            <input type="text" id="roleSearch" placeholder="Search roles..." class="search-input">
+
+            <select id="roleSort" class="sort-select">
+                <option value="name_asc">Name A-Z</option>
+                <option value="name_desc">Name Z-A</option>
+                <option value="status_asc">Status A-Z</option>
+                <option value="status_desc">Status Z-A</option>
+            </select>
+
+            <a href="{{ path('app_role_new') }}" class="btn btn-primary">Add role</a>
+        </div>
+    </section>
+
+    <div class="workspace-page" id="roleCards">
+        {% for role in roles %}
+            <article class="workspace-card"
+                     data-role-card
+                     data-search="{{ role.name ~ ' ' ~ role.description ~ ' ' ~ role.status ~ ' ' ~ role.defaultDashboard }}"
+                     data-name="{{ role.name|lower }}"
+                     data-status="{{ role.status|lower }}">
+                <div class="workspace-card-head">
+                    <div>
+                        <span class="workspace-kicker">Role</span>
+                        <h3 class="data-card-title">
+                            <span class="role-badge role-{{ role.name|lower }}">{{ role.name }}</span>
+                        </h3>
+                        <p class="workspace-card-summary">#{{ role.id }}</p>
+                    </div>
+
+                    <span class="status-pill">{{ role.status }}</span>
+                </div>
+
+                <div class="workspace-meta-grid">
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Description</span>
+                        <span class="workspace-meta-value">{{ role.description }}</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Dashboard</span>
+                        <span class="workspace-meta-value">{{ role.defaultDashboard }}</span>
+                    </div>
+                </div>
+
+                <div class="workspace-card-actions">
+                    <a href="{{ path('app_role_edit', {'id': role.id}) }}" class="btn btn-edit">Edit</a>
+
+                    {% if role.name != 'Admin' %}
+                        <form method="post" action="{{ path('app_role_delete', {'id': role.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ role.id) }}">
+                            <button class="btn btn-delete" type="submit">Delete</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </article>
+        {% else %}
+            <div class="empty-state">No roles found</div>
+        {% endfor %}
+    </div>
+</section>
+
+<script>
+const roleSearch = document.getElementById('roleSearch');
+const roleSort = document.getElementById('roleSort');
+const roleCardsContainer = document.getElementById('roleCards');
+const roleCards = Array.from(roleCardsContainer.querySelectorAll('[data-role-card]'));
+
+function sortRoleCards(cards, sortValue) {
+    const sorted = [...cards];
+
+    sorted.sort((a, b) => {
+        if (sortValue === 'name_desc') {
+            return b.dataset.name.localeCompare(a.dataset.name);
+        }
+        if (sortValue === 'status_asc') {
+            return a.dataset.status.localeCompare(b.dataset.status);
+        }
+        if (sortValue === 'status_desc') {
+            return b.dataset.status.localeCompare(a.dataset.status);
+        }
+
+        return a.dataset.name.localeCompare(b.dataset.name);
+    });
+
+    sorted.forEach(card => roleCardsContainer.appendChild(card));
+}
+
+function filterAndSortRoles() {
+    const search = roleSearch.value.toLowerCase();
+
+    roleCards.forEach(card => {
+        const matches = card.dataset.search.toLowerCase().includes(search);
+        card.style.display = matches ? '' : 'none';
+    });
+
+    sortRoleCards(roleCards, roleSort.value);
+}
+
+roleSearch.addEventListener('input', filterAndSortRoles);
+roleSort.addEventListener('change', filterAndSortRoles);
+</script>
+{% endblock %}

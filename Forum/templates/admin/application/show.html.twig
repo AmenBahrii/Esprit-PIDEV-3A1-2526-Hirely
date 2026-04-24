@@ -1,0 +1,80 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Application{% endblock %}
+
+{% block body %}
+    <h1>Application</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>ApplicationId</th>
+                <td>{{ application.applicationId }}</td>
+            </tr>
+            <tr>
+                <th>ApplicationDate</th>
+                <td>{{ application.applicationDate ? application.applicationDate|date('Y-m-d') : '' }}</td>
+            </tr>
+            <tr>
+                <th>CoverLetter</th>
+                <td>{{ application.coverLetter }}</td>
+            </tr>
+            <tr>
+                <th>CurrentStatus</th>
+                <td>{{ application.currentStatus }}</td>
+            </tr>
+            <tr>
+                <th>ResumePath</th>
+                <td>
+                    {% if application.resumePath %}
+                        <a href="{{ asset('uploads/resumes/' ~ application.resumePath) }}" target="_blank" rel="noreferrer">{{ application.resumePath }}</a>
+                    {% else %}
+                        No resume uploaded
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th>LastUpdateDate</th>
+                <td>{{ application.lastUpdateDate ? application.lastUpdateDate|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+            <tr>
+                <th>ExpectedSalary</th>
+                <td>{{ application.expectedSalary }}</td>
+            </tr>
+            <tr>
+                <th>AvailabilityDate</th>
+                <td>{{ application.availabilityDate ? application.availabilityDate|date('Y-m-d') : '' }}</td>
+            </tr>
+            <tr>
+                <th>Phone</th>
+                <td>{{ application.phone }}</td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td>{{ application.email }}</td>
+            </tr>
+            <tr>
+                <th>ExperienceYears</th>
+                <td>{{ application.experienceYears }}</td>
+            </tr>
+            <tr>
+                <th>PortfolioUrl</th>
+                <td>{{ application.portfolioUrl }}</td>
+            </tr>
+            <tr>
+                <th>Score</th>
+                <td>{{ application.score }}</td>
+            </tr>
+            <tr>
+                <th>ReviewNote</th>
+                <td>{{ application.reviewNote }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_application_index') }}">back to list</a>
+
+    <a href="{{ path('app_application_edit', {'applicationId': application.applicationId}) }}">edit</a>
+
+    {{ include('admin/application/_delete_form.html.twig') }}
+{% endblock %}
