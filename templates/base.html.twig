@@ -1391,12 +1391,14 @@ tr td:last-child {
 
                     <nav class="admin-nav" aria-label="Admin">
                         <a href="#"
-                           class="admin-nav-link {{ currentRoute in ['app_users_index', 'app_role_index', 'app_joboffer_index', 'app_application_index'] ? 'active' : '' }}">
+                           class="admin-nav-link {{ currentRoute in ['app_users_index', 'app_role_index', 'app_joboffer_index', 'app_application_index', 'app_interview_index', 'app_evaluation_index'] ? 'active' : '' }}">
                             Dashboard
                         </a>
                         <span class="admin-nav-link disabled">Onboarding Plans</span>
                         <a href="{{ path('app_joboffer_index') }}" class="admin-nav-link {{ currentRoute starts with 'app_joboffer' ? 'active' : '' }}">Job Offers</a>
                         <a href="{{ path('app_application_index') }}" class="admin-nav-link {{ currentRoute starts with 'app_application' ? 'active' : '' }}">Applications</a>
+                        <a href="{{ path('app_interview_index') }}" class="admin-nav-link {{ currentRoute starts with 'app_interview' ? 'active' : '' }}">Interviews</a>
+                        <a href="{{ path('app_evaluation_index') }}" class="admin-nav-link {{ currentRoute starts with 'app_evaluation' ? 'active' : '' }}">Evaluations</a>
                         <a href="{{ path('app_users_index') }}" class="admin-nav-link {{ currentRoute starts with 'app_users' ? 'active' : '' }}">Users</a>
                         <a href="{{ path('app_role_index') }}" class="admin-nav-link {{ currentRoute starts with 'app_role' ? 'active' : '' }}">Roles</a>
                     </nav>
@@ -1443,8 +1445,6 @@ tr td:last-child {
                             <div class="page-flash page-flash-error">{{ message }}</div>
                         {% endfor %}
                     </div>
-
-                    {{ block('body') }}
                 </div>
             </div>
         {% elseif app.user and currentRole in ['candidate', 'recruiter'] %}
@@ -1485,6 +1485,8 @@ tr td:last-child {
                 <nav class="workspace-nav" aria-label="Primary">
                     <a href="{{ path('app_joboffer_index') }}" class="workspace-nav-link {{ currentRoute starts with 'app_joboffer' ? 'active' : '' }}">Job Offers</a>
                     <a href="{{ path('app_application_index') }}" class="workspace-nav-link {{ currentRoute starts with 'app_application' ? 'active' : '' }}">Applications</a>
+                    <a href="{{ path('app_interview_index') }}" class="workspace-nav-link {{ currentRoute starts with 'app_interview' ? 'active' : '' }}">Interviews</a>
+                    <a href="{{ path('app_evaluation_index') }}" class="workspace-nav-link {{ currentRoute starts with 'app_evaluation' ? 'active' : '' }}">Evaluations</a>
                     <span class="workspace-nav-link disabled">Onboarding Plans</span>
                 </nav>
 
@@ -1497,8 +1499,6 @@ tr td:last-child {
                         <div class="page-flash page-flash-error">{{ message }}</div>
                     {% endfor %}
                 </div>
-
-                {{ block('body') }}
             </div>
         {% else %}
         {% if app.user and (show_topbar is not defined or show_topbar != false) %}
@@ -1539,9 +1539,9 @@ tr td:last-child {
                 <div class="page-flash page-flash-error">{{ message }}</div>
             {% endfor %}
         </div>
-
-        {{ block('body') }}
         {% endif %}
+
+        {% block content %}{% endblock %}
     </main>
 </div>
 {% block workspace_eyebrow %}Connected View{% endblock %}
