@@ -244,7 +244,7 @@ final class ViewerContext
         }
 
         $availableUsers = $this->getDemoUsersIndexedByRole();
-        if (($user->getUserId() ?? 0) !== ($availableUsers[$roleId]?->getUserId() ?? 0)) {
+        if (!isset($availableUsers[$roleId]) || $user->getUserId() !== $availableUsers[$roleId]->getUserId()) {
             return null;
         }
 
@@ -257,7 +257,7 @@ final class ViewerContext
     private function getDemoUsersIndexedByRole(): array
     {
         $usersByRole = [];
-        $availableUsers = $this->userRepository->findBy([], ['user_id' => 'ASC']);
+        $availableUsers = $this->userRepository->findSelectableOnboardingViewers();
 
         foreach ($availableUsers as $user) {
             $roleId = $user->getRole()?->getRoleId();
@@ -284,6 +284,8 @@ final class ViewerContext
 
     private function belongsToCurrentUser(?User $user): bool
     {
-        return $user && $this->getCurrentUser() && $user->getUserId() === $this->getCurrentUser()?->getUserId();
+        $currentUser = $this->getCurrentUser();
+
+        return null !== $user && null !== $currentUser && $user->getUserId() === $currentUser->getUserId();
     }
 }

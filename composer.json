@@ -82,6 +82,12 @@
             "assets:install %PUBLIC_DIR%": "symfony-cmd",
             "importmap:install": "symfony-cmd"
         },
+        "test:onboarding": "phpunit tests/Onboarding tests/Entity/OnboardingPlanValidationTest.php tests/Entity/OnboardingTaskValidationTest.php",
+        "phpstan:onboarding": [
+            "@doctor:doctrine",
+            "phpstan analyse --configuration=phpstan.neon"
+        ],
+        "doctor:doctrine": "php bin/console cache:clear --env=dev",
         "post-install-cmd": [
             "@auto-scripts"
         ],
@@ -99,6 +105,11 @@
         }
     },
     "require-dev": {
+        "ahmed-bhs/doctrine-doctor": "1.1",
+        "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan-doctrine": "^2.0",
+        "phpstan/phpstan-phpunit": "^2.0",
+        "phpstan/phpstan-symfony": "^2.0",
         "phpunit/phpunit": "^11.5",
         "symfony/browser-kit": "6.4.*",
         "symfony/css-selector": "6.4.*",

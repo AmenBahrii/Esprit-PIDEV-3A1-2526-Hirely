@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\User;
+use App\Onboarding\ViewerContext;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
@@ -28,5 +29,26 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $user->setPassword($newHashedPassword);
         $this->getEntityManager()->persist($user);
         $this->getEntityManager()->flush();
+    }
+
+    /**
+     * @return User[]
+     */
+    public function findSelectableOnboardingViewers(): array
+    {
+        return $this->createQueryBuilder('user')
+            ->leftJoin('user.role', 'role')
+            ->addSelect('role')
+            ->andWhere('role.role_id IN (:roleIds)')
+            ->setParameter('roleIds', [
+                ViewerContext::ROLE_CANDIDATE,
+                ViewerContext::ROLE_RECRUITER,
+                ViewerContext::ROLE_ADMIN,
+            ])
+            ->orderBy('role.role_id', 'ASC')
+            ->addOrderBy('user.user_id', 'ASC')
+            ->setMaxResults(30)
+            ->getQuery()
+            ->getResult();
     }
 }

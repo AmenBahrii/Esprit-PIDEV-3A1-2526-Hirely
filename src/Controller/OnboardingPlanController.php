@@ -395,7 +395,7 @@ final class OnboardingPlanController extends AbstractController
         $taskTotals = [];
 
         foreach ($statusSummaryByPlanId as $planId => $summary) {
-            $taskTotals[(int) $planId] = (int) ($summary['total'] ?? 0);
+            $taskTotals[(int) $planId] = (int) $summary['total'];
         }
 
         return $taskTotals;
@@ -451,17 +451,22 @@ final class OnboardingPlanController extends AbstractController
             }
         }
 
-        $translatedPriorityFlow = $priorityFlow
-            ? $onboardingFlowPresenter->translateFlow($priorityFlow, $selectedLanguage)
-            : null;
+        $translatedPriorityFlow = $onboardingFlowPresenter->translateFlow($priorityFlow, $selectedLanguage);
+        $priorityUser = $priorityPlan->getUser();
+        $priorityPlanOwner = trim(sprintf(
+            '%s %s',
+            (string) $priorityUser?->getFirstName(),
+            (string) $priorityUser?->getLastName()
+        ));
+        if ('' === $priorityPlanOwner) {
+            $priorityPlanOwner = 'Unassigned user';
+        }
 
         return [
             'average_progress' => (int) round($totalProgress / max(1, \count($plans))),
             'highest_risk' => $highestRisk,
             'total_risk_signals' => $totalRiskSignals,
-            'priority_plan_label' => $priorityPlan
-                ? trim((string) $priorityPlan->getUser()?->getFirstName() . ' ' . (string) $priorityPlan->getUser()?->getLastName()) . sprintf(' (Plan #%d)', (int) $priorityPlan->getPlanId())
-                : 'No visible plan',
+            'priority_plan_label' => $priorityPlanOwner . sprintf(' (Plan #%d)', (int) $priorityPlan->getPlanId()),
             'priority_phase' => $translatedPriorityFlow['currentPhase']['phaseLabel'] ?? 'Pre-arrival',
             'top_action' => $translatedPriorityFlow['nextActions'][0]['title'] ?? 'No action needed right now.',
             'summary' => $translatedPriorityFlow['smartSummary'] ?? 'The flow panel will react once onboarding plans are available in this view.',
@@ -568,141 +573,6 @@ final class OnboardingPlanController extends AbstractController
     }
 
     /**
-     * @param Onboardingplan[] $plans
-     * @return array{
-     *     title: string,
-     *     text: string,
-     *     priority_label: string,
-     *     priority_reason: string,
-     *     next_deadline: string,
-     *     qr_readiness: string,
-     *     candidate_coverage: string
-     * }
-     */
-    private function buildPlanFocus(array $plans): array
-    {
-        if ([] === $plans) {
-            return [
-                'title' => 'No visible plans',
-                'text' => 'Once plans are created, the focus panel will highlight what to review next.',
-                'priority_label' => 'Nothing queued',
-                'priority_reason' => 'There is no active onboarding workload in the current view.',
-                'next_deadline' => 'No deadline',
-                'qr_readiness' => '0 ready',
-                'candidate_coverage' => '0 candidates',
-            ];
-        }
-
-        $overduePlans = array_values(array_filter($plans, static fn (Onboardingplan $plan): bool => $plan->isOverdue()));
-        $activePlans = array_values(array_filter($plans, static fn (Onboardingplan $plan): bool => Onboardingplan::STATUS_IN_PROGRESS === $plan->getStatus()));
-
-        $priorityPlan = $this->pickPriorityPlan($plans);
-        $nextDeadline = $this->findNextDeadlineLabel($plans);
-        $qrReadyCount = count(array_filter($plans, static fn (Onboardingplan $plan): bool => null !== $plan->getQrToken() && '' !== trim((string) $plan->getQrToken())));
-
-        $candidateIds = [];
-        foreach ($plans as $plan) {
-            if (null !== $plan->getUser()) {
-                $candidateIds[(int) $plan->getUser()->getUserId()] = true;
-            }
-        }
-
-        if ([] !== $overduePlans) {
-            $title = 'Attention needed';
-            $text = sprintf('%d plan%s currently need intervention before the flow stalls further.', count($overduePlans), 1 === count($overduePlans) ? '' : 's');
-        } elseif ([] !== $activePlans) {
-            $title = 'Flow is moving';
-            $text = sprintf('%d plan%s are actively progressing right now.', count($activePlans), 1 === count($activePlans) ? '' : 's');
-        } elseif (count($plans) === count(array_filter($plans, static fn (Onboardingplan $plan): bool => $plan->isCompleted()))) {
-            $title = 'Everything is settled';
-            $text = 'All visible plans are currently completed.';
-        } else {
-            $title = 'Ready for the next step';
-            $text = 'The current plans are queued and waiting for the next onboarding actions.';
-        }
-
-        $priorityLabel = $priorityPlan ? sprintf(
-            '%s %s',
-            trim((string) $priorityPlan->getUser()?->getFirstName() . ' ' . (string) $priorityPlan->getUser()?->getLastName()),
-            sprintf('(Plan #%d)', (int) $priorityPlan->getPlanId())
-        ) : 'No priority plan';
-
-        $priorityReason = $priorityPlan
-            ? sprintf(
-                'Currently %s%s.',
-                strtolower(str_replace('_', ' ', (string) $priorityPlan->getStatus())),
-                $priorityPlan->getDeadline() ? sprintf(' with deadline %s', $priorityPlan->getDeadline()->format('Y-m-d')) : ''
-            )
-            : 'No plan needs immediate review.';
-
-        return [
-            'title' => $title,
-            'text' => $text,
-            'priority_label' => $priorityLabel,
-            'priority_reason' => $priorityReason,
-            'next_deadline' => $nextDeadline,
-            'qr_readiness' => sprintf('%d of %d ready', $qrReadyCount, count($plans)),
-            'candidate_coverage' => sprintf('%d candidate%s', count($candidateIds), 1 === count($candidateIds) ? '' : 's'),
-        ];
-    }
-
-    /**
-     * @param Onboardingplan[] $plans
-     */
-    private function pickPriorityPlan(array $plans): ?Onboardingplan
-    {
-        usort($plans, static function (Onboardingplan $left, Onboardingplan $right): int {
-            $score = static function (Onboardingplan $plan): int {
-                return match ($plan->getStatus()) {
-                    Onboardingplan::STATUS_ON_HOLD => 0,
-                    Onboardingplan::STATUS_IN_PROGRESS => 1,
-                    Onboardingplan::STATUS_PENDING => 2,
-                    Onboardingplan::STATUS_COMPLETED => 3,
-                    default => 4,
-                };
-            };
-
-            $scoreCompare = $score($left) <=> $score($right);
-            if (0 !== $scoreCompare) {
-                return $scoreCompare;
-            }
-
-            $leftDeadline = $left->getDeadline()?->getTimestamp() ?? PHP_INT_MAX;
-            $rightDeadline = $right->getDeadline()?->getTimestamp() ?? PHP_INT_MAX;
-
-            if ($leftDeadline !== $rightDeadline) {
-                return $leftDeadline <=> $rightDeadline;
-            }
-
-            return (int) $right->getPlanId() <=> (int) $left->getPlanId();
-        });
-
-        return $plans[0] ?? null;
-    }
-
-    /**
-     * @param Onboardingplan[] $plans
-     */
-    private function findNextDeadlineLabel(array $plans): string
-    {
-        $timestamps = [];
-
-        foreach ($plans as $plan) {
-            if (null !== $plan->getDeadline() && !$plan->isCompleted()) {
-                $timestamps[] = $plan->getDeadline()->getTimestamp();
-            }
-        }
-
-        if ([] === $timestamps) {
-            return 'No deadline';
-        }
-
-        sort($timestamps);
-
-        return date('Y-m-d', $timestamps[0]);
-    }
-
-    /**
      * @param array<int, \App\Entity\Onboardingtask> $tasks
      * @return array{
      *     ui: array<string, string>,
@@ -735,10 +605,7 @@ final class OnboardingPlanController extends AbstractController
             Onboardingplan::STATUS_COMPLETED => 'Completed',
             Onboardingplan::STATUS_ON_HOLD => 'On Hold',
             \App\Entity\Onboardingtask::STATUS_NOT_STARTED => 'Not Started',
-            \App\Entity\Onboardingtask::STATUS_IN_PROGRESS => 'In Progress',
-            \App\Entity\Onboardingtask::STATUS_COMPLETED => 'Completed',
             \App\Entity\Onboardingtask::STATUS_BLOCKED => 'Blocked',
-            \App\Entity\Onboardingtask::STATUS_ON_HOLD => 'On Hold',
         ];
 
         $taskTexts = [];

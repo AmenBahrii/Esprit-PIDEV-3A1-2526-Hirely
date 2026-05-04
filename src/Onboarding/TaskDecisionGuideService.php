@@ -133,7 +133,7 @@ final class TaskDecisionGuideService
                 );
             }
 
-            if ($notStartedCount >= 2 && isset($notStartedTasks[0])) {
+            if ($notStartedCount >= 2) {
                 $recommendations[] = new TaskRecommendation(
                     TaskRecommendation::PRIORITY_HIGH,
                     'follow_up_progress',
@@ -159,7 +159,7 @@ final class TaskDecisionGuideService
                 );
             }
         } else {
-            if ($blockedCount > 1 && isset($blockedTasks[0])) {
+            if ($blockedCount > 1) {
                 $recommendations[] = new TaskRecommendation(
                     TaskRecommendation::PRIORITY_HIGH,
                     'plan_needs_intervention',

@@ -1,0 +1,27 @@
+doctrine_doctor:
+    enabled: true
+    profiler:
+        show_in_toolbar: true
+    analyzers:
+        n_plus_one:
+            enabled: true
+            threshold: 3
+        slow_query:
+            enabled: true
+            threshold: 75
+        missing_index:
+            enabled: true
+            slow_query_threshold: 1
+            explain_queries: true
+            min_rows_scanned: 5
+        hydration:
+            enabled: true
+            row_threshold: 10
+            critical_threshold: 100
+        lazy_loading:
+            enabled: true
+            threshold: 5
+        flush_in_loop:
+            enabled: true
+            flush_count_threshold: 3
+            time_window_ms: 1000

@@ -14,6 +14,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class OnboardingtaskRepository extends ServiceEntityRepository
 {
+    private const MAX_VISIBLE_TASKS = 120;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Onboardingtask::class);
@@ -33,7 +35,10 @@ class OnboardingtaskRepository extends ServiceEntityRepository
         $this->applyFilters($builder, $filters);
         $this->applySorting($builder, (string) ($filters['sort'] ?? 'newest'));
 
-        return $builder->getQuery()->getResult();
+        return $builder
+            ->setMaxResults(self::MAX_VISIBLE_TASKS)
+            ->getQuery()
+            ->getResult();
     }
 
     /**
@@ -57,7 +62,10 @@ class OnboardingtaskRepository extends ServiceEntityRepository
         $this->applyFilters($builder, $filters);
         $this->applySorting($builder, (string) ($filters['sort'] ?? 'newest'));
 
-        return $builder->getQuery()->getResult();
+        return $builder
+            ->setMaxResults(self::MAX_VISIBLE_TASKS)
+            ->getQuery()
+            ->getResult();
     }
 
     /**

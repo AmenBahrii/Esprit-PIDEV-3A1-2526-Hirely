@@ -1,0 +1,21 @@
+includes:
+    - vendor/phpstan/phpstan-symfony/extension.neon
+    - vendor/phpstan/phpstan-doctrine/extension.neon
+    - vendor/phpstan/phpstan-phpunit/extension.neon
+
+parameters:
+    level: 5
+    tmpDir: var/cache/phpstan
+    paths:
+        - src/Onboarding
+        - src/Controller/OnboardingPlanController.php
+        - src/Controller/OnboardingTaskController.php
+        - src/Entity/Onboardingplan.php
+        - src/Entity/Onboardingtask.php
+        - src/Repository/OnboardingplanRepository.php
+        - src/Repository/OnboardingtaskRepository.php
+        - tests/Onboarding
+        - tests/Entity/OnboardingPlanValidationTest.php
+        - tests/Entity/OnboardingTaskValidationTest.php
+    symfony:
+        containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml

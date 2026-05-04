@@ -13,6 +13,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class OnboardingplanRepository extends ServiceEntityRepository
 {
+    private const MAX_VISIBLE_PLANS = 80;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Onboardingplan::class);
@@ -38,7 +40,10 @@ class OnboardingplanRepository extends ServiceEntityRepository
         $this->applyFilters($builder, $filters);
         $this->applySorting($builder, (string) ($filters['sort'] ?? 'newest'));
 
-        return $builder->getQuery()->getResult();
+        return $builder
+            ->setMaxResults(self::MAX_VISIBLE_PLANS)
+            ->getQuery()
+            ->getResult();
     }
 
     public function findOneByQrToken(string $token): ?Onboardingplan
