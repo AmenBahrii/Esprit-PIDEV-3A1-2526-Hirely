@@ -1,9 +1,13 @@
 security:
-<<<<<<< HEAD
+    # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
+    password_hashers:
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+    # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
+        # used to reload user from session & other features (e.g. switch_user)
         app_user_provider:
             entity:
-                class: App\Entity\User
+                class: App\Entity\Users
                 property: email
     firewalls:
         dev:
@@ -12,106 +16,32 @@ security:
         main:
             lazy: true
             provider: app_user_provider
-            form_login:
-                login_path: app_login
-                check_path: app_login
-            logout:
-                path: app_logout
-    access_control:
-        - { path: ^/login$, roles: PUBLIC_ACCESS }
-security:
-    password_hashers:
-        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
-        App\Entity\User:
-            algorithm: auto
-=======
-    password_hashers:
-        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
-
->>>>>>> OnboardingCoordination
-    providers:
-        app_user_provider:
-            entity:
-                class: App\Entity\User
-                property: email
-<<<<<<< HEAD
-=======
-
->>>>>>> OnboardingCoordination
-    firewalls:
-        dev:
-            pattern: ^/(_(profiler|wdt)|css|images|js)/
-            security: false
-        main:
-            lazy: true
-            provider: app_user_provider
-<<<<<<< HEAD
-            custom_authenticator: App\Security\AppAuthenticator
-            logout:
-                path: app_logout
-    access_control:
-        - { path: ^/login$, roles: PUBLIC_ACCESS }
-        - { path: ^/recruiter-dashboard, roles: ROLE_RECRUITER }
-security:
-    password_hashers:
-        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
-        App\Entity\User:
-            algorithm: auto
-    
-    providers:
-        app_user_provider:
-            entity:
-                class: App\Entity\User
-                property: email
-    
-    firewalls:
-        dev:
-            pattern: ^/(_(profiler|wdt)|css|images|js)/
-            security: false
-        main:
-            lazy: true
-            provider: app_user_provider
-            custom_authenticator: App\Security\AppAuthenticator
-            logout:
-                path: app_logout
-            remember_me:
-                secret: '%kernel.secret%'
-                lifetime: 604800
-    
-    access_control:
-        - { path: ^/login$, roles: PUBLIC_ACCESS }
-        - { path: ^/register$, roles: PUBLIC_ACCESS }
-        - { path: ^/recruiter-dashboard, roles: ROLE_RECRUITER }
-        - { path: ^/evaluations, roles: ROLE_RECRUITER }
-        - { path: ^/interviews, roles: ROLE_RECRUITER }
-        - { path: ^/candidate, roles: ROLE_INTERVIEWEE }
-        - { path: ^/admin, roles: ROLE_ADMIN }
-=======
             custom_authenticator: App\Security\AppCustomAuthenticator
             logout:
                 path: app_logout
-                target: app_login
+                target: app_login 
+                # where to redirect after logout
+                # target: app_any_route
+
             remember_me:
                 secret: '%kernel.secret%'
                 lifetime: 604800
                 path: /
+                # by default, the feature is enabled by checking a checkbox in the
+                # login form, uncomment the following line to always enable it.
+                #always_remember_me: true
 
+            # activate different ways to authenticate
+            # https://symfony.com/doc/current/security.html#the-firewall
+
+            # https://symfony.com/doc/current/security/impersonating_user.html
+            # switch_user: true
+
+    # Easy way to control access for large sections of your site
+    # Note: Only the *first* access control that matches will be used
     access_control:
-        - { path: ^/login, roles: PUBLIC_ACCESS }
-        - { path: ^/register, roles: PUBLIC_ACCESS }
-        - { path: ^/connect/google, roles: PUBLIC_ACCESS }
-        - { path: ^/qr/, roles: PUBLIC_ACCESS }
-        - { path: ^/attachments/upload, roles: ROLE_USER }
-        - { path: ^/admin, roles: ROLE_ADMIN }
-        - { path: ^/users, roles: ROLE_ADMIN }
-        - { path: ^/role, roles: ROLE_ADMIN }
-        - { path: ^/joboffer/new, roles: ROLE_RECRUITER }
-        - { path: ^/joboffer/\d+/edit, roles: ROLE_RECRUITER }
-        - { path: ^/application/new, roles: ROLE_CANDIDATE }
-        - { path: ^/application/\d+/accept, roles: ROLE_RECRUITER }
-        - { path: ^/application/\d+/reject, roles: ROLE_RECRUITER }
-        - { path: ^/application/\d+/review, roles: ROLE_RECRUITER }
-        - { path: ^/, roles: ROLE_USER }
+        # - { path: ^/admin, roles: ROLE_ADMIN }
+        # - { path: ^/profile, roles: ROLE_USER }
 
 when@test:
     security:
@@ -125,4 +55,3 @@ when@test:
                 cost: 4 # Lowest possible value for bcrypt
                 time_cost: 3 # Lowest possible value for argon
                 memory_cost: 10 # Lowest possible value for argon
->>>>>>> OnboardingCoordination

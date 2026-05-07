@@ -2,27 +2,39 @@
 
 {% block title %}Complete Google Sign-In - Hirely{% endblock %}
 
-{% block auth_body %}
-    <div class="auth-header">
-        <h1 class="auth-brand">Hirely</h1>
-        <h2 class="auth-title">Finish your account</h2>
-        <p class="auth-text">We found your Google profile. Choose the workspace you want to use inside Hirely before we sign you in.</p>
-    </div>
+{% block content %}
 
-    <div class="auth-note-card">
-        <h3>{{ profile.name ?: profile.email }}</h3>
-        <p>{{ profile.email }}</p>
-    </div>
-
-    <form method="post" class="auth-form" novalidate>
-        <div class="auth-actions">
-            <button type="submit" name="role" value="candidate" class="btn-primary topbar-logout-link">Continue as candidate</button>
-            <button type="submit" name="role" value="recruiter" class="btn-secondary topbar-logout-link">Continue as recruiter</button>
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <h2>Finish Your Account</h2>
+            <p>We found your Google profile. Choose the account type you want to use in Hirely.</p>
         </div>
-    </form>
 
-    <p class="auth-footer">
-        Prefer email login instead?
-        <a href="{{ path('app_login') }}">Back to login</a>
-    </p>
+        <div class="flash-list">
+            {% for message in app.flashes('error') %}
+                <div class="flash flash-error">{{ message }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="auth-panel">
+            <h3>{{ profile.name ?: profile.email }}</h3>
+            <p>{{ profile.email }}</p>
+        </div>
+
+        <form method="post" class="stack" style="margin-top: 18px;" novalidate>
+            <button type="submit" name="role" value="candidate" class="btn btn-primary login-btn">
+                Continue as Candidate
+            </button>
+            <button type="submit" name="role" value="recruiter" class="btn btn-secondary login-btn">
+                Continue as Recruiter
+            </button>
+        </form>
+
+        <p class="signup-link">
+            <a href="{{ path('app_login') }}">Back to login</a>
+        </p>
+    </div>
+</div>
+
 {% endblock %}

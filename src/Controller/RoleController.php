@@ -11,10 +11,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[Route('/role')]
 final class RoleController extends AbstractController
 {
-    #[Route('/role', name: 'app_role_index', methods: ['GET'])]
-    #[Route('/admin/roles', name: 'app_admin_role_index', methods: ['GET'])]
+    #[Route(name: 'app_role_index', methods: ['GET'])]
     #[IsGranted('ROLE_ADMIN')]
     public function index(EntityManagerInterface $entityManager): Response
     {
@@ -25,8 +25,7 @@ final class RoleController extends AbstractController
         ]);
     }
 
-    #[Route('/role/new', name: 'app_role_new', methods: ['GET', 'POST'])]
-    #[Route('/admin/roles/new', name: 'app_admin_role_new', methods: ['GET', 'POST'])]
+    #[Route('/new', name: 'app_role_new', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_ADMIN')]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -38,17 +37,16 @@ final class RoleController extends AbstractController
             $entityManager->persist($role);
             $entityManager->flush();
 
-            return $this->redirectToRoute('app_admin_role_index', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('app_role_index', [], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('role/new.html.twig', [
             'role' => $role,
-            'form' => $form->createView(),
+            'form' => $form,
         ]);
     }
 
-    #[Route('/role/{id}', name: 'app_role_show', methods: ['GET'])]
-    #[Route('/admin/roles/{id}', name: 'app_admin_role_show', methods: ['GET'])]
+    #[Route('/{id}', name: 'app_role_show', methods: ['GET'])]
     #[IsGranted('ROLE_ADMIN')]
     public function show(Role $role): Response
     {
@@ -57,8 +55,7 @@ final class RoleController extends AbstractController
         ]);
     }
 
-    #[Route('/role/{id}/edit', name: 'app_role_edit', methods: ['GET', 'POST'])]
-    #[Route('/admin/roles/{id}/edit', name: 'app_admin_role_edit', methods: ['GET', 'POST'])]
+    #[Route('/{id}/edit', name: 'app_role_edit', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_ADMIN')]
     public function edit(Request $request, Role $role, EntityManagerInterface $entityManager): Response
     {
@@ -68,25 +65,24 @@ final class RoleController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
 
-            return $this->redirectToRoute('app_admin_role_index', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('app_role_index', [], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('role/edit.html.twig', [
             'role' => $role,
-            'form' => $form->createView(),
+            'form' => $form,
         ]);
     }
 
-    #[Route('/role/{id}', name: 'app_role_delete', methods: ['POST'])]
-    #[Route('/admin/roles/{id}', name: 'app_admin_role_delete', methods: ['POST'])]
+    #[Route('/{id}', name: 'app_role_delete', methods: ['POST'])]
     #[IsGranted('ROLE_ADMIN')]
     public function delete(Request $request, Role $role, EntityManagerInterface $em): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$role->getId(), (string) $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete'.$role->getId(), $request->getPayload()->getString('_token'))) {
             $em->remove($role);
             $em->flush();
         }
 
-        return $this->redirectToRoute('app_admin_role_index');
+        return $this->redirectToRoute('app_role_index');
     }
 }

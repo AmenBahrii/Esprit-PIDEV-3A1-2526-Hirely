@@ -1,26 +1,67 @@
-{% extends 'admin/base_admin.html.twig' %}
-
-{% set force_sidebar = true %}
-{% set topbar_title = 'Edit Role' %}
-{% set topbar_subtitle = 'Adjust access behavior and defaults' %}
+{% extends 'base.html.twig' %}
 
 {% block title %}Edit Role{% endblock %}
 
-{% block admin_content %}
-    <section class="module-page">
-        <div class="module-hero">
-            <div class="module-hero-copy">
-                <span class="module-eyebrow">Role Module</span>
-                <h1 class="module-title">{{ role.name|title }}</h1>
-                <p class="module-subtitle">Update how this role behaves across the platform.</p>
-            </div>
-            <div class="module-actions">
-                <a href="{{ path('app_admin_role_show', {'id': role.id}) }}" class="btn-secondary topbar-logout-link">View role</a>
-                <a href="{{ path('app_admin_role_index') }}" class="btn-secondary topbar-logout-link">Back to roles</a>
-            </div>
+{% block content %}
+
+<div class="header">Hirely Dashboard</div>
+<div class="sub-header">Edit Role</div>
+
+<div class="card">
+
+    <div class="top-bar">
+        <h3>Edit Role</h3>
+
+        <a href="{{ path('app_role_index') }}" class="btn btn-secondary">
+            Back
+        </a>
+    </div>
+
+    {{ form_start(form) }}
+    {{ form_errors(form) }}
+
+    <div class="form-grid">
+
+        <div class="form-group">
+            <label>Role Name</label>
+            {{ form_widget(form.name, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.name) }}
         </div>
-        <div class="module-panel">
-            {{ include('role/_form.html.twig', {button_label: 'Save changes'}) }}
+
+        <div class="form-group">
+            <label>Status</label>
+            {{ form_widget(form.status, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.status) }}
         </div>
-    </section>
+
+        <div class="form-group full">
+            <label>Description</label>
+            {{ form_widget(form.description, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.description) }}
+        </div>
+
+        <div class="form-group full">
+            <label>Default Dashboard</label>
+            {{ form_widget(form.defaultDashboard, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.defaultDashboard) }}
+        </div>
+
+    </div>
+
+    <br>
+
+    <button class="btn btn-primary">
+        Update Role
+    </button>
+
+    {{ form_end(form) }}
+
+    <br>
+
+    {% if role.name != 'Admin' %}
+        {{ include('role/_delete_form.html.twig') }}
+    {% endif %}
+
+</div>
+
 {% endblock %}

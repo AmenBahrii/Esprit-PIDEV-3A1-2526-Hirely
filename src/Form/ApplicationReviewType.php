@@ -17,9 +17,7 @@ class ApplicationReviewType extends AbstractType
             ->add('score', NumberType::class, [
                 'required' => false,
                 'scale' => 2,
-                'input' => 'string',
                 'html5' => true,
-                'empty_data' => '',
                 'attr' => [
                     'class' => 'form-input',
                     'min' => 0,

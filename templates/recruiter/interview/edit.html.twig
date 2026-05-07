@@ -1,0 +1,112 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Interview - Hirely{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-7">
+            <!-- Header Section -->
+            <div class="mb-5">
+                <h1 class="display-5 fw-bold text-dark mb-2">Edit Interview</h1>
+                <p class="text-muted lead">Update interview details and schedule</p>
+            </div>
+
+            <!-- Form Card -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form method="POST" novalidate>
+                        
+                        <!-- Interview Type Section -->
+                        <div class="mb-4">
+                            <label for="interview_type_id" class="form-label fw-bold mb-3">
+                                <i class="fas fa-microphone text-primary me-2"></i>Interview Type
+                            </label>
+                            <select name="interview_type_id" id="interview_type_id" class="form-select form-select-lg" style="border-radius: 8px; border: 2px solid #e9ecef;">
+                                <option value="">-- Select Interview Type --</option>
+                                {% for type in interview_types %}
+                                    <option value="{{ type.interview_type_id }}" 
+                                        {% if interview.interview_type_id and interview.interview_type_id.interview_type_id == type.interview_type_id %}selected{% endif %}>
+                                        {{ type.type_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Date & Time Section -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-dark mb-3">
+                                <i class="fas fa-calendar-alt text-primary me-2"></i>Schedule
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="scheduled_date" class="form-label">Date</label>
+                                    <input type="date" name="scheduled_date" id="scheduled_date" class="form-control form-control-lg" 
+                                        value="{{ interview.scheduled_date.format('Y-m-d') }}" min="{{ 'now'|date('Y-m-d') }}" style="border-radius: 8px; border: 1px solid #dee2e6;">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="scheduled_time" class="form-label">Time <span class="text-muted">(Optional)</span></label>
+                                    <input type="time" name="scheduled_time" id="scheduled_time" class="form-control form-control-lg"
+                                        {% if interview.scheduled_time %}value="{{ interview.scheduled_time }}"{% endif %} style="border-radius: 8px; border: 1px solid #dee2e6;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Interview Details Section -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-dark mb-3">
+                                <i class="fas fa-sliders-h text-primary me-2"></i>Interview Details
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="duration_minutes" class="form-label">Duration <span class="badge bg-light text-dark">minutes</span></label>
+                                    <input type="number" name="duration_minutes" id="duration_minutes" class="form-control form-control-lg" 
+                                        value="{{ interview.duration_minutes }}" min="15" style="border-radius: 8px; border: 1px solid #dee2e6;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Location & Meeting Section -->
+                        <div class="mb-4">
+                            {% include 'recruiter/interview/_location_picker.html.twig' %}
+
+                            <div class="mt-4">
+                                <label for="meeting_link" class="form-label fw-bold">
+                                    <i class="fas fa-link text-primary me-2"></i>Meeting Link <span class="text-muted">(Optional)</span>
+                                </label>
+                                <input type="text" name="meeting_link" id="meeting_link" class="form-control form-control-lg"
+                                    value="{{ interview.meeting_link ?? '' }}" placeholder="e.g., https://meet.google.com/..." style="border-radius: 12px; border: 1px solid #dee2e6;">
+                            </div>
+                        </div>
+
+                        <!-- Notes Section -->
+                        <div class="mb-4">
+                            <label for="notes" class="form-label fw-bold">
+                                <i class="fas fa-sticky-note text-primary me-2"></i>Notes <span class="text-muted">(Optional)</span>
+                            </label>
+                            <textarea name="notes" id="notes" class="form-control" rows="4" placeholder="Add any additional notes..." style="border-radius: 8px; border: 1px solid #dee2e6;">{{ interview.notes ?? '' }}</textarea>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-3 pt-3">
+                            <button type="submit" class="btn btn-lg btn-success" style="border-radius: 8px; padding: 0.75rem 2rem;">
+                                <i class="fas fa-save me-2"></i>Update Interview
+                            </button>
+                            <a href="{{ path('app_interview_show', {'interviewId': interview.interview_id}) }}" class="btn btn-lg btn-outline-secondary" style="border-radius: 8px; padding: 0.75rem 2rem;">
+                                <i class="fas fa-arrow-left me-2"></i>Back
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-select-lg, .form-control-lg {
+        font-size: 1rem;
+        padding: 0.75rem 1rem;
+    }
+</style>
+{% endblock %}

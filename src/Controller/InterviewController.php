@@ -2,166 +2,269 @@
 
 namespace App\Controller;
 
-use App\Service\DatabaseService;
-use App\Service\TemplateRenderer;
+use App\Entity\Application;
+use App\Entity\Interviews;
+use App\Entity\Interview_types;
+use App\Service\InterviewService;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/interviews')]
-class InterviewController
+#[Route('/interview')]
+final class InterviewController extends AbstractController
 {
-    #[Route('', name: 'app_interviews')]
-    public function list(Request $request): Response
+    public function __construct(
+        private readonly EntityManagerInterface $entityManager,
+        private readonly InterviewService $interviewService,
+    ) {}
+
+    #[Route(name: 'app_interview_index', methods: ['GET'])]
+    public function index(): Response
     {
-        $db = new DatabaseService();
-        $renderer = new TemplateRenderer();
-        
-        $interviews = $db->getInterviews();
-        
-        // Search filter
-        $search = $request->query->get('search', '');
-        if ($search) {
-            $interviews = array_filter($interviews, function($interview) use ($search) {
-                return stripos($interview['candidate_name'], $search) !== false;
-            });
+        $user = $this->getUser();
+        $roleName = strtolower($user->getRole()?->getName() ?? '');
+
+        if ($roleName === 'admin') {
+            $interviews = $this->entityManager->getConnection()->fetchAllAssociative(
+                'SELECT
+                    i.interview_id,
+                    i.scheduled_date,
+                    i.status,
+                    i.interview_round,
+                    COALESCE(it.type_name, "N/A") AS interview_type_name,
+                    COALESCE(r.first_name, "") AS recruiter_first_name,
+                    COALESCE(r.last_name, "") AS recruiter_last_name,
+                    COALESCE(c.first_name, "") AS candidate_first_name,
+                    COALESCE(c.last_name, "") AS candidate_last_name,
+                    COALESCE(j.title, "N/A") AS job_title
+                 FROM interviews i
+                 LEFT JOIN interview_types it ON i.interview_type_id = it.interview_type_id
+                 LEFT JOIN users r ON i.recruiter_id = r.user_id
+                 LEFT JOIN application a ON i.application_id = a.applicationId
+                 LEFT JOIN users c ON a.user_id = c.user_id
+                 LEFT JOIN joboffer j ON a.jobOfferId = j.jobOfferId
+                 ORDER BY i.scheduled_date DESC'
+            );
+            return $this->render('admin/interview/index.html.twig', ['interviews' => $interviews]);
         }
-        
-        // Sort
-        $sort = $request->query->get('sort', '');
-        if ($sort === 'date_asc') {
-            usort($interviews, fn($a, $b) => strtotime($a['schedule_date']) - strtotime($b['schedule_date']));
-        } elseif ($sort === 'date_desc') {
-            usort($interviews, fn($a, $b) => strtotime($b['schedule_date']) - strtotime($a['schedule_date']));
-        } elseif ($sort === 'name_asc') {
-            usort($interviews, fn($a, $b) => strcasecmp($a['candidate_name'], $b['candidate_name']));
-        } elseif ($sort === 'name_desc') {
-            usort($interviews, fn($a, $b) => strcasecmp($b['candidate_name'], $a['candidate_name']));
+
+        if ($roleName === 'recruiter') {
+            $interviews = $this->interviewService->getRecruiterInterviews($user);
+            return $this->render('recruiter/interview/index.html.twig', ['interviews' => $interviews]);
         }
-        
-        $html = $renderer->render('interview/list.html.twig', [
-            'interviews' => $interviews,
-        ]);
-        
-        return new Response($html);
+
+        $interviews = [];
+        return $this->render('candidate/interview/index.html.twig', ['interviews' => $interviews]);
     }
 
-    #[Route('/new', name: 'app_interview_new', methods: ['GET', 'POST'])]
-    public function new(Request $request): Response
+    #[Route('/new/{applicationId}', name: 'app_interview_new', methods: ['GET', 'POST'])]
+    public function new(int $applicationId, Request $request): Response
     {
-        $db = new DatabaseService();
-        $renderer = new TemplateRenderer();
+        $user = $this->getUser();
+        $roleName = strtolower($user->getRole()?->getName() ?? '');
+
+        if ($roleName !== 'recruiter' && $roleName !== 'admin') {
+            return $this->redirectToRoute('app_interview_index');
+        }
+
+        $application = $this->entityManager->getRepository(Application::class)->find($applicationId);
+        if (!$application) {
+            throw $this->createNotFoundException('Application not found');
+        }
 
         if ($request->isMethod('POST')) {
-            $data = [
-                'application_id' => $request->request->get('application_id'),
-                'interview_type_id' => $request->request->get('interview_type_id'),
-                'schedule_date' => $request->request->get('schedule_date'),
-                'format' => $request->request->get('format'),
-                'location' => $request->request->get('location'),
-                'meeting_link' => $request->request->get('meeting_link'),
-                'status' => $request->request->get('status') ?? 'scheduled',
-                'user_id' => 1,
-            ];
+            $scheduledDateInput = (string) $request->request->get('scheduled_date', '');
 
-            try {
-                $db->createInterview($data);
-                return new Response('<script>window.location.href = "/interviews"; alert("Interview created successfully!");</script>');
-            } catch (\Exception $e) {
-                return new Response('Error creating interview: ' . $e->getMessage(), 500);
+            if ($scheduledDateInput === '') {
+                $this->addFlash('error', 'Please choose a valid interview date.');
+            } else {
+                $scheduledDate = new \DateTime($scheduledDateInput);
+
+                if ($scheduledDate < new \DateTimeImmutable('today')) {
+                    $this->addFlash('error', 'Interview date cannot be earlier than today.');
+                } else {
+                    $result = $this->interviewService->scheduleInterview(
+                        $application,
+                        $user,
+                        (int)$request->request->get('interview_type_id'),
+                        $scheduledDate,
+                        $request->request->get('scheduled_time'),
+                        (int)$request->request->get('duration_minutes'),
+                        $request->request->get('location'),
+                        $request->request->get('meeting_link'),
+                        (int)$request->request->get('interview_round', 1)
+                    );
+
+                    if ($result['success']) {
+                        $this->addFlash('success', $result['message']);
+                        return $this->redirectToRoute('app_interview_show', ['interviewId' => $result['data']->getInterview_id()]);
+                    }
+
+                    $this->addFlash('error', $result['message']);
+                }
             }
         }
 
-        $applications = $db->getApplications();
-        $interview_types = $db->getInterviewTypes();
+        $interviewTypes = $this->entityManager->getRepository(Interview_types::class)->findAll();
 
-        $html = $renderer->render('interview/form.html.twig', [
-            'action_title' => 'Create',
-            'button_text' => 'Create Interview',
-            'applications' => $applications,
-            'interview_types' => $interview_types,
-            'interview' => [],
+        return $this->render('recruiter/interview/new.html.twig', [
+            'application' => $application,
+            'interview_types' => $interviewTypes,
         ]);
-
-        return new Response($html);
     }
 
-    #[Route('/{id}', name: 'app_interview_show')]
-    public function show(int $id): Response
+    #[Route('/{interviewId}', name: 'app_interview_show', methods: ['GET'])]
+    public function show(int $interviewId): Response
     {
-        $renderer = new TemplateRenderer();
-        return new Response($renderer->render('interview/show.html.twig', [
-            'interview' => ['id' => $id],
-        ]));
-    }
+        $user = $this->getUser();
+        $interview = $this->entityManager->getRepository(Interviews::class)->find($interviewId);
 
-    #[Route('/{id}/edit', name: 'app_interview_edit', methods: ['GET', 'POST'])]
-    public function edit(int $id, Request $request): Response
-    {
-        $db = new DatabaseService();
-        $renderer = new TemplateRenderer();
-
-        $interview = $db->getInterviewById($id);
         if (!$interview) {
-            return new Response('Interview not found', 404);
+            throw $this->createNotFoundException('Interview not found');
+        }
+
+        // Authorization check
+        $roleName = strtolower($user->getRole()?->getName() ?? '');
+        if ($roleName === 'recruiter' && $interview->getRecruiter_id()->getId() !== $user->getId()) {
+            return $this->redirectToRoute('app_interview_index');
+        }
+
+        return $this->render('recruiter/interview/show.html.twig', ['interview' => $interview]);
+    }
+
+    #[Route('/{interviewId}/edit', name: 'app_interview_edit', methods: ['GET', 'POST'])]
+    public function edit(int $interviewId, Request $request): Response
+    {
+        $user = $this->getUser();
+        $interview = $this->entityManager->getRepository(Interviews::class)->find($interviewId);
+
+        if (!$interview) {
+            throw $this->createNotFoundException('Interview not found');
+        }
+
+        // Authorization check
+        if ($interview->getRecruiter_id()->getId() !== $user->getId()) {
+            return $this->redirectToRoute('app_interview_index');
         }
 
         if ($request->isMethod('POST')) {
-            $data = [
-                'application_id' => $request->request->get('application_id'),
-                'interview_type_id' => $request->request->get('interview_type_id'),
-                'schedule_date' => $request->request->get('schedule_date'),
-                'format' => $request->request->get('format'),
-                'location' => $request->request->get('location'),
-                'meeting_link' => $request->request->get('meeting_link'),
-                'status' => $request->request->get('status'),
-            ];
+            $scheduledDateInput = (string) $request->request->get('scheduled_date', '');
 
-            try {
-                $db->updateInterview($id, $data);
-                return new Response('<script>window.location.href = "/interviews"; alert("Interview updated successfully!");</script>');
-            } catch (\Exception $e) {
-                return new Response('Error updating interview: ' . $e->getMessage(), 500);
+            if ($scheduledDateInput === '') {
+                $this->addFlash('error', 'Please choose a valid interview date.');
+            } else {
+                $scheduledDate = new \DateTime($scheduledDateInput);
+
+                if ($scheduledDate < new \DateTimeImmutable('today')) {
+                    $this->addFlash('error', 'Interview date cannot be earlier than today.');
+                } else {
+                    $result = $this->interviewService->updateInterview(
+                        $interview,
+                        $request->request->get('interview_type_id') ? (int)$request->request->get('interview_type_id') : null,
+                        $scheduledDate,
+                        $request->request->get('scheduled_time'),
+                        $request->request->get('duration_minutes') ? (int)$request->request->get('duration_minutes') : null,
+                        $request->request->get('location'),
+                        $request->request->get('meeting_link'),
+                        $request->request->get('notes')
+                    );
+
+                    if ($result['success']) {
+                        $this->addFlash('success', $result['message']);
+                        return $this->redirectToRoute('app_interview_show', ['interviewId' => $interviewId]);
+                    }
+
+                    $this->addFlash('error', $result['message']);
+                }
             }
         }
 
-        $applications = $db->getApplications();
-        $interview_types = $db->getInterviewTypes();
+        $interviewTypes = $this->entityManager->getRepository(Interview_types::class)->findAll();
 
-        $html = $renderer->render('interview/form.html.twig', [
-            'action_title' => 'Edit',
-            'button_text' => 'Update Interview',
-            'applications' => $applications,
-            'interview_types' => $interview_types,
+        return $this->render('recruiter/interview/edit.html.twig', [
             'interview' => $interview,
+            'interview_types' => $interviewTypes,
         ]);
-
-        return new Response($html);
     }
 
-    #[Route('/{id}/delete', name: 'app_interview_delete', methods: ['POST'])]
-    public function delete(int $id): Response
+    #[Route('/{interviewId}/complete', name: 'app_interview_complete', methods: ['POST'])]
+    public function complete(int $interviewId): Response
     {
-        $db = new DatabaseService();
+        $user = $this->getUser();
+        $interview = $this->entityManager->getRepository(Interviews::class)->find($interviewId);
 
-        try {
-            $db->deleteInterview($id);
-            return new Response('<script>window.location.href = "/interviews"; alert("Interview deleted successfully!");</script>');
-        } catch (\Exception $e) {
-            return new Response('Error deleting interview: ' . $e->getMessage(), 500);
+        if (!$interview) {
+            throw $this->createNotFoundException('Interview not found');
         }
+
+        // Authorization check
+        if ($interview->getRecruiter_id()->getId() !== $user->getId()) {
+            return $this->redirectToRoute('app_interview_index');
+        }
+
+        $result = $this->interviewService->completeInterview($interview);
+
+        if ($result['success']) {
+            $this->addFlash('success', $result['message']);
+        } else {
+            $this->addFlash('error', $result['message']);
+        }
+
+        return $this->redirectToRoute('app_interview_show', ['interviewId' => $interviewId]);
     }
 
-    #[Route('/{id}/complete', name: 'app_interview_complete', methods: ['POST'])]
-    public function complete(int $id): Response
+    #[Route('/{interviewId}/cancel', name: 'app_interview_cancel', methods: ['POST'])]
+    public function cancel(int $interviewId): Response
     {
-        $db = new DatabaseService();
-        try {
-            $interview = $db->getInterviewById($id);
-            $db->updateInterview($id, array_merge($interview, ['status' => 'completed']));
-            return new Response('<script>window.location.href = "/interviews"; alert("Interview completed!");</script>');
-        } catch (\Exception $e) {
-            return new Response('Error: ' . $e->getMessage(), 500);
+        $user = $this->getUser();
+        $interview = $this->entityManager->getRepository(Interviews::class)->find($interviewId);
+
+        if (!$interview) {
+            throw $this->createNotFoundException('Interview not found');
         }
+
+        // Authorization check
+        if ($interview->getRecruiter_id()->getId() !== $user->getId()) {
+            return $this->redirectToRoute('app_interview_index');
+        }
+
+        $result = $this->interviewService->cancelInterview($interview);
+
+        if ($result['success']) {
+            $this->addFlash('success', $result['message']);
+        } else {
+            $this->addFlash('error', $result['message']);
+        }
+
+        return $this->redirectToRoute('app_interview_index');
+    }
+
+    #[Route('/{interviewId}/delete', name: 'app_interview_delete', methods: ['POST'])]
+    public function delete(int $interviewId): Response
+    {
+        $user = $this->getUser();
+        $interview = $this->entityManager->getRepository(Interviews::class)->find($interviewId);
+
+        if (!$interview) {
+            throw $this->createNotFoundException('Interview not found');
+        }
+
+        // Authorization check - only recruiter owner or admin
+        $roleName = strtolower($user->getRole()?->getName() ?? '');
+        if ($roleName === 'recruiter' && $interview->getRecruiter_id()->getId() !== $user->getId()) {
+            return $this->redirectToRoute('app_interview_index');
+        }
+
+        try {
+            $this->entityManager->remove($interview);
+            $this->entityManager->flush();
+            $this->addFlash('success', 'Interview deleted successfully');
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Failed to delete interview: ' . $e->getMessage());
+        }
+
+        return $this->redirectToRoute('app_interview_index');
     }
 }

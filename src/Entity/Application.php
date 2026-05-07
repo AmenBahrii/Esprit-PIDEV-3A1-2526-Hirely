@@ -2,347 +2,370 @@
 
 namespace App\Entity;
 
-<<<<<<< HEAD
-use App\Repository\ApplicationRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: ApplicationRepository::class)]
-#[ORM\Table(name: 'applications')]
-=======
-use Doctrine\DBAL\Types\Types;
-use Doctrine\ORM\Mapping as ORM;
+use App\Entity\Joboffer;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use App\Entity\Interviews;
+use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
-use App\Repository\ApplicationRepository;
-
-#[ORM\Entity(repositoryClass: ApplicationRepository::class)]
-#[ORM\Table(name: 'application')]
->>>>>>> OnboardingCoordination
+#[ORM\Entity]
+#[UniqueEntity(fields: ['user', 'jobOffer'], message: "Cannot apply to the same offer twice.")]
+#[Vich\Uploadable]
 class Application
 {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-<<<<<<< HEAD
-    #[ORM\Column(type: 'integer')]
-    private ?int $id = null;
-
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private ?string $jobId = null;
-
-    #[ORM\Column(type: 'string', length: 255)]
-    private ?string $candidateName = null;
-
-    #[ORM\Column(type: 'string', length: 50)]
-    private string $status = 'applied';
-
-    #[ORM\Column(type: 'datetime')]
-    private ?\DateTimeInterface $createdAt = null;
-
-    #[ORM\OneToMany(targetEntity: Interview::class, mappedBy: 'application')]
-    private Collection $interviews;
-
     public function __construct()
     {
-        $this->interviews = new ArrayCollection();
-        $this->createdAt = new \DateTime();
-=======
-    #[ORM\Column(name: 'applicationId', type: 'integer')]
-    private ?int $applicationId = null;
+        $this->availabilityDate = new \DateTimeImmutable();
+        $this->interviewss = new ArrayCollection();
+    }
 
-    public function getApplicationId(): ?int
+    #[ORM\Id]
+#[ORM\GeneratedValue]
+#[ORM\Column(name: "applicationId", type: "integer")]
+private ?int $applicationId = null;
+
+    #[ORM\Column(name: "applicationDate", type: "date")]
+#[Assert\NotNull(message: "Application date is required")]
+private \DateTimeInterface $applicationDate;
+
+    #[ORM\Column(name: "coverLetter", type: "text")]
+#[Assert\NotBlank(message: "Cover letter is required")]
+#[Assert\Length(min: 10, minMessage: "Cover letter must be at least {{ limit }} characters")]
+private string $coverLetter;
+
+#[ORM\Column(name: "currentStatus", type: "string", length: 50)]
+#[Assert\NotBlank(message: "Status is required")]
+#[Assert\Choice(choices: ["pending", "Accepted", "Rejected"], message: "Please choose a valid status")]
+private string $currentStatus;
+
+#[ORM\Column(name: "resumePath", type: "string", length: 255, nullable: true)]
+#[Assert\Length(max: 255)]
+private ?string $resumePath = null;
+
+#[Vich\UploadableField(mapping: 'application_resume', fileNameProperty: 'resumePath')]
+#[Assert\File(
+    maxSize: '5M',
+    mimeTypes: [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/rtf',
+        'text/rtf',
+    ],
+    mimeTypesMessage: 'Please upload a valid resume file (PDF, DOC, DOCX, or RTF).'
+)]
+private ?File $resumeFile = null;
+
+#[ORM\Column(name: "lastUpdateDate", type: "datetime")]
+#[Assert\NotNull(message: "Last update date is required")]
+private \DateTimeInterface $lastUpdateDate;
+
+        #[ORM\ManyToOne(targetEntity: Users::class, inversedBy: "applications")]
+#[ORM\JoinColumn(name: "user_id", referencedColumnName: "user_id", onDelete: "CASCADE")]
+#[Assert\NotNull(message: "A candidate is required for the application")]
+private ?Users $user = null;
+
+        #[ORM\ManyToOne(targetEntity: Joboffer::class, inversedBy: "applications")]
+#[ORM\JoinColumn(name: "jobOfferId", referencedColumnName: "jobOfferId")]
+#[Assert\NotNull(message: "A job offer is required for the application")]
+private ?Joboffer $jobOffer = null;
+
+    #[ORM\Column(name: "expectedSalary", type: "float")]
+#[Assert\NotBlank(message: "Expected salary is required")]
+#[Assert\PositiveOrZero(message: "Expected salary must be positive")]
+private float $expectedSalary;
+
+#[ORM\Column(name: "availabilityDate", type: "date")]
+#[Assert\NotBlank(message: "Availability date is required")]
+#[Assert\GreaterThanOrEqual("today", message: "Date cannot be in the past")]
+private \DateTimeInterface $availabilityDate;
+
+#[ORM\Column(name: "phone", type: "string", length: 50)]
+#[Assert\NotBlank(message: "Phone is required")]
+#[Assert\Length(min: 8, max: 50, minMessage: "Phone must contain at least {{ limit }} characters")]
+#[Assert\Regex(pattern: "/^[0-9+()\\- ]+$/", message: "Phone number contains invalid characters")]
+private string $phone;
+
+#[ORM\Column(name: "email", type: "string", length: 255)]
+#[Assert\NotBlank(message: "Email is required")]
+#[Assert\Email(message: "Invalid email format")]
+private string $email;
+
+#[ORM\Column(name: "experienceYears", type: "integer")]
+#[Assert\NotBlank(message: "Experience is required")]
+#[Assert\PositiveOrZero(message: "Experience cannot be negative")]
+private int $experienceYears;
+
+#[ORM\Column(name: "portfolioUrl", type: "string", length: 255)]
+#[Assert\NotBlank(message: "Portfolio URL is required")]
+#[Assert\Url(message: "Portfolio must be a valid URL")]
+private string $portfolioUrl;
+
+#[ORM\Column(name: "score", type: "float", nullable: true)]
+#[Assert\PositiveOrZero(message: "Score cannot be negative")]
+#[Assert\LessThanOrEqual(value: 100, message: "Score cannot be greater than 100")]
+private ?float $score = null;
+
+#[ORM\Column(name: "reviewNote", type: "text", nullable: true)]
+#[Assert\Length(max: 5000, maxMessage: "Review note cannot exceed {{ limit }} characters")]
+private ?string $reviewNote = null;
+
+    public function getApplicationId()
     {
         return $this->applicationId;
->>>>>>> OnboardingCoordination
     }
 
-    public function getId(): ?int
+    public function setApplicationId($value)
     {
-<<<<<<< HEAD
-        return $this->id;
+        $this->applicationId = $value;
     }
 
-    public function getJobId(): ?string
-    {
-        return $this->jobId;
-    }
-
-    public function setJobId(?string $jobId): self
-    {
-        $this->jobId = $jobId;
-        return $this;
-    }
-
-    public function getCandidateName(): ?string
-    {
-        return $this->candidateName;
-    }
-
-    public function setCandidateName(string $candidateName): self
-    {
-        $this->candidateName = $candidateName;
-        return $this;
-    }
-
-    public function getStatus(): string
-    {
-        return $this->status;
-    }
-
-    public function setStatus(string $status): self
-    {
-        $this->status = $status;
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeInterface
-    {
-        return $this->createdAt;
-    }
-
-    public function getInterviews(): Collection
-    {
-        return $this->interviews;
-    }
-
-    public function addInterview(Interview $interview): self
-    {
-        if (!$this->interviews->contains($interview)) {
-            $this->interviews->add($interview);
-            $interview->setApplication($this);
-        }
-        return $this;
-    }
-=======
-        return $this->applicationId;
-    }
-
-    public function setApplicationId(int $applicationId): self
-    {
-        $this->applicationId = $applicationId;
-        return $this;
-    }
-
-    public function setId(int $id): self
-    {
-        $this->applicationId = $id;
-
-        return $this;
-    }
-
-    #[ORM\Column(name: 'applicationDate', type: 'date', nullable: true)]
-    private ?\DateTimeInterface $applicationDate = null;
-
-    public function getApplicationDate(): ?\DateTimeInterface
+    public function getApplicationDate()
     {
         return $this->applicationDate;
     }
 
-    public function setApplicationDate(?\DateTimeInterface $applicationDate): self
+    public function setApplicationDate($value)
     {
-        $this->applicationDate = $applicationDate;
-        return $this;
+        $this->applicationDate = $value;
     }
 
-    #[ORM\Column(name: 'coverLetter', type: 'text', nullable: true)]
-    private ?string $coverLetter = null;
-
-    public function getCoverLetter(): ?string
+    public function getCoverLetter()
     {
         return $this->coverLetter;
     }
 
-    public function setCoverLetter(?string $coverLetter): self
+    public function setCoverLetter($value)
     {
-        $this->coverLetter = $coverLetter;
-        return $this;
+        $this->coverLetter = $value;
     }
 
-    #[ORM\Column(name: 'currentStatus', type: 'string', nullable: true)]
-    private ?string $currentStatus = null;
-
-    public function getCurrentStatus(): ?string
+    public function getCurrentStatus()
     {
         return $this->currentStatus;
     }
 
-    public function setCurrentStatus(?string $currentStatus): self
+    public function setCurrentStatus($value)
     {
-        $this->currentStatus = $currentStatus;
-        return $this;
+        $this->currentStatus = $value;
     }
 
-    #[ORM\Column(name: 'resumePath', type: 'string', nullable: true)]
-    private ?string $resumePath = null;
-
-    public function getResumePath(): ?string
+    public function getResumePath()
     {
         return $this->resumePath;
     }
 
-    public function setResumePath(?string $resumePath): self
+    public function setResumePath($value)
     {
-        $this->resumePath = $resumePath;
+        $this->resumePath = $value;
+    }
+
+    public function getResumeFile(): ?File
+    {
+        return $this->resumeFile;
+    }
+
+    public function setResumeFile(?File $resumeFile): self
+    {
+        $this->resumeFile = $resumeFile;
+
+        if ($resumeFile !== null) {
+            $this->lastUpdateDate = new \DateTime();
+        }
+
         return $this;
     }
 
-    #[ORM\Column(name: 'lastUpdateDate', type: 'datetime', nullable: true)]
-    private ?\DateTimeInterface $lastUpdateDate = null;
-
-    public function getLastUpdateDate(): ?\DateTimeInterface
+    public function getLastUpdateDate()
     {
         return $this->lastUpdateDate;
     }
 
-    public function setLastUpdateDate(?\DateTimeInterface $lastUpdateDate): self
+    public function setLastUpdateDate($value)
     {
-        $this->lastUpdateDate = $lastUpdateDate;
-        return $this;
+        $this->lastUpdateDate = $value;
     }
 
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'applications')]
-    #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'user_id')]
-    private ?User $user = null;
+    public function getUser(): ?Users
+{
+    return $this->user;
+}
 
-    public function getUser(): ?User
-    {
-        return $this->user;
-    }
+public function setUser(?Users $user): self
+{
+    $this->user = $user;
+    return $this;
+}
 
-    public function setUser(?User $user): self
-    {
-        $this->user = $user;
-        return $this;
-    }
+    public function getJobOffer(): ?Joboffer
+{
+    return $this->jobOffer;
+}
 
-    #[ORM\ManyToOne(targetEntity: Joboffer::class, inversedBy: 'applications')]
-    #[ORM\JoinColumn(name: 'jobOfferId', referencedColumnName: 'jobOfferId')]
-    private ?Joboffer $joboffer = null;
+public function setJobOffer(?Joboffer $jobOffer): self
+{
+    $this->jobOffer = $jobOffer;
+    return $this;
+}
 
-    public function getJoboffer(): ?Joboffer
-    {
-        return $this->joboffer;
-    }
-
-    public function setJoboffer(?Joboffer $joboffer): self
-    {
-        $this->joboffer = $joboffer;
-        return $this;
-    }
-
-    #[ORM\Column(name: 'expectedSalary', type: 'decimal', nullable: true)]
-    private ?string $expectedSalary = null;
-
-    public function getExpectedSalary(): ?string
+    public function getExpectedSalary()
     {
         return $this->expectedSalary;
     }
 
-    public function setExpectedSalary(?string $expectedSalary): self
+    public function setExpectedSalary($value)
     {
-        $this->expectedSalary = $expectedSalary;
-        return $this;
+        $this->expectedSalary = $value;
     }
 
-    #[ORM\Column(name: 'availabilityDate', type: 'date', nullable: true)]
-    private ?\DateTimeInterface $availabilityDate = null;
-
-    public function getAvailabilityDate(): ?\DateTimeInterface
+    public function getAvailabilityDate()
     {
         return $this->availabilityDate;
     }
 
-    public function setAvailabilityDate(?\DateTimeInterface $availabilityDate): self
+    public function setAvailabilityDate($value)
     {
-        $this->availabilityDate = $availabilityDate;
-        return $this;
+        $this->availabilityDate = $value;
     }
 
-    #[ORM\Column(type: 'string', nullable: true)]
-    private ?string $phone = null;
-
-    public function getPhone(): ?string
+    public function getPhone()
     {
         return $this->phone;
     }
 
-    public function setPhone(?string $phone): self
+    public function setPhone($value)
     {
-        $this->phone = $phone;
-        return $this;
+        $this->phone = $value;
     }
 
-    #[ORM\Column(type: 'string', nullable: true)]
-    private ?string $email = null;
-
-    public function getEmail(): ?string
+    public function getEmail()
     {
         return $this->email;
     }
 
-    public function setEmail(?string $email): self
+    public function setEmail($value)
     {
-        $this->email = $email;
-        return $this;
+        $this->email = $value;
     }
 
-    #[ORM\Column(name: 'experienceYears', type: 'integer', nullable: true)]
-    private ?int $experienceYears = null;
-
-    public function getExperienceYears(): ?int
+    public function getExperienceYears()
     {
         return $this->experienceYears;
     }
 
-    public function setExperienceYears(?int $experienceYears): self
+    public function setExperienceYears($value)
     {
-        $this->experienceYears = $experienceYears;
-        return $this;
+        $this->experienceYears = $value;
     }
 
-    #[ORM\Column(name: 'portfolioUrl', type: 'string', nullable: true)]
-    private ?string $portfolioUrl = null;
-
-    public function getPortfolioUrl(): ?string
+    public function getPortfolioUrl()
     {
         return $this->portfolioUrl;
     }
 
-    public function setPortfolioUrl(?string $portfolioUrl): self
+    public function setPortfolioUrl($value)
     {
-        $this->portfolioUrl = $portfolioUrl;
-        return $this;
+        $this->portfolioUrl = $value;
     }
 
-    #[ORM\Column(type: 'decimal', nullable: true)]
-    private ?string $score = null;
+    public function getScore(): ?float
+{
+    return $this->score;
+}
 
-    public function getScore(): ?string
+    public function setScore($value)
     {
-        return $this->score;
+        $this->score = $value;
     }
-
-    public function setScore(?string $score): self
-    {
-        $this->score = $score;
-        return $this;
-    }
-
-    #[ORM\Column(name: 'reviewNote', type: 'text', nullable: true)]
-    private ?string $reviewNote = null;
 
     public function getReviewNote(): ?string
+{
+    return $this->reviewNote;
+}
+
+    public function setReviewNote($value)
     {
-        return $this->reviewNote;
+        $this->reviewNote = $value;
     }
 
-    public function setReviewNote(?string $reviewNote): self
-    {
-        $this->reviewNote = $reviewNote;
-        return $this;
-    }
+    /**
+     * @var Collection<int, Interviews>
+     */
+    #[ORM\OneToMany(mappedBy: "application_id", targetEntity: Interviews::class)]
+    private Collection $interviewss;
 
->>>>>>> OnboardingCoordination
+        public function getInterviewss(): Collection
+        {
+            return $this->interviewss;
+        }
+    
+        public function addInterviews(Interviews $interviews): self
+        {
+            if (!$this->interviewss->contains($interviews)) {
+                $this->interviewss[] = $interviews;
+                $interviews->setApplication_id($this);
+            }
+    
+            return $this;
+        }
+    
+        public function removeInterviews(Interviews $interviews): self
+        {
+            if ($this->interviewss->removeElement($interviews)) {
+                // set the owning side to null (unless already changed)
+                if ($interviews->getApplication_id() === $this) {
+                    $interviews->setApplication_id(null);
+                }
+            }
+    
+            return $this;
+        }
+
+    #[Assert\Callback]
+    public function validateBusinessRules(ExecutionContextInterface $context): void
+    {
+        if ($this->resumeFile === null && $this->resumePath === null) {
+            $context->buildViolation('Resume is required')
+                ->atPath('resumeFile')
+                ->addViolation();
+        }
+
+        if ($this->availabilityDate < $this->applicationDate) {
+            $context->buildViolation('Availability date cannot be before the application date.')
+                ->atPath('availabilityDate')
+                ->addViolation();
+        }
+
+        if ($this->jobOffer instanceof Joboffer && $this->availabilityDate < $this->jobOffer->getPublicationDate()) {
+            $context->buildViolation('Availability date cannot be before the publication date of the selected job offer.')
+                ->atPath('availabilityDate')
+                ->addViolation();
+        }
+
+        if ($this->jobOffer instanceof Joboffer) {
+            if (strcasecmp($this->jobOffer->getStatus(), 'Open') !== 0) {
+                $context->buildViolation('You can only apply to open job offers.')
+                    ->atPath('jobOffer')
+                    ->addViolation();
+            }
+
+            if (isset($this->experienceYears) && $this->experienceYears < $this->jobOffer->getExperienceRequired()) {
+                $context->buildViolation('Your experience must meet or exceed the experience required for this job offer.')
+                    ->atPath('experienceYears')
+                    ->addViolation();
+            }
+        }
+
+        if ($this->user instanceof Users && strcasecmp($this->email, $this->user->getEmail()) !== 0) {
+            $context->buildViolation('Application email must match the email of the logged-in candidate.')
+                ->atPath('email')
+                ->addViolation();
+        }
+    }
 }

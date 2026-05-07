@@ -2,7 +2,7 @@
 
 namespace App\Form;
 
-use App\Entity\User;
+use App\Entity\Users;
 use App\Onboarding\OnboardingPlanTemplateSelection;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
@@ -24,8 +24,8 @@ final class OnboardingPlanTemplateAssignmentType extends AbstractType
                 'multiple' => false,
             ])
             ->add('user', EntityType::class, [
-                'class' => User::class,
-                'choice_label' => static function (User $user): string {
+                'class' => Users::class,
+                'choice_label' => static function (Users $user): string {
                     return trim($user->getFirstName() . ' ' . $user->getLastName());
                 },
                 'label' => 'User',

@@ -1,27 +1,4 @@
-{{ form_start(form, {'attr': {'class': 'module-page'}}) }}
-    <div class="module-form-grid">
-        <div class="module-field">
-            <label>Name</label>
-            {{ form_widget(form.name, {'attr': {'class': 'form-input'}}) }}
-            {{ form_errors(form.name) }}
-        </div>
-        <div class="module-field">
-            <label>Status</label>
-            {{ form_widget(form.status, {'attr': {'class': 'form-input'}}) }}
-            {{ form_errors(form.status) }}
-        </div>
-        <div class="module-field full">
-            <label>Description</label>
-            {{ form_widget(form.description, {'attr': {'class': 'form-input'}}) }}
-            {{ form_errors(form.description) }}
-        </div>
-        <div class="module-field full">
-            <label>Default dashboard</label>
-            {{ form_widget(form.defaultDashboard, {'attr': {'class': 'form-input'}}) }}
-            {{ form_errors(form.defaultDashboard) }}
-        </div>
-    </div>
-    <div class="inline-actions">
-        <button type="submit" class="btn-primary topbar-logout-link">{{ button_label|default('Save role') }}</button>
-    </div>
+{{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+    {{ form_widget(form) }}
+    <button class="btn">{{ button_label|default('Save') }}</button>
 {{ form_end(form) }}

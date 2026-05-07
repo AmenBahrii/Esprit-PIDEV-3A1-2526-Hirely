@@ -7,7 +7,14 @@ use App\Repository\OnboardingtaskRepository;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: OnboardingtaskRepository::class)]
-#[ORM\Table(name: 'onboardingtask')]
+#[ORM\Table(
+    name: 'onboardingtask',
+    indexes: [
+        new ORM\Index(name: 'idx_onboardingtask_plan', columns: ['planId']),
+        new ORM\Index(name: 'idx_onboardingtask_plan_task', columns: ['planId', 'taskId']),
+        new ORM\Index(name: 'idx_onboardingtask_status_deadline', columns: ['status', 'deadline']),
+    ]
+)]
 class Onboardingtask
 {
     public const STATUS_NOT_STARTED = 'not_started';
@@ -38,7 +45,7 @@ class Onboardingtask
     private ?int $taskId = null;
 
     #[ORM\ManyToOne(targetEntity: Onboardingplan::class, inversedBy: 'onboardingtasks')]
-    #[ORM\JoinColumn(name: 'planId', referencedColumnName: 'planId', nullable: false)]
+    #[ORM\JoinColumn(name: 'planId', referencedColumnName: 'planId', nullable: true, onDelete: 'CASCADE')]
     #[Assert\NotNull(message: 'This task must belong to an onboarding plan.', groups: ['full_edit'])]
     private ?Onboardingplan $plan = null;
 
@@ -65,7 +72,7 @@ class Onboardingtask
     #[ORM\Column(type: 'string', nullable: false)]
     #[Assert\NotBlank(message: 'Please choose a task status.')]
     #[Assert\Choice(choices: self::STATUS_VALUES, message: 'Please choose a valid task status.')]
-    private ?string $status = self::STATUS_NOT_STARTED;
+    private string $status = self::STATUS_NOT_STARTED;
 
     #[ORM\Column(type: 'date', nullable: true)]
     #[Assert\GreaterThanOrEqual(
@@ -93,7 +100,7 @@ class Onboardingtask
     )]
     private ?string $cloudinary_public_id = null;
 
-    #[ORM\Column(type: 'string', nullable: true)]
+    #[ORM\Column(type: 'string', length: 120, nullable: true)]
     #[Assert\Length(
         max: 255,
         maxMessage: 'The original file name cannot be longer than {{ limit }} characters.'
@@ -151,14 +158,14 @@ class Onboardingtask
         return $this;
     }
 
-    public function getStatus(): ?string
+    public function getStatus(): string
     {
         return $this->status;
     }
 
-    public function setStatus(?string $status): self
+    public function setStatus(string $status): self
     {
-        $this->status = null !== $status ? trim($status) : null;
+        $this->status = trim($status);
         return $this;
     }
 

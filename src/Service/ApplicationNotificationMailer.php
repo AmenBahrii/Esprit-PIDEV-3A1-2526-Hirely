@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Application;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
@@ -148,7 +149,7 @@ class ApplicationNotificationMailer
             $email->html($htmlBody);
 
             $this->mailer->send($email);
-        } catch (\Throwable $exception) {
+        } catch (TransportExceptionInterface $exception) {
             $this->logger->error('Application email notification failed.', [
                 'to' => $toAddress,
                 'subject' => $subject,

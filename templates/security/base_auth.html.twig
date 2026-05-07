@@ -1,194 +1,269 @@
-{% extends 'base.html.twig' %}
-
-{% block stylesheets %}
-    {{ parent() }}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}Login{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        .auth-shell {
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 32px 18px;
-            background:
-                radial-gradient(circle at top left, rgba(207, 36, 170, 0.18), transparent 32%),
-                radial-gradient(circle at top right, rgba(117, 15, 121, 0.16), transparent 30%),
-                linear-gradient(145deg, #4b1653 0%, #171b35 56%, #6c245f 100%);
-        }
-
-        .auth-card {
-            width: min(100%, 460px);
-            padding: 32px;
-            border-radius: 28px;
-            background: rgba(255, 255, 255, 0.96);
-            border: 1px solid rgba(255, 255, 255, 0.7);
-            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
-        }
-
-        .auth-header {
-            margin-bottom: 24px;
-            text-align: center;
-        }
-
-        .auth-brand {
-            margin: 0 0 6px;
-            color: #231e53;
-            font-size: 2rem;
-            font-weight: 800;
-            line-height: 1.05;
-        }
-
-        .auth-title {
+        html, body {
             margin: 0;
-            color: #231e53;
-            font-size: 1.2rem;
-            font-weight: 700;
+            min-height: 100%;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #0f172a;
         }
+        .login-container {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background:
+        radial-gradient(circle at top left, rgba(207, 36, 170, 0.22), transparent 32%),
+        radial-gradient(circle at top right, rgba(117, 15, 121, 0.22), transparent 30%),
+        linear-gradient(145deg, #640d50, #111827 55%, #851f75);
+    padding: 32px 18px;
+}
 
-        .auth-text {
-            margin: 8px 0 0;
-            color: #64748b;
-            font-size: 0.95rem;
-            line-height: 1.6;
-        }
+.login-card {
+    background: rgba(255, 255, 255, 0.96);
+    padding: 32px;
+    border-radius: 8px;
+    width: min(100%, 440px);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
+}
 
-        .flash-stack {
-            display: grid;
-            gap: 12px;
-            margin-bottom: 18px;
-        }
+.login-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
 
-        .auth-form {
-            display: grid;
-            gap: 14px;
-        }
+.login-header h2 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 30px;
+}
 
-        .auth-field {
-            display: grid;
+.login-header p {
+    color: #475569;
+    font-size: 14px;
+    margin-top: 8px;
+}
+.btn {
+            padding: 12px 14px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             gap: 8px;
         }
 
-        .auth-field label,
-        .auth-label {
-            color: #231e53;
-            font-size: 0.92rem;
-            font-weight: 700;
-        }
+        .btn-primary {
+    background: #ef7511;
+    color: white;
+    box-shadow: 0 10px 20px rgba(37, 99, 235, 0.22);
+}
 
-        .auth-actions {
-            display: grid;
-            gap: 12px;
-            margin-top: 6px;
-        }
+.btn-secondary {
+    background: #f8fafc;
+    color: #0f172a;
+    border: 1px solid #cbd5e1;
+}
 
-        .auth-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            font-size: 0.9rem;
-            color: #5f6b85;
-        }
+.btn-google {
+    background: #ffffff;
+    color: #0f172a;
+    border: 1px solid #dbe3f0;
+}
 
-        .auth-note-card {
-            margin-top: 18px;
-            padding: 16px 18px;
-            border-radius: 18px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-        }
+.btn-danger {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
 
-        .auth-note-card h3 {
-            margin: 0 0 8px;
-            color: #231e53;
-            font-size: 1rem;
-            font-weight: 700;
-        }
+.btn:hover {
+    transform: translateY(-1px);
+}
+.form-group {
+    margin-bottom: 15px;
+}
 
-        .auth-note-card p {
-            margin: 0;
-            color: #64748b;
-            font-size: 0.88rem;
-            line-height: 1.6;
-        }
+.form-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    outline: none;
+    font-size: 14px;
+}
 
-        .field-hint {
-            margin: 0;
-            color: #64748b;
-            font-size: 0.8rem;
-            line-height: 1.5;
-        }
+.form-input:focus {
+    border-color: #eb9925;
+    box-shadow: 0 0 0 3px rgba(138, 96, 17, 0.21);
+}
 
-        .field-error-box,
-        .form-shell-error-box {
-            padding: 10px 12px;
-            border-radius: 14px;
-            background: #fff1f2;
-            border: 1px solid #fecdd3;
-        }
+.login-btn {
+    width: 100%;
+    margin-top: 10px;
+}
 
-        .field-errors,
-        .field-errors ul,
-        .form-shell-error,
-        .form-shell-error ul {
-            margin: 0;
-            padding: 0;
-            list-style: none;
-            color: #b91c1c;
-            font-size: 0.82rem;
-            line-height: 1.45;
-        }
+.login-options {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-bottom: 10px;
+}
 
-        .auth-footer {
-            margin-top: 18px;
-            text-align: center;
-            color: #64748b;
-            font-size: 0.9rem;
-        }
+.error {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
 
-        .auth-footer a,
-        .auth-meta a {
-            color: #ef7511;
-            font-weight: 700;
-            text-decoration: none;
-        }
+.logged-in {
+    font-size: 13px;
+    margin-bottom: 10px;
+}
 
-        .auth-footer a:hover,
-        .auth-meta a:hover {
-            text-decoration: underline;
-        }
+.flash-list {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 16px;
+}
 
-        @media (max-width: 640px) {
-            .auth-shell {
-                align-items: flex-start;
-                padding: 24px 14px;
-            }
+.flash {
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+}
 
-            .auth-card {
-                padding: 24px 20px;
-                border-radius: 24px;
-            }
+.flash-success {
+    background: #dcfce7;
+    color: #166534;
+}
 
-            .auth-meta {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-        }
+.flash-error {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 18px 0;
+    color: #64748b;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+    height: 1px;
+    background: #e2e8f0;
+    flex: 1;
+}
+
+.auth-panel {
+    margin-top: 18px;
+    padding: 18px;
+    border-radius: 8px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+
+.auth-panel h3 {
+    margin: 0 0 8px;
+    color: #0f172a;
+    font-size: 16px;
+}
+
+.auth-panel p {
+    margin: 0 0 14px;
+    color: #475569;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.camera-frame {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    background: #0f172a;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.camera-frame video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.stack {
+    display: grid;
+    gap: 10px;
+}
+
+.row-actions {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.status-text {
+    min-height: 20px;
+    font-size: 13px;
+    color: #475569;
+}
+
+.status-text[data-tone="success"] {
+    color: #166534;
+}
+
+.status-text[data-tone="error"] {
+    color: #b91c1c;
+}
+
+.signup-section,
+.signup-link {
+    margin-top: 18px;
+    text-align: center;
+    color: #475569;
+    font-size: 14px;
+}
+
+.signup-link a,
+.logged-in a {
+    color: #d86b11;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+@media (max-width: 640px) {
+    .login-card {
+        padding: 24px;
+    }
+
+    .row-actions {
+        grid-template-columns: 1fr;
+    }
+}
     </style>
-{% endblock %}
+</head>
+<body>
 
-{% block body %}
-    <div class="auth-shell">
-        <div class="auth-card">
-            {% for label, messages in app.flashes %}
-                {% if messages is not empty %}
-                    <div class="flash-stack">
-                        {% for message in messages %}
-                            <div class="flash-message {{ label }}">{{ message }}</div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            {% endfor %}
-            {% block auth_body %}{% endblock %}
-        </div>
-    </div>
-{% endblock %}
+{% block content %}{% endblock %}
+
+</body>
+</html>

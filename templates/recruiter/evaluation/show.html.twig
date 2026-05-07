@@ -1,0 +1,157 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Evaluation Details - Hirely{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3>Evaluation Details</h3>
+                        <span class="badge {% if evaluation.is_draft %}bg-secondary{% else %}bg-success{% endif %}">
+                            {% if evaluation.is_draft %}Draft{% else %}Submitted{% endif %}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4 p-3 bg-light rounded">
+                        <h6 class="text-muted">Candidate Information</h6>
+                        <p>
+                            <strong>Name:</strong> 
+                            {% if evaluation.interview_id.application_id.user %}
+                                {{ evaluation.interview_id.application_id.user.firstName }} {{ evaluation.interview_id.application_id.user.lastName }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </p>
+                        <p>
+                            <strong>Job Offer:</strong> 
+                            {% if evaluation.interview_id.application_id.jobOffer %}
+                                {{ evaluation.interview_id.application_id.jobOffer.title }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <h5 class="alert-heading">Overall Rating</h5>
+                        <h3><strong>{{ evaluation.overall_rating }}/10</strong></h3>
+                    </div>
+
+                    <h5>Evaluation Scores</h5>
+                    <div class="mb-4 table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Criterion</th>
+                                    <th>Score</th>
+                                    <th>Comment</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for score in evaluation.evaluation_scores %}
+                                    <tr>
+                                        <td>
+                                            {% if score.criteria_id %}
+                                                {{ score.criteria_id.criteria_name }}
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <strong>{{ score.score }}/10</strong>
+                                        </td>
+                                        <td>{{ score.comments ?? 'No comment' }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-3">
+                        <h6 class="text-muted">Recommendation</h6>
+                        <p>
+                            <span class="badge bg-info">{{ evaluation.recommendation|capitalize }}</span>
+                        </p>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="text-muted">Hire Decision</h6>
+                        <p>
+                            <span class="badge 
+                                {% if evaluation.hire_decision == 'hire' %}bg-success
+                                {% elseif evaluation.hire_decision == 'no_hire' %}bg-danger
+                                {% elseif evaluation.hire_decision == 'maybe' %}bg-warning
+                                {% else %}bg-secondary
+                                {% endif %}">
+                                {{ evaluation.hire_decision|capitalize }}
+                            </span>
+                        </p>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="text-muted">Strengths</h6>
+                        <p>{{ evaluation.strengths }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="text-muted">Weaknesses</h6>
+                        <p>{{ evaluation.weaknesses }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="text-muted">General Comments</h6>
+                        <p>{{ evaluation.general_comments ?? 'None' }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="text-muted">Next Steps</h6>
+                        <p>{{ evaluation.next_steps ?? 'None' }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="text-muted">Evaluated Date</h6>
+                        <p>{{ evaluation.evaluated_at.format('F d, Y H:i') }}</p>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex gap-2">
+                        <a href="{{ path('app_evaluation_index') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </a>
+
+                        <a href="{{ path('app_evaluation_export_pdf', {'evaluationId': evaluation.evaluation_id}) }}" class="btn btn-dark">
+                            <i class="fas fa-file-pdf"></i> Export PDF
+                        </a>
+
+                        {% if evaluation.is_draft %}
+                            <a href="{{ path('app_evaluation_edit', {'evaluationId': evaluation.evaluation_id}) }}" class="btn btn-warning">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+
+                            <form method="POST" action="{{ path('app_evaluation_submit', {'evaluationId': evaluation.evaluation_id}) }}" style="display: inline;">
+                                <button type="submit" class="btn btn-success" onclick="return confirm('Submit this evaluation? You won\'t be able to edit it after submission.')">
+                                    <i class="fas fa-check"></i> Submit Evaluation
+                                </button>
+                            </form>
+
+                            <form method="POST" action="{{ path('app_evaluation_delete', {'evaluationId': evaluation.evaluation_id}) }}" style="display: inline;">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ evaluation.evaluation_id) }}">
+                                <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Delete this draft evaluation?')">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

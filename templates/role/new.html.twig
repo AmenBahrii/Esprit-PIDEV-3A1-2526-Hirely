@@ -1,25 +1,61 @@
-{% extends 'admin/base_admin.html.twig' %}
+{% extends 'base.html.twig' %}
 
-{% set force_sidebar = true %}
-{% set topbar_title = 'Create Role' %}
-{% set topbar_subtitle = 'Define a new access profile' %}
+{% block title %}Add Role{% endblock %}
 
-{% block title %}New Role{% endblock %}
+{% block content %}
 
-{% block admin_content %}
-    <section class="module-page">
-        <div class="module-hero">
-            <div class="module-hero-copy">
-                <span class="module-eyebrow">Role Module</span>
-                <h1 class="module-title">Create a new role</h1>
-                <p class="module-subtitle">Set the role label, default dashboard, and current activation state.</p>
-            </div>
-            <div class="module-actions">
-                <a href="{{ path('app_admin_role_index') }}" class="btn-secondary topbar-logout-link">Back to roles</a>
-            </div>
+<div class="header">Hirely Dashboard</div>
+<div class="sub-header">Create New Role</div>
+
+<div class="card">
+
+    <div class="top-bar">
+        <h3>Role Form</h3>
+
+        <a href="{{ path('app_role_index') }}" class="btn btn-secondary">
+            ← Back
+        </a>
+    </div>
+
+    {{ form_start(form) }}
+    {{ form_errors(form) }}
+
+    <div class="form-grid">
+
+        <div class="form-group">
+            <label>Role Name</label>
+            {{ form_widget(form.name, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.name) }}
         </div>
-        <div class="module-panel">
-            {{ include('role/_form.html.twig', {button_label: 'Create role'}) }}
+
+        <div class="form-group">
+            <label>Status</label>
+            {{ form_widget(form.status, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.status) }}
         </div>
-    </section>
+
+        <div class="form-group full">
+            <label>Description</label>
+            {{ form_widget(form.description, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.description) }}
+        </div>
+
+        <div class="form-group full">
+            <label>Default Dashboard</label>
+            {{ form_widget(form.defaultDashboard, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.defaultDashboard) }}
+        </div>
+
+    </div>
+
+    <br>
+
+    <button class="btn btn-primary">
+        Create Role
+    </button>
+
+    {{ form_end(form) }}
+
+</div>
+
 {% endblock %}

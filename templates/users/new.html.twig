@@ -1,26 +1,77 @@
-{% extends 'admin/base_admin.html.twig' %}
+{% extends 'base.html.twig' %}
 
-{% set force_sidebar = true %}
-{% set topbar_title = 'Create User' %}
-{% set topbar_subtitle = 'Add a new internal account' %}
+{% block title %}Add User{% endblock %}
 
-{% block title %}New User{% endblock %}
+{% block content %}
 
-{% block admin_content %}
-    <section class="module-page">
-        <div class="module-hero">
-            <div class="module-hero-copy">
-                <span class="module-eyebrow">User Module</span>
-                <h1 class="module-title">Create a new user</h1>
-                <p class="module-subtitle">Set the account identity, role, and current access status.</p>
-            </div>
-            <div class="module-actions">
-                <a href="{{ path('app_admin_users_index') }}" class="btn-secondary topbar-logout-link">Back to users</a>
-            </div>
+<div class="header">Hirely Dashboard</div>
+<div class="sub-header">Create New User</div>
+
+<div class="card">
+
+    <div class="top-bar">
+        <h3>User Form</h3>
+
+        <a href="{{ path('app_users_index') }}" class="btn btn-secondary">
+            Back
+        </a>
+    </div>
+
+    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+    {{ form_errors(form) }}
+
+    <div class="form-grid">
+
+        <div class="form-group">
+            <label>First Name</label>
+            {{ form_widget(form.firstName, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.firstName) }}
         </div>
 
-        <div class="module-panel">
-            {{ include('users/_form.html.twig', {button_label: 'Create user'}) }}
+        <div class="form-group">
+            <label>Last Name</label>
+            {{ form_widget(form.lastName, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.lastName) }}
         </div>
-    </section>
+
+        <div class="form-group">
+            <label>Email</label>
+            {{ form_widget(form.email, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.email) }}
+        </div>
+
+        <div class="form-group">
+            <label>Password</label>
+            {{ form_widget(form.plainPassword, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.plainPassword) }}
+        </div>
+
+        <div class="form-group">
+            <label>Status</label>
+            {{ form_widget(form.status, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.status) }}
+        </div>
+
+        <div class="form-group">
+            <label>Role</label>
+            {{ form_widget(form.role, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.role) }}
+        </div>
+
+        <div class="form-group full">
+            <label>Profile Picture (URL)</label>
+            {{ form_widget(form.profilePic, {'attr': {'class': 'form-input'}}) }}
+            {{ form_errors(form.profilePic) }}
+        </div>
+
+    </div>
+
+    <br>
+
+    <button class="btn btn-primary">Create User</button>
+
+    {{ form_end(form) }}
+
+</div>
+
 {% endblock %}

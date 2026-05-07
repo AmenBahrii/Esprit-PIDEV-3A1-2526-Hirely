@@ -9,7 +9,6 @@ use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Form\Extension\Core\Type\NumberType;
 
 class ApplicationType extends AbstractType
 {
@@ -19,20 +18,9 @@ class ApplicationType extends AbstractType
             ->add('coverLetter')
             ->add('resumeFile', FileType::class, [
                 'required' => false,
-                'mapped' => false,
+                'mapped' => true,
             ])
-            ->add('expectedSalary', NumberType::class, [
-                'required' => false,
-                'scale' => 2,
-                'input' => 'string',
-                'html5' => true,
-                'empty_data' => '',
-                'attr' => [
-                    'class' => 'form-input',
-                    'step' => '0.01',
-                    'min' => 0,
-                ],
-            ])
+            ->add('expectedSalary')
             ->add('availabilityDate', DateType::class, [
                 'widget' => 'single_text',
                 'html5' => true,
@@ -49,8 +37,7 @@ class ApplicationType extends AbstractType
         if ($options['admin_mode']) {
             $builder->add('currentStatus', ChoiceType::class, [
                 'choices' => [
-                    'Pending' => 'Pending',
-                    'Reviewed' => 'Reviewed',
+                    'Pending' => 'pending',
                     'Accepted' => 'Accepted',
                     'Rejected' => 'Rejected',
                 ],

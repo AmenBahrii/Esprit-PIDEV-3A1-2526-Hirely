@@ -1,176 +1,188 @@
-{% extends 'admin/base_admin.html.twig' %}
-
-{% set force_sidebar = true %}
-{% set topbar_title = 'Applications' %}
-{% set topbar_subtitle = 'Candidate submissions and recruiter review' %}
+{% extends 'base.html.twig' %}
 
 {% block title %}Applications{% endblock %}
+{% block workspace_title %}Admin Dashboard{% endblock %}
+{% block workspace_subtitle %}Recruitment and onboarding workspace{% endblock %}
 
-{% block admin_content %}
-    <section class="module-page">
-        <div class="module-section-head">
-            <div class="module-section-copy">
-                <span class="module-eyebrow">Application Module</span>
-                <h1 class="module-section-title">Track the application pipeline</h1>
-                <p class="module-section-text">
-                    Candidates can follow their submissions, recruiters can review incoming profiles, and admins get a full platform view.
-                </p>
-            </div>
+{% block content %}
+<section class="workspace-page">
+    <section class="workspace-hero">
+        <div class="workspace-hero-copy">
+            <p class="workspace-kicker">Admin</p>
+            <h2 class="workspace-section-title">Applications command view</h2>
+            <p class="workspace-section-copy">Monitor candidate activity, review statuses, and manage application records from one place.</p>
         </div>
 
-        <div class="search-form-panel">
-            <div class="module-card-actions" style="justify-content: space-between; align-items: end;">
-                <div class="module-section-copy" style="gap: 6px;">
-                    <span class="module-eyebrow">Search and Sort</span>
-                    <p class="module-section-text">Search the full application pipeline by role, applicant, status, salary expectation, or review content.</p>
-                </div>
-                <div class="inline-actions" style="width: min(100%, 760px);">
-                    <input
-                        type="text"
-                        id="admin-application-search"
-                        class="search-input"
-                        placeholder="Search job, applicant email, phone, status, or review note"
-                    >
-                    <select id="admin-application-sort" class="search-select">
-                        <option value="date_desc">Newest first</option>
-                        <option value="date_asc">Oldest first</option>
-                        <option value="salary_desc">Highest expected salary</option>
-                        <option value="salary_asc">Lowest expected salary</option>
-                        <option value="experience_desc">Most experience</option>
-                        <option value="experience_asc">Least experience</option>
-                    </select>
-                </div>
+        <div class="workspace-metric-grid" style="max-width: 430px; width: 100%;">
+            <div class="workspace-meta">
+                <span class="workspace-meta-label">Current Role</span>
+                <span class="workspace-meta-value">Admin</span>
             </div>
-        </div>
-
-        <div class="module-grid module-grid--three" id="admin-application-grid">
-            {% for application in applications %}
-                <article
-                    class="module-card"
-                    data-application-card
-                    data-search="{{ (application.jobOffer ? application.jobOffer.title : '') ~ ' ' ~ (application.email ?: '') ~ ' ' ~ (application.phone ?: '') ~ ' ' ~ (application.currentStatus ?: '') ~ ' ' ~ (application.reviewNote ?: '') }}"
-                    data-date="{{ application.applicationDate ? application.applicationDate|date('Y-m-d') : '' }}"
-                    data-salary="{{ application.expectedSalary ?: 0 }}"
-                    data-experience="{{ application.experienceYears ?: 0 }}"
-                >
-                    <div class="module-card-header">
-                        <div>
-                            <span class="module-eyebrow">{{ application.jobOffer ? application.jobOffer.title : 'Application' }}</span>
-                            <h2 class="module-card-title">{{ application.email ?: 'No applicant email' }}</h2>
-                        </div>
-                        <span class="status-badge {{ application.currentStatus|default('pending')|lower }}">
-                            {{ application.currentStatus|default('Pending')|title }}
-                        </span>
-                    </div>
-
-                    <p class="module-card-description">
-                        {% if application.coverLetter %}
-                            {{ application.coverLetter|length > 160 ? application.coverLetter|slice(0, 160) ~ '...' : application.coverLetter }}
-                        {% else %}
-                            No cover letter provided.
-                        {% endif %}
-                    </p>
-
-                    <div class="module-card-meta">
-                        <div class="module-meta-item">
-                            <span class="module-meta-label">Phone</span>
-                            <span class="module-meta-value">{{ application.phone ?: 'Not provided' }}</span>
-                        </div>
-                        <div class="module-meta-item">
-                            <span class="module-meta-label">Experience</span>
-                            <span class="module-meta-value">{{ application.experienceYears ?: 0 }} years</span>
-                        </div>
-                        <div class="module-meta-item">
-                            <span class="module-meta-label">Expected salary</span>
-                            <span class="module-meta-value">{{ application.expectedSalary ?: 'N/A' }}</span>
-                        </div>
-                        <div class="module-meta-item">
-                            <span class="module-meta-label">AI score</span>
-                            <span class="module-meta-value">
-                                {{ application.score is not null ? application.score ~ '/100' : 'Not reviewed' }}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="module-card-actions">
-                        <a href="{{ path('app_admin_application_show', {'id': application.id}) }}"
-                           class="btn-primary topbar-logout-link">
-                            Open
-                        </a>
-
-                        <a href="{{ path('app_admin_application_edit', {'id': application.id}) }}"
-                           class="btn-secondary topbar-logout-link">
-                            Edit
-                        </a>
-
-                        <form method="post"
-                              action="{{ path('app_admin_application_delete', {'id': application.id}) }}"
-                              onsubmit="return confirm('Delete this application?');">
-                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ application.id) }}">
-                            <button class="btn-secondary topbar-logout-link" type="submit">Delete</button>
-                        </form>
-                    </div>
-                </article>
-            {% else %}
-                <div class="empty-state">No applications are visible in this workspace yet.</div>
-            {% endfor %}
+            <div class="workspace-meta">
+                <span class="workspace-meta-label">Tracked Applications</span>
+                <span class="workspace-meta-value">{{ applications|length }}</span>
+            </div>
         </div>
     </section>
-{% endblock %}
 
-{% block javascripts %}
-    {{ parent() }}
-    <script>
-        (() => {
-            const searchInput = document.getElementById('admin-application-search');
-            const sortSelect = document.getElementById('admin-application-sort');
-            const grid = document.getElementById('admin-application-grid');
+    <section class="admin-metrics">
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Applications</div>
+            <div class="admin-metric-value">{{ applications|length }}</div>
+        </article>
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Accepted</div>
+            <div class="admin-metric-value">{{ applications|filter(application => application.currentStatus == 'Accepted')|length }}</div>
+        </article>
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Pending</div>
+            <div class="admin-metric-value">{{ applications|filter(application => application.currentStatus == 'pending')|length }}</div>
+        </article>
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Reviewed</div>
+            <div class="admin-metric-value">{{ applications|filter(application => application.reviewNote)|length }}</div>
+        </article>
+    </section>
 
-            if (!searchInput || !sortSelect || !grid) {
-                return;
-            }
+    <section class="workspace-toolbar">
+        <div class="workspace-toolbar-copy">
+            <span class="workspace-toolbar-label">Search and Sort</span>
+            <span class="workspace-toolbar-subtitle">Search by job title, status, email, phone, or note and reorder the application cards instantly.</span>
+        </div>
 
-            const cards = Array.from(grid.querySelectorAll('[data-application-card]'));
+        <div class="workspace-toolbar-controls">
+            <input type="text" id="applicationSearch" placeholder="Search applications..." class="search-input">
 
-            const sortCards = (sortValue) => {
-                const sorted = [...cards];
+            <select id="applicationSort" class="sort-select">
+                <option value="date_desc">Newest first</option>
+                <option value="date_asc">Oldest first</option>
+                <option value="salary_desc">Salary high to low</option>
+                <option value="salary_asc">Salary low to high</option>
+                <option value="experience_desc">Experience high to low</option>
+                <option value="experience_asc">Experience low to high</option>
+            </select>
+        </div>
+    </section>
 
-                sorted.sort((a, b) => {
-                    if (sortValue === 'date_asc') {
-                        return String(a.dataset.date).localeCompare(String(b.dataset.date));
-                    }
-                    if (sortValue === 'salary_desc') {
-                        return Number(b.dataset.salary) - Number(a.dataset.salary);
-                    }
-                    if (sortValue === 'salary_asc') {
-                        return Number(a.dataset.salary) - Number(b.dataset.salary);
-                    }
-                    if (sortValue === 'experience_desc') {
-                        return Number(b.dataset.experience) - Number(a.dataset.experience);
-                    }
-                    if (sortValue === 'experience_asc') {
-                        return Number(a.dataset.experience) - Number(b.dataset.experience);
-                    }
+    <div class="workspace-page" id="applicationCards">
+        {% for application in applications %}
+            <article class="workspace-card"
+                     data-application-card
+                     data-search="{{ (application.jobOfferTitle ?: 'Job offer no longer exists') ~ ' ' ~ application.email ~ ' ' ~ application.phone ~ ' ' ~ application.currentStatus ~ ' ' ~ (application.reviewNote ?: '') }}"
+                     data-date="{{ application.applicationDate ?: '' }}"
+                     data-salary="{{ application.expectedSalary }}"
+                     data-experience="{{ application.experienceYears }}">
+                <div class="workspace-card-head">
+                    <div>
+                        <span class="workspace-kicker">Application</span>
+                        <h3 class="data-card-title">{{ application.jobOfferTitle ?: 'Job offer no longer exists' }}</h3>
+                        <p class="workspace-card-summary">
+                            {{ application.applicationDate ? application.applicationDate|date('Y-m-d') : 'No date' }}
+                            {% if application.jobOfferId and not application.jobOfferTitle %}
+                                | Missing job offer #{{ application.jobOfferId }}
+                            {% endif %}
+                        </p>
+                    </div>
 
-                    return String(b.dataset.date).localeCompare(String(a.dataset.date));
-                });
+                    {% if application.currentStatus == 'Accepted' %}
+                        <span class="status status-accepted">Accepted</span>
+                    {% elseif application.currentStatus == 'pending' %}
+                        <span class="status status-pending">Pending</span>
+                    {% else %}
+                        <span class="status status-rejected">{{ application.currentStatus }}</span>
+                    {% endif %}
+                </div>
 
-                sorted.forEach((card) => grid.appendChild(card));
-            };
+                <div class="workspace-meta-grid">
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Email</span>
+                        <span class="workspace-meta-value">{{ application.email }}</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Phone</span>
+                        <span class="workspace-meta-value">{{ application.phone }}</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Expected Salary</span>
+                        <span class="workspace-meta-value">{{ application.expectedSalary }}</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Experience</span>
+                        <span class="workspace-meta-value">{{ application.experienceYears }} years</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Score</span>
+                        <span class="workspace-meta-value">{{ application.score is not null ? application.score : 'N/A' }}</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Review Note</span>
+                        <span class="workspace-meta-value">{{ application.reviewNote ?: 'No review note yet' }}</span>
+                    </div>
+                </div>
 
-            const refresh = () => {
-                const query = searchInput.value.trim().toLowerCase();
+                <div class="workspace-card-actions">
+                    <a class="btn btn-edit" href="{{ path('app_application_edit', {'applicationId': application.applicationId}) }}">Edit</a>
+                    
+                    {% if application.currentStatus == 'Accepted' %}
+                        <a class="btn btn-primary" href="{{ path('app_interview_new', {'applicationId': application.applicationId}) }}">Schedule Interview</a>
+                    {% endif %}
 
-                cards.forEach((card) => {
-                    const haystack = String(card.dataset.search || '').toLowerCase();
-                    card.style.display = haystack.includes(query) ? '' : 'none';
-                });
+                    <form method="post" action="{{ path('app_application_delete', {'applicationId': application.applicationId}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ application.applicationId) }}">
+                        <button class="btn btn-delete" type="submit">Delete</button>
+                    </form>
+                </div>
+            </article>
+        {% else %}
+            <div class="empty-state">No applications found</div>
+        {% endfor %}
+    </div>
+</section>
 
-                sortCards(sortSelect.value);
-            };
+<script>
+const applicationSearch = document.getElementById('applicationSearch');
+const applicationSort = document.getElementById('applicationSort');
+const applicationCardsContainer = document.getElementById('applicationCards');
+const applicationCards = Array.from(applicationCardsContainer.querySelectorAll('[data-application-card]'));
 
-            searchInput.addEventListener('input', refresh);
-            sortSelect.addEventListener('change', refresh);
-        })();
-    </script>
+function sortApplicationCards(cards, sortValue) {
+    const sorted = [...cards];
+
+    sorted.sort((a, b) => {
+        if (sortValue === 'date_asc') {
+            return String(a.dataset.date).localeCompare(String(b.dataset.date));
+        }
+        if (sortValue === 'salary_desc') {
+            return Number(b.dataset.salary) - Number(a.dataset.salary);
+        }
+        if (sortValue === 'salary_asc') {
+            return Number(a.dataset.salary) - Number(b.dataset.salary);
+        }
+        if (sortValue === 'experience_desc') {
+            return Number(b.dataset.experience) - Number(a.dataset.experience);
+        }
+        if (sortValue === 'experience_asc') {
+            return Number(a.dataset.experience) - Number(b.dataset.experience);
+        }
+
+        return String(b.dataset.date).localeCompare(String(a.dataset.date));
+    });
+
+    sorted.forEach(card => applicationCardsContainer.appendChild(card));
+}
+
+function filterAndSortApplications() {
+    const search = applicationSearch.value.toLowerCase();
+
+    applicationCards.forEach(card => {
+        const matches = card.dataset.search.toLowerCase().includes(search);
+        card.style.display = matches ? '' : 'none';
+    });
+
+    sortApplicationCards(applicationCards, applicationSort.value);
+}
+
+applicationSearch.addEventListener('input', filterAndSortApplications);
+applicationSort.addEventListener('change', filterAndSortApplications);
+</script>
 {% endblock %}

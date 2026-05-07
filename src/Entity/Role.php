@@ -3,140 +3,118 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use Doctrine\Common\Collections\ArrayCollection;
+
 use Doctrine\Common\Collections\Collection;
+use App\Entity\Users;
+use Symfony\Component\Validator\Constraints as Assert;
 
-use App\Repository\RoleRepository;
-
-#[ORM\Entity(repositoryClass: RoleRepository::class)]
-#[ORM\Table(name: 'role')]
+#[ORM\Entity]
 class Role
 {
+
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private ?int $role_id = null;
+#[ORM\GeneratedValue]
+#[ORM\Column(name: "role_id", type: "integer")]
+private ?int $id = null;
 
-    public function getRole_id(): ?int
+    #[ORM\Column(type: "string", length: 50)]
+    #[Assert\NotBlank(message: "Role name is required")]
+    #[Assert\Length(min: 3, max: 50, minMessage: "Role name must be at least {{ limit }} characters")]
+    private string $name;
+
+    #[ORM\Column(type: "string", length: 255)]
+    #[Assert\NotBlank(message: "Description is required")]
+    #[Assert\Length(min: 5, max: 255, minMessage: "Description must be at least {{ limit }} characters")]
+    private string $description;
+
+    #[ORM\Column(type: "string", length: 20)]
+    #[Assert\NotBlank(message: "Status is required")]
+    #[Assert\Choice(choices: ["active", "inactive"], message: "Please choose a valid status")]
+    private string $status;
+
+    #[ORM\Column(type: "string", length: 50, nullable: true)]
+#[Assert\NotBlank(message: "Default dashboard is required")]
+private ?string $default_dashboard = null;
+
+    public function getid()
     {
-        return $this->role_id;
+        return $this->id;
     }
 
-    public function getId(): ?int
+    public function setid($value)
     {
-        return $this->role_id;
+        $this->id = $value;
     }
 
-    public function setRole_id(int $role_id): self
-    {
-        $this->role_id = $role_id;
-        return $this;
-    }
-
-    #[ORM\Column(type: 'string', nullable: false)]
-    private ?string $name = null;
-
-    public function getName(): ?string
+    public function getName()
     {
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName($value)
     {
-        $this->name = $name;
-        return $this;
+        $this->name = $value;
     }
 
-    #[ORM\Column(type: 'string', nullable: true)]
-    private ?string $description = null;
-
-    public function getDescription(): ?string
+    public function getDescription()
     {
         return $this->description;
     }
 
-    public function setDescription(?string $description): self
+    public function setDescription($value)
     {
-        $this->description = $description;
-        return $this;
+        $this->description = $value;
     }
 
-    #[ORM\Column(type: 'string', nullable: false)]
-    private ?string $status = null;
-
-    public function getStatus(): ?string
+    public function getStatus()
     {
         return $this->status;
     }
 
-    public function setStatus(string $status): self
+    public function setStatus($value)
     {
-        $this->status = $status;
-        return $this;
+        $this->status = $value;
     }
 
-    #[ORM\Column(type: 'string', nullable: true)]
-    private ?string $default_dashboard = null;
-
-    public function getDefault_dashboard(): ?string
+public function getDefaultDashboard(): ?string
+{
+    return $this->default_dashboard;
+}
+    public function setDefaultDashboard($value)
     {
-        return $this->default_dashboard;
-    }
-
-    public function setDefault_dashboard(?string $default_dashboard): self
-    {
-        $this->default_dashboard = $default_dashboard;
-        return $this;
-    }
-
-    #[ORM\OneToMany(targetEntity: User::class, mappedBy: 'role')]
-    private Collection $users;
-
-    public function __construct()
-    {
-        $this->users = new ArrayCollection();
+        $this->default_dashboard = $value;
     }
 
     /**
-     * @return Collection<int, User>
+     * @var Collection<int, Users>
      */
-    public function getUsers(): Collection
-    {
-        if (!$this->users instanceof Collection) {
-            $this->users = new ArrayCollection();
+    #[ORM\OneToMany(mappedBy: "role", targetEntity: Users::class)]
+    private Collection $userss;
+
+        public function getUserss(): Collection
+        {
+            return $this->userss;
         }
-        return $this->users;
-    }
-
-    public function addUser(User $user): self
-    {
-        if (!$this->getUsers()->contains($user)) {
-            $this->getUsers()->add($user);
+    
+        public function addUsers(Users $users): self
+        {
+            if (!$this->userss->contains($users)) {
+                $this->userss[] = $users;
+                $users->setRole($this);
+            }
+    
+            return $this;
         }
-        return $this;
-    }
-
-    public function removeUser(User $user): self
-    {
-        $this->getUsers()->removeElement($user);
-        return $this;
-    }
-
-    public function getRoleId(): ?int
-    {
-        return $this->role_id;
-    }
-
-    public function getDefaultDashboard(): ?string
-    {
-        return $this->default_dashboard;
-    }
-
-    public function setDefaultDashboard(?string $default_dashboard): static
-    {
-        $this->default_dashboard = $default_dashboard;
-
-        return $this;
-    }
-
+    
+        public function removeUsers(Users $users): self
+        {
+            if ($this->userss->removeElement($users)) {
+                // set the owning side to null (unless already changed)
+                if ($users->getRole() === $this) {
+                    $users->setRole(null);
+                }
+            }
+    
+            return $this;
+        }
 }

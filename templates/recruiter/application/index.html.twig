@@ -1,0 +1,161 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Applications{% endblock %}
+{% block workspace_title %}Applications{% endblock %}
+{% block workspace_subtitle %}Review incoming candidates from a navbar-based recruiter workspace.{% endblock %}
+
+{% block content %}
+<section class="workspace-page">
+    <section class="workspace-hero">
+        <div class="workspace-hero-copy">
+            <p class="workspace-kicker">Application Review</p>
+            <h2 class="workspace-section-title">Track every incoming candidate</h2>
+            <p class="workspace-section-copy">Keep acceptance decisions, review notes, and applicant details in a layout that matches the job offers workspace.</p>
+        </div>
+    </section>
+
+    <section class="workspace-toolbar">
+        <div class="workspace-toolbar-copy">
+            <span class="workspace-toolbar-label">Search and Sort</span>
+            <span class="workspace-toolbar-subtitle">Search by job, email, phone, status, or note and reorder the visible applications instantly.</span>
+        </div>
+
+        <div class="workspace-toolbar-controls">
+            <input type="text"
+                   id="applicationSearch"
+                   placeholder="Search candidates, status, or notes"
+                   class="search-input">
+
+            <select id="applicationSort" class="sort-select">
+                <option value="date_desc">Newest first</option>
+                <option value="date_asc">Oldest first</option>
+                <option value="salary_desc">Expected salary high to low</option>
+                <option value="salary_asc">Expected salary low to high</option>
+                <option value="experience_desc">Experience high to low</option>
+                <option value="experience_asc">Experience low to high</option>
+            </select>
+        </div>
+    </section>
+
+    <div class="workspace-card-grid" id="applicationCards">
+        {% for application in applications %}
+            <article class="workspace-card"
+                     data-application-card
+                     data-search="{{ (application.jobOfferTitle ?: 'Job offer no longer exists') ~ ' ' ~ application.email ~ ' ' ~ application.phone ~ ' ' ~ application.currentStatus ~ ' ' ~ (application.reviewNote ?: '') }}"
+                     data-date="{{ application.applicationDate ?: '' }}"
+                     data-salary="{{ application.expectedSalary }}"
+                     data-experience="{{ application.experienceYears }}">
+                <div class="workspace-card-head">
+                    <div>
+                        <span class="workspace-kicker">Candidate</span>
+                        <h3 class="data-card-title">{{ application.jobOfferTitle ?: 'Job offer no longer exists' }}</h3>
+                        <p class="workspace-card-summary">
+                            {{ application.applicationDate ? application.applicationDate|date('Y-m-d') : 'No date' }}
+                            {% if application.jobOfferId and not application.jobOfferTitle %}
+                                | Missing job offer #{{ application.jobOfferId }}
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    {% if application.currentStatus == 'Accepted' %}
+                        <span class="status status-accepted">Accepted</span>
+                    {% elseif application.currentStatus == 'pending' %}
+                        <span class="status status-pending">Pending</span>
+                    {% else %}
+                        <span class="status status-rejected">{{ application.currentStatus }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="workspace-meta-grid">
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Email</span>
+                        <span class="workspace-meta-value">{{ application.email }}</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Phone</span>
+                        <span class="workspace-meta-value">{{ application.phone }}</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Expected Salary</span>
+                        <span class="workspace-meta-value">{{ application.expectedSalary }}</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Experience</span>
+                        <span class="workspace-meta-value">{{ application.experienceYears }} years</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Score</span>
+                        <span class="workspace-meta-value">{{ application.score is not null ? application.score : 'N/A' }}</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Review Note</span>
+                        <span class="workspace-meta-value">{{ application.reviewNote ?: 'No review note yet' }}</span>
+                    </div>
+                </div>
+
+                <div class="workspace-card-actions">
+                    <a class="btn btn-view" href="{{ path('app_application_show', {'applicationId': application.applicationId}) }}">Review</a>
+                    
+                    {% if application.currentStatus == 'Accepted' %}
+                        <a class="btn btn-primary" href="{{ path('app_interview_new', {'applicationId': application.applicationId}) }}">Schedule Interview</a>
+                    {% elseif application.currentStatus == 'pending' %}
+                        <a class="btn btn-success" href="{{ path('app_application_accept', {'applicationId': application.applicationId}) }}">Accept</a>
+                        <a class="btn btn-danger" href="{{ path('app_application_reject', {'applicationId': application.applicationId}) }}">Reject</a>
+                    {% else %}
+                        <span class="data-card-subtitle">Processed</span>
+                    {% endif %}
+                </div>
+            </article>
+        {% else %}
+            <div class="empty-state">No applications found</div>
+        {% endfor %}
+    </div>
+</section>
+
+<script>
+const applicationSearch = document.getElementById('applicationSearch');
+const applicationSort = document.getElementById('applicationSort');
+const applicationCardsContainer = document.getElementById('applicationCards');
+const applicationCards = Array.from(applicationCardsContainer.querySelectorAll('[data-application-card]'));
+
+function sortApplicationCards(cards, sortValue) {
+    const sorted = [...cards];
+
+    sorted.sort((a, b) => {
+        if (sortValue === 'date_asc') {
+            return String(a.dataset.date).localeCompare(String(b.dataset.date));
+        }
+        if (sortValue === 'salary_desc') {
+            return Number(b.dataset.salary) - Number(a.dataset.salary);
+        }
+        if (sortValue === 'salary_asc') {
+            return Number(a.dataset.salary) - Number(b.dataset.salary);
+        }
+        if (sortValue === 'experience_desc') {
+            return Number(b.dataset.experience) - Number(a.dataset.experience);
+        }
+        if (sortValue === 'experience_asc') {
+            return Number(a.dataset.experience) - Number(b.dataset.experience);
+        }
+
+        return String(b.dataset.date).localeCompare(String(a.dataset.date));
+    });
+
+    sorted.forEach(card => applicationCardsContainer.appendChild(card));
+}
+
+function filterAndSortApplications() {
+    const search = applicationSearch.value.toLowerCase();
+
+    applicationCards.forEach(card => {
+        const matches = card.dataset.search.toLowerCase().includes(search);
+        card.style.display = matches ? '' : 'none';
+    });
+
+    sortApplicationCards(applicationCards, applicationSort.value);
+}
+
+applicationSearch.addEventListener('input', filterAndSortApplications);
+applicationSort.addEventListener('change', filterAndSortApplications);
+</script>
+{% endblock %}

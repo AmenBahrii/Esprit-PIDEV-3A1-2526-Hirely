@@ -1,51 +1,3 @@
-<<<<<<< HEAD
-# .gitignore for Symfony
-
-# IDEs
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-
-# Composer
-vendor/
-composer.phar
-composer.lock
-
-# Symfony
-/bin/
-/var/
-/build/
-.env.local
-.env.*.local
-.env.test
-.env.test.local
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-venv/
-env/
-
-# Node (if using frontend build tools)
-node_modules/
-npm-debug.log
-yarn-error.log
-package-lock.json
-yarn.lock
-
-# OS
-.DS_Store
-Thumbs.db
-.gitkeep
-
-# Project specific
-*.log
-cache/
-.php-version
-=======
 
 ###> symfony/framework-bundle ###
 /.env.local
@@ -59,14 +11,15 @@ cache/
 
 ###> phpunit/phpunit ###
 /phpunit.xml
-/.phpunit.cache/
+.phpunit.result.cache
 ###< phpunit/phpunit ###
+
+###> symfony/phpunit-bridge ###
+.phpunit.result.cache
+/phpunit.xml
+###< symfony/phpunit-bridge ###
 
 ###> symfony/asset-mapper ###
 /public/assets/
 /assets/vendor/
 ###< symfony/asset-mapper ###
-
-/.idea/
-/public/uploads/
->>>>>>> OnboardingCoordination

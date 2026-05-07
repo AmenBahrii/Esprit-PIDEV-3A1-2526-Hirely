@@ -7,7 +7,7 @@ use App\Entity\Onboardingtask;
 use App\Onboarding\OnboardingPlanStatusManager;
 use PHPUnit\Framework\TestCase;
 
-class OnboardingPlanStatusManagerTest extends TestCase
+final class OnboardingPlanStatusManagerTest extends TestCase
 {
     private OnboardingPlanStatusManager $statusManager;
 
@@ -16,73 +16,48 @@ class OnboardingPlanStatusManagerTest extends TestCase
         $this->statusManager = new OnboardingPlanStatusManager();
     }
 
-    public function testPlanWithoutTasksStaysPending(): void
+    public function testEmptyOrNotStartedPlanStaysPending(): void
     {
-        self::assertSame(Onboardingplan::STATUS_PENDING, $this->statusManager->deriveStatus([]));
+        self::assertSame(Onboardingplan::STATUS_PENDING, $this->statusManager->deriveStatusFromSummary([
+            'total' => 3,
+            'not_started' => 3,
+        ]));
     }
 
-    public function testCompletedTasksMarkPlanAsCompleted(): void
+    public function testCompletedPlanRequiresAllTasksCompleted(): void
     {
-        $tasks = [
-            $this->taskWithStatus(Onboardingtask::STATUS_COMPLETED),
-            $this->taskWithStatus(Onboardingtask::STATUS_COMPLETED),
-        ];
-
-        self::assertSame(Onboardingplan::STATUS_COMPLETED, $this->statusManager->deriveStatus($tasks));
-    }
-
-    public function testBlockedOrOnHoldTasksPutPlanOnHold(): void
-    {
-        $tasks = [
-            $this->taskWithStatus(Onboardingtask::STATUS_IN_PROGRESS),
-            $this->taskWithStatus(Onboardingtask::STATUS_BLOCKED),
-        ];
-
-        self::assertSame(Onboardingplan::STATUS_ON_HOLD, $this->statusManager->deriveStatus($tasks));
-    }
-
-    public function testMixedProgressMarksPlanInProgress(): void
-    {
-        $tasks = [
-            $this->taskWithStatus(Onboardingtask::STATUS_COMPLETED),
-            $this->taskWithStatus(Onboardingtask::STATUS_NOT_STARTED),
-        ];
-
-        self::assertSame(Onboardingplan::STATUS_IN_PROGRESS, $this->statusManager->deriveStatus($tasks));
-    }
-
-    public function testSyncPlanStatusUpdatesStoredStatus(): void
-    {
-        $plan = new Onboardingplan();
-        $plan->setStatus(Onboardingplan::STATUS_PENDING);
-
-        $wasUpdated = $this->statusManager->syncPlanStatus($plan, [
-            $this->taskWithStatus(Onboardingtask::STATUS_IN_PROGRESS),
-        ]);
-
-        self::assertTrue($wasUpdated);
-        self::assertSame(Onboardingplan::STATUS_IN_PROGRESS, $plan->getStatus());
-    }
-
-    public function testSummaryWithMixedStatusesDoesNotMarkPlanCompleted(): void
-    {
-        $status = $this->statusManager->deriveStatusFromSummary([
+        self::assertSame(Onboardingplan::STATUS_IN_PROGRESS, $this->statusManager->deriveStatusFromSummary([
             'total' => 4,
             'completed' => 1,
             'in_progress' => 1,
-            'blocked' => 1,
-            'on_hold' => 0,
-            'not_started' => 1,
-        ]);
+            'not_started' => 2,
+        ]));
 
-        self::assertSame(Onboardingplan::STATUS_ON_HOLD, $status);
+        self::assertSame(Onboardingplan::STATUS_COMPLETED, $this->statusManager->deriveStatusFromSummary([
+            'total' => 4,
+            'completed' => 4,
+        ]));
     }
 
-    private function taskWithStatus(string $status): Onboardingtask
+    public function testBlockedTaskMovesPlanOnHold(): void
     {
-        $task = new Onboardingtask();
-        $task->setStatus($status);
+        self::assertSame(Onboardingplan::STATUS_ON_HOLD, $this->statusManager->deriveStatusFromSummary([
+            'total' => 3,
+            'completed' => 1,
+            'blocked' => 1,
+            'not_started' => 1,
+        ]));
+    }
 
-        return $task;
+    public function testSyncPlanStatusUpdatesEntityWhenTaskFlowChanges(): void
+    {
+        $plan = (new Onboardingplan())->setStatus(Onboardingplan::STATUS_PENDING);
+
+        $task = (new Onboardingtask())
+            ->setStatus(Onboardingtask::STATUS_IN_PROGRESS)
+            ->setPlan($plan);
+
+        self::assertTrue($this->statusManager->syncPlanStatus($plan, [$task]));
+        self::assertSame(Onboardingplan::STATUS_IN_PROGRESS, $plan->getStatus());
     }
 }

@@ -1,135 +1,154 @@
-{% extends 'admin/base_admin.html.twig' %}
-
-{% set force_sidebar = true %}
-{% set topbar_title = 'Roles Workspace' %}
-{% set topbar_subtitle = 'Access layers and role defaults' %}
+{% extends 'base.html.twig' %}
 
 {% block title %}Roles{% endblock %}
+{% block workspace_title %}Admin Dashboard{% endblock %}
+{% block workspace_subtitle %}Recruitment and onboarding workspace{% endblock %}
 
-{% block admin_content %}
-    <section class="module-page">
-        <div class="module-hero">
-            <div class="module-hero-copy">
-                <span class="module-eyebrow">Role Module</span>
-                <h1 class="module-title">Manage role definitions</h1>
-                <p class="module-subtitle">Keep recruiter, candidate, and admin permissions organized with clear dashboard defaults.</p>
-            </div>
-            <div class="module-actions">
-                <a href="{{ path('app_admin_role_new') }}" class="btn-primary topbar-logout-link">Add role</a>
-            </div>
+{% block content %}
+<section class="workspace-page">
+    <section class="workspace-hero">
+        <div class="workspace-hero-copy">
+            <p class="workspace-kicker">Admin</p>
+            <h2 class="workspace-section-title">Roles and permissions</h2>
+            <p class="workspace-section-copy">Keep role definitions clear, dashboards aligned, and platform permissions easy to manage.</p>
         </div>
 
-        <div class="search-form-panel">
-            <div class="module-card-actions" style="justify-content: space-between; align-items: end;">
-                <div class="module-section-copy" style="gap: 6px;">
-                    <span class="module-eyebrow">Search and Sort</span>
-                    <p class="module-section-text">Search by role metadata and sort the visible definitions instantly inside the roles workspace.</p>
-                </div>
-                <div class="inline-actions" style="width: min(100%, 760px);">
-                    <input
-                        type="text"
-                        id="roles-search"
-                        class="search-input"
-                        placeholder="Search role name, description, dashboard, or status"
-                    >
-                    <select id="roles-sort" class="search-select">
-                        <option value="name_asc">Name A-Z</option>
-                        <option value="name_desc">Name Z-A</option>
-                        <option value="status_asc">Status A-Z</option>
-                        <option value="status_desc">Status Z-A</option>
-                    </select>
-                </div>
+        <div class="workspace-metric-grid" style="max-width: 430px; width: 100%;">
+            <div class="workspace-meta">
+                <span class="workspace-meta-label">Role Groups</span>
+                <span class="workspace-meta-value">{{ roles|length }}</span>
             </div>
-        </div>
-
-        <div class="module-grid" id="roles-grid">
-            {% for role in roles %}
-                <article class="module-card"
-                         data-role-card
-                         data-search="{{ (role.name ~ ' ' ~ (role.description ?: '') ~ ' ' ~ (role.status ?: '') ~ ' ' ~ (role.defaultDashboard ?: ''))|lower }}"
-                         data-name="{{ role.name|lower }}"
-                         data-status="{{ (role.status ?: '')|lower }}">
-                    <div class="module-card-header">
-                        <div>
-                            <span class="module-eyebrow">Role #{{ role.id }}</span>
-                            <h2 class="module-card-title">{{ role.name|title }}</h2>
-                        </div>
-                        <span class="status-badge {{ role.status|lower }}">{{ role.status|title }}</span>
-                    </div>
-
-                    <p class="module-card-description">{{ role.description ?: 'No description provided.' }}</p>
-
-                    <div class="module-card-meta">
-                        <div class="module-meta-item">
-                            <span class="module-meta-label">Default dashboard</span>
-                            <span class="module-meta-value">{{ role.defaultDashboard ?: 'Not set' }}</span>
-                        </div>
-                    </div>
-
-                    <div class="module-card-actions">
-                        <a href="{{ path('app_admin_role_show', {'id': role.id}) }}" class="btn-secondary topbar-logout-link">Open</a>
-                        <a href="{{ path('app_admin_role_edit', {'id': role.id}) }}" class="btn-primary topbar-logout-link">Edit</a>
-                        {% if role.name|lower != 'admin' %}
-                            {% include 'role/_delete_form.html.twig' with {role: role} %}
-                        {% endif %}
-                    </div>
-                </article>
-            {% else %}
-                <div class="empty-state">No roles found yet.</div>
-            {% endfor %}
+            <div class="workspace-meta">
+                <span class="workspace-meta-label">Default Focus</span>
+                <span class="workspace-meta-value">Workspace routing</span>
+            </div>
         </div>
     </section>
-{% endblock %}
 
-{% block javascripts %}
-    {{ parent() }}
-    <script>
-        (() => {
-            const searchInput = document.getElementById('roles-search');
-            const sortSelect = document.getElementById('roles-sort');
-            const grid = document.getElementById('roles-grid');
+    <section class="admin-metrics">
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Roles</div>
+            <div class="admin-metric-value">{{ roles|length }}</div>
+        </article>
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Active Roles</div>
+            <div class="admin-metric-value">{{ roles|filter(role => role.status == 'active')|length }}</div>
+        </article>
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Admin Locked</div>
+            <div class="admin-metric-value">{{ roles|filter(role => role.name == 'Admin')|length }}</div>
+        </article>
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Dashboards</div>
+            <div class="admin-metric-value">{{ roles|map(role => role.defaultDashboard)|filter(dashboard => dashboard)|length }}</div>
+        </article>
+    </section>
 
-            if (!searchInput || !sortSelect || !grid) {
-                return;
-            }
+    <section class="workspace-toolbar">
+        <div class="workspace-toolbar-copy">
+            <span class="workspace-toolbar-label">Search and Sort</span>
+            <span class="workspace-toolbar-subtitle">Search role details and reorder the cards by name or status.</span>
+        </div>
 
-            const cards = Array.from(grid.querySelectorAll('[data-role-card]'));
+        <div class="workspace-toolbar-controls">
+            <input type="text" id="roleSearch" placeholder="Search roles..." class="search-input">
 
-            const sortCards = (sortValue) => {
-                const sorted = [...cards];
+            <select id="roleSort" class="sort-select">
+                <option value="name_asc">Name A-Z</option>
+                <option value="name_desc">Name Z-A</option>
+                <option value="status_asc">Status A-Z</option>
+                <option value="status_desc">Status Z-A</option>
+            </select>
 
-                sorted.sort((a, b) => {
-                    if (sortValue === 'name_desc') {
-                        return String(b.dataset.name).localeCompare(String(a.dataset.name));
-                    }
+            <a href="{{ path('app_role_new') }}" class="btn btn-primary">Add role</a>
+        </div>
+    </section>
 
-                    if (sortValue === 'status_asc') {
-                        return String(a.dataset.status).localeCompare(String(b.dataset.status));
-                    }
+    <div class="workspace-page" id="roleCards">
+        {% for role in roles %}
+            <article class="workspace-card"
+                     data-role-card
+                     data-search="{{ role.name ~ ' ' ~ role.description ~ ' ' ~ role.status ~ ' ' ~ role.defaultDashboard }}"
+                     data-name="{{ role.name|lower }}"
+                     data-status="{{ role.status|lower }}">
+                <div class="workspace-card-head">
+                    <div>
+                        <span class="workspace-kicker">Role</span>
+                        <h3 class="data-card-title">
+                            <span class="role-badge role-{{ role.name|lower }}">{{ role.name }}</span>
+                        </h3>
+                        <p class="workspace-card-summary">#{{ role.id }}</p>
+                    </div>
 
-                    if (sortValue === 'status_desc') {
-                        return String(b.dataset.status).localeCompare(String(a.dataset.status));
-                    }
+                    <span class="status-pill">{{ role.status }}</span>
+                </div>
 
-                    return String(a.dataset.name).localeCompare(String(b.dataset.name));
-                });
+                <div class="workspace-meta-grid">
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Description</span>
+                        <span class="workspace-meta-value">{{ role.description }}</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Dashboard</span>
+                        <span class="workspace-meta-value">{{ role.defaultDashboard }}</span>
+                    </div>
+                </div>
 
-                sorted.forEach((card) => grid.appendChild(card));
-            };
+                <div class="workspace-card-actions">
+                    <a href="{{ path('app_role_edit', {'id': role.id}) }}" class="btn btn-edit">Edit</a>
 
-            const refresh = () => {
-                const query = searchInput.value.trim().toLowerCase();
+                    {% if role.name != 'Admin' %}
+                        <form method="post" action="{{ path('app_role_delete', {'id': role.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ role.id) }}">
+                            <button class="btn btn-delete" type="submit">Delete</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </article>
+        {% else %}
+            <div class="empty-state">No roles found</div>
+        {% endfor %}
+    </div>
+</section>
 
-                cards.forEach((card) => {
-                    const matches = String(card.dataset.search || '').includes(query);
-                    card.style.display = matches ? '' : 'none';
-                });
+<script>
+const roleSearch = document.getElementById('roleSearch');
+const roleSort = document.getElementById('roleSort');
+const roleCardsContainer = document.getElementById('roleCards');
+const roleCards = Array.from(roleCardsContainer.querySelectorAll('[data-role-card]'));
 
-                sortCards(sortSelect.value);
-            };
+function sortRoleCards(cards, sortValue) {
+    const sorted = [...cards];
 
-            searchInput.addEventListener('input', refresh);
-            sortSelect.addEventListener('change', refresh);
-        })();
-    </script>
+    sorted.sort((a, b) => {
+        if (sortValue === 'name_desc') {
+            return b.dataset.name.localeCompare(a.dataset.name);
+        }
+        if (sortValue === 'status_asc') {
+            return a.dataset.status.localeCompare(b.dataset.status);
+        }
+        if (sortValue === 'status_desc') {
+            return b.dataset.status.localeCompare(a.dataset.status);
+        }
+
+        return a.dataset.name.localeCompare(b.dataset.name);
+    });
+
+    sorted.forEach(card => roleCardsContainer.appendChild(card));
+}
+
+function filterAndSortRoles() {
+    const search = roleSearch.value.toLowerCase();
+
+    roleCards.forEach(card => {
+        const matches = card.dataset.search.toLowerCase().includes(search);
+        card.style.display = matches ? '' : 'none';
+    });
+
+    sortRoleCards(roleCards, roleSort.value);
+}
+
+roleSearch.addEventListener('input', filterAndSortRoles);
+roleSort.addEventListener('change', filterAndSortRoles);
+</script>
 {% endblock %}

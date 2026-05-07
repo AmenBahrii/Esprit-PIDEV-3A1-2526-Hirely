@@ -1,37 +1,9 @@
-{% extends 'admin/base_admin.html.twig' %}
+{% extends 'base.html.twig' %}
 
-{% set force_sidebar = true %}
-{% set topbar_title = 'Edit Application' %}
-{% set topbar_subtitle = 'Admin correction and moderation' %}
+{% block content %}
 
-{% block title %}Edit Application{% endblock %}
+<h2>Edit Application</h2>
 
-{% block admin_content %}
-    <section class="module-page">
-        <div class="module-section-head">
-            <div class="module-section-copy">
-                <span class="module-eyebrow">Application Module</span>
-                <h1 class="module-section-title">Edit application #{{ application.id }}</h1>
-                <p class="module-section-text">
-                    Update candidate data or moderate the application state from the admin view.
-                </p>
-            </div>
+{% include 'admin/application/_form.html.twig' %}
 
-            <div class="module-section-actions">
-                <a href="{{ path('app_admin_application_show', {'id': application.id}) }}"
-                   class="btn-secondary topbar-logout-link">
-                    View application
-                </a>
-
-                <a href="{{ path('app_admin_application_index') }}"
-                   class="btn-secondary topbar-logout-link">
-                    Back to applications
-                </a>
-            </div>
-        </div>
-
-        <div class="module-panel">
-            {{ include('application/_form.html.twig', { button_label: 'Save changes' }) }}
-        </div>
-    </section>
 {% endblock %}

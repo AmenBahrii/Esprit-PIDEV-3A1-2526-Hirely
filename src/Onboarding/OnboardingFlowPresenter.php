@@ -11,6 +11,7 @@ final class OnboardingFlowPresenter
 
     /**
      * @param array{
+     *     riskLevel: string,
      *     currentPhase: array{code: string, phaseLabel: string, status: string},
      *     timeline: array<int, array{
      *         code: string,

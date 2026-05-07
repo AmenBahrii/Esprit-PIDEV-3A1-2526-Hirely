@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Evaluation {{ evaluation.evaluation_id }}</title>
+    <style>
+        body {
+            font-family: DejaVu Sans, sans-serif;
+            color: #1f2937;
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        h1, h2, h3 {
+            margin: 0;
+        }
+
+        .header {
+            border-bottom: 2px solid #1f2937;
+            padding-bottom: 10px;
+            margin-bottom: 16px;
+        }
+
+        .header h1 {
+            font-size: 20px;
+        }
+
+        .meta {
+            margin-top: 6px;
+            color: #4b5563;
+            font-size: 11px;
+        }
+
+        .section {
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            color: #111827;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #d1d5db;
+            padding: 7px 8px;
+            vertical-align: top;
+        }
+
+        th {
+            background: #f3f4f6;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .grid {
+            width: 100%;
+        }
+
+        .grid td {
+            border: none;
+            padding: 3px 0;
+        }
+
+        .label {
+            width: 180px;
+            color: #4b5563;
+            font-weight: bold;
+        }
+
+        .rating-box {
+            background: #eef6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 6px;
+            padding: 8px 10px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .text-block {
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 8px 10px;
+            background: #fff;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Interview Evaluation Report</h1>
+        <div class="meta">
+            Evaluation ID: {{ evaluation.evaluation_id }} | Generated at: {{ 'now'|date('Y-m-d H:i') }}
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Candidate Information</div>
+        <table class="grid">
+            <tr>
+                <td class="label">Candidate</td>
+                <td>
+                    {% if evaluation.interview_id.application_id.user %}
+                        {{ evaluation.interview_id.application_id.user.firstName }} {{ evaluation.interview_id.application_id.user.lastName }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td class="label">Job Offer</td>
+                <td>
+                    {% if evaluation.interview_id.application_id.jobOffer %}
+                        {{ evaluation.interview_id.application_id.jobOffer.title }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td class="label">Evaluation Date</td>
+                <td>{{ evaluation.evaluated_at.format('Y-m-d H:i') }}</td>
+            </tr>
+            <tr>
+                <td class="label">Status</td>
+                <td>{% if evaluation.is_draft %}Draft{% else %}Submitted{% endif %}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <div class="rating-box">Overall Rating: {{ evaluation.overall_rating }}/10</div>
+        <div class="section-title">Evaluation Scores</div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 40%;">Criterion</th>
+                    <th style="width: 10%;">Score</th>
+                    <th style="width: 50%;">Comment</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for score in scores %}
+                    <tr>
+                        <td>{{ score.criteria_name ?? 'N/A' }}</td>
+                        <td>{{ score.score }}/10</td>
+                        <td>{{ score.comments ?: 'No comment' }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="3">No criterion scores found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Decision & Notes</div>
+        <table class="grid">
+            <tr>
+                <td class="label">Recommendation</td>
+                <td>{{ evaluation.recommendation|capitalize }}</td>
+            </tr>
+            <tr>
+                <td class="label">Hire Decision</td>
+                <td>{{ evaluation.hire_decision|capitalize }}</td>
+            </tr>
+        </table>
+
+        <div style="margin-top: 8px;">
+            <div class="label" style="width: auto; margin-bottom: 3px;">Strengths</div>
+            <div class="text-block">{{ evaluation.strengths ?: 'None' }}</div>
+        </div>
+
+        <div style="margin-top: 8px;">
+            <div class="label" style="width: auto; margin-bottom: 3px;">Weaknesses</div>
+            <div class="text-block">{{ evaluation.weaknesses ?: 'None' }}</div>
+        </div>
+
+        <div style="margin-top: 8px;">
+            <div class="label" style="width: auto; margin-bottom: 3px;">General Comments</div>
+            <div class="text-block">{{ evaluation.general_comments ?: 'None' }}</div>
+        </div>
+
+        <div style="margin-top: 8px;">
+            <div class="label" style="width: auto; margin-bottom: 3px;">Next Steps</div>
+            <div class="text-block">{{ evaluation.next_steps ?: 'None' }}</div>
+        </div>
+    </div>
+</body>
+</html>

@@ -2,7 +2,7 @@
 
 namespace App\Service;
 
-final class FaceRecognitionService
+class FaceRecognitionService
 {
     /**
      * @param array<int, mixed> $descriptor
@@ -30,14 +30,14 @@ final class FaceRecognitionService
     /**
      * @return array<int, float>|null
      */
-    public function deserializeDescriptor(mixed $faceData): ?array
+    public function deserializeDescriptor(?string $faceData): ?array
     {
-        $serialized = $this->normalizeStoredFaceData($faceData);
-        if ($serialized === null) {
+        if ($faceData === null || trim($faceData) === '') {
             return null;
         }
 
-        $decoded = json_decode($serialized, true, 512, JSON_THROW_ON_ERROR);
+        $decoded = json_decode($faceData, true, 512, JSON_THROW_ON_ERROR);
+
         if (!is_array($decoded)) {
             return null;
         }
@@ -48,7 +48,7 @@ final class FaceRecognitionService
     /**
      * @param array<int, mixed> $probeDescriptor
      */
-    public function matchesStoredDescriptor(mixed $faceData, array $probeDescriptor, float $threshold = 0.45): bool
+    public function matchesStoredDescriptor(?string $faceData, array $probeDescriptor, float $threshold = 0.45): bool
     {
         $storedDescriptor = $this->deserializeDescriptor($faceData);
 
@@ -63,21 +63,6 @@ final class FaceRecognitionService
         }
 
         return $this->calculateDistance($storedDescriptor, $probe) <= $threshold;
-    }
-
-    private function normalizeStoredFaceData(mixed $faceData): ?string
-    {
-        if (is_resource($faceData)) {
-            $contents = stream_get_contents($faceData);
-
-            return is_string($contents) && trim($contents) !== '' ? $contents : null;
-        }
-
-        if (!is_string($faceData) || trim($faceData) === '') {
-            return null;
-        }
-
-        return $faceData;
     }
 
     /**

@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Entity\User;
+use App\Entity\Users;
 use App\Form\UsersType;
 use App\Service\UserRoleSummaryService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -12,15 +12,15 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
+#[Route('/users')]
 final class UsersController extends AbstractController
 {
-    #[Route('/users', name: 'app_users_index', methods: ['GET'])]
-    #[Route('/admin/users', name: 'app_admin_users_index', methods: ['GET'])]
+    #[Route(name: 'app_users_index', methods: ['GET'])]
     public function index(EntityManagerInterface $entityManager, UserRoleSummaryService $userRoleSummaryService): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        $users = $entityManager->getRepository(User::class)->findAll();
+        $users = $entityManager->getRepository(Users::class)->findAll();
         $connection = $entityManager->getConnection();
 
         $groupedStats = $connection->fetchAllAssociative(
@@ -34,10 +34,13 @@ final class UsersController extends AbstractController
             ORDER BY total DESC, roleName ASC'
         );
 
-        $googleLinkedUsers = (int) $connection->fetchOne('SELECT COUNT(*) FROM users WHERE google_id IS NOT NULL AND google_id <> ""');
-        $faceEnabledUsers = (int) $connection->fetchOne('SELECT COUNT(*) FROM users WHERE face_data IS NOT NULL AND face_data <> ""');
-        $activeUsers = count(array_filter($users, static fn (User $user): bool => strtolower((string) $user->getStatus()) === 'active'));
-        $profileImageUsers = count(array_filter($users, static fn (User $user): bool => (string) $user->getProfilePic() !== ''));
+        $googleLinkedUsers = (int) $connection->fetchOne(
+            'SELECT COUNT(*) FROM users WHERE google_id IS NOT NULL AND google_id <> ""'
+        );
+
+        $faceEnabledUsers = (int) $connection->fetchOne(
+            'SELECT COUNT(*) FROM users WHERE face_data IS NOT NULL AND face_data <> ""'
+        );
 
         $aiUserSummary = $userRoleSummaryService->generateSummary(
             array_map(static function (array $row): array {
@@ -57,18 +60,15 @@ final class UsersController extends AbstractController
             'ai_user_summary' => $aiUserSummary,
             'google_linked_users' => $googleLinkedUsers,
             'face_enabled_users' => $faceEnabledUsers,
-            'active_users' => $activeUsers,
-            'profile_image_users' => $profileImageUsers,
         ]);
     }
 
-    #[Route('/users/new', name: 'app_users_new', methods: ['GET', 'POST'])]
-    #[Route('/admin/users/new', name: 'app_admin_users_new', methods: ['GET', 'POST'])]
+    #[Route('/new', name: 'app_users_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        $user = new User();
+        $user = new Users();
         $form = $this->createForm(UsersType::class, $user, [
             'is_admin' => true,
             'password_required' => true,
@@ -87,18 +87,17 @@ final class UsersController extends AbstractController
             $em->persist($user);
             $em->flush();
 
-            return $this->redirectToRoute('app_admin_users_index');
+            return $this->redirectToRoute('app_users_index');
         }
 
         return $this->render('users/new.html.twig', [
             'user' => $user,
-            'form' => $form->createView(),
+            'form' => $form,
         ]);
     }
 
-    #[Route('/users/{id}', name: 'app_users_show', methods: ['GET'])]
-    #[Route('/admin/users/{id}', name: 'app_admin_users_show', methods: ['GET'])]
-    public function show(User $user): Response
+    #[Route('/{id}', name: 'app_users_show', methods: ['GET'])]
+    public function show(Users $user): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
@@ -111,14 +110,13 @@ final class UsersController extends AbstractController
         ]);
     }
 
-    #[Route('/users/{id}/edit', name: 'app_users_edit', methods: ['GET', 'POST'])]
-    #[Route('/admin/users/{id}/edit', name: 'app_admin_users_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, User $user, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
+    #[Route('/{id}/edit', name: 'app_users_edit', methods: ['GET', 'POST'])]
+    public function edit(Request $request, Users $user, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
     {
         $currentUser = $this->getUser();
         $isAdmin = $this->isGranted('ROLE_ADMIN');
 
-        if (!$isAdmin && (!$currentUser instanceof User || $currentUser->getId() !== $user->getId())) {
+        if (!$isAdmin && (!$currentUser instanceof Users || $currentUser->getId() !== $user->getId())) {
             throw $this->createAccessDeniedException();
         }
 
@@ -142,7 +140,7 @@ final class UsersController extends AbstractController
             $em->flush();
 
             return $this->redirectToRoute(
-                $isAdmin ? 'app_admin_users_index' : 'app_workspace_joboffer_index'
+                $isAdmin ? 'app_users_index' : 'app_joboffer_index'
             );
         }
 
@@ -150,24 +148,23 @@ final class UsersController extends AbstractController
 
         return $this->render('users/edit.html.twig', [
             'user' => $user,
-            'form' => $form->createView(),
+            'form' => $form,
             'contact_qr_url' => 'https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=' . rawurlencode($vcard),
             'contact_vcard' => $vcard,
         ]);
     }
 
-    #[Route('/users/{id}', name: 'app_users_delete', methods: ['POST'])]
-    #[Route('/admin/users/{id}', name: 'app_admin_users_delete', methods: ['POST'])]
-    public function delete(Request $request, User $user, EntityManagerInterface $entityManager): Response
+    #[Route('/{id}', name: 'app_users_delete', methods: ['POST'])]
+    public function delete(Request $request, Users $user, EntityManagerInterface $entityManager): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        if ($this->isCsrfTokenValid('delete'.$user->getId(), (string) $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete'.$user->getId(), $request->getPayload()->getString('_token'))) {
             $entityManager->remove($user);
             $entityManager->flush();
         }
 
-        return $this->redirectToRoute('app_admin_users_index', [], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('app_users_index', [], Response::HTTP_SEE_OTHER);
     }
 
     private function escapeVcardValue(?string $value): string
@@ -177,7 +174,7 @@ final class UsersController extends AbstractController
         return str_replace(['\\', ';', ','], ['\\\\', '\;', '\,'], $sanitized);
     }
 
-    private function buildContactVcard(User $user): string
+    private function buildContactVcard(Users $user): string
     {
         $fullName = trim(sprintf('%s %s', $user->getFirstName(), $user->getLastName()));
         $roleName = $user->getRole()?->getName() ?? 'User';

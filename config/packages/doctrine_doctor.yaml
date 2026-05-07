@@ -1,0 +1,55 @@
+when@dev:
+    doctrine_doctor:
+        enabled: true
+
+        analysis:
+            exclude_third_party_entities: true
+            exclude_paths:
+                - 'vendor/'
+
+        analyzers:
+            n_plus_one:
+                enabled: true
+                threshold: 3
+            slow_query:
+                enabled: true
+                threshold: 10
+            missing_index:
+                enabled: true
+                slow_query_threshold: 5
+                explain_queries: true
+                min_rows_scanned: 500
+            hydration:
+                enabled: true
+                row_threshold: 1000
+                critical_threshold: 5000
+            eager_loading:
+                enabled: true
+                join_threshold: 3
+                critical_join_threshold: 5
+            entity_manager_clear:
+                enabled: true
+                batch_size_threshold: 50
+            get_reference:
+                enabled: true
+                threshold: 5
+            flush_in_loop:
+                enabled: true
+                flush_count_threshold: 3
+                time_window_ms: 1000
+            lazy_loading:
+                enabled: true
+                threshold: 5
+            dql_injection:
+                enabled: true
+            bulk_operation:
+                enabled: true
+                threshold: 50
+
+        profiler:
+            show_in_toolbar: true
+            show_debug_info: false
+
+when@test:
+    doctrine_doctor:
+        enabled: false

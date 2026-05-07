@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Job Offer{% endblock %}
+
+{% block content %}
+
+
+<div class="card">
+
+    <div class="top-bar">
+        <h3>Create New Job Offer</h3>
+
+        <a href="{{ path('app_joboffer_index') }}" class="btn btn-secondary">
+            Back
+        </a>
+    </div>
+
+    {{ include('recruiter/joboffer/_form.html.twig') }}
+
+</div>
+
+{% endblock %}

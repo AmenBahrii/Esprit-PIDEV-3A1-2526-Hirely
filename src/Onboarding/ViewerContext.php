@@ -4,119 +4,65 @@ namespace App\Onboarding;
 
 use App\Entity\Onboardingplan;
 use App\Entity\Onboardingtask;
-use App\Entity\User;
-use App\Repository\UserRepository;
-use Symfony\Component\HttpFoundation\RequestStack;
+use App\Entity\Users;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 
 final class ViewerContext
 {
-    public const ROLE_CANDIDATE = 1;
+    public const ROLE_ADMIN = 1;
     public const ROLE_RECRUITER = 2;
-    public const ROLE_ADMIN = 3;
-
-    private const SESSION_KEY = 'onboarding_viewer_user_id';
+    public const ROLE_CANDIDATE = 3;
 
     public function __construct(
-        private readonly RequestStack $requestStack,
-        private readonly UserRepository $userRepository,
         private readonly Security $security,
+        private readonly EntityManagerInterface $entityManager,
     ) {
     }
 
-    public function getCurrentUser(): ?User
+    public function getCurrentUser(): ?Users
     {
-        $authenticatedUser = $this->security->getUser();
-        if ($authenticatedUser instanceof User) {
-            return $authenticatedUser;
-        }
+        $user = $this->security->getUser();
 
-        $request = $this->requestStack->getCurrentRequest();
-        $session = $request?->getSession();
-
-        $requestedViewerId = $request?->query->getInt('viewer', 0);
-        if ($requestedViewerId > 0) {
-            $user = $this->findSelectableUser($requestedViewerId);
-            if ($user) {
-                $session?->set(self::SESSION_KEY, $user->getUserId());
-
-                return $user;
-            }
-        }
-
-        $storedViewerId = $session?->get(self::SESSION_KEY);
-        if (\is_int($storedViewerId) || ctype_digit((string) $storedViewerId)) {
-            $user = $this->findSelectableUser((int) $storedViewerId);
-            if ($user) {
-                return $user;
-            }
-        }
-
-        $fallback = $this->getFallbackUser();
-        if ($fallback) {
-            $session?->set(self::SESSION_KEY, $fallback->getUserId());
-        }
-
-        return $fallback;
+        return $user instanceof Users ? $user : null;
     }
 
     /**
-     * @return User[]
+     * @return Users[]
      */
     public function getAvailableUsers(): array
     {
-        if ($this->security->getUser() instanceof User) {
-            return [];
-        }
-
-        return array_values($this->getDemoUsersIndexedByRole());
+        return $this->entityManager
+            ->getRepository(Users::class)
+            ->createQueryBuilder('user')
+            ->leftJoin('user.role', 'role')
+            ->addSelect('role')
+            ->andWhere('LOWER(role.name) IN (:roles)')
+            ->setParameter('roles', ['admin', 'recruiter', 'candidate'])
+            ->orderBy('user.first_name', 'ASC')
+            ->addOrderBy('user.last_name', 'ASC')
+            ->getQuery()
+            ->getResult();
     }
 
     public function setViewerUserId(?int $viewerUserId): bool
     {
-        if ($this->security->getUser() instanceof User) {
-            return false;
-        }
-
-        $session = $this->requestStack->getCurrentRequest()?->getSession();
-        if (!$session) {
-            return false;
-        }
-
-        if (!$viewerUserId) {
-            $session->remove(self::SESSION_KEY);
-
-            return true;
-        }
-
-        $user = $this->findSelectableUser($viewerUserId);
-        if (!$user) {
-            return false;
-        }
-
-        $session->set(self::SESSION_KEY, $user->getUserId());
-
-        return true;
-    }
-
-    public function getRoleId(): ?int
-    {
-        return $this->getCurrentUser()?->getRole()?->getRoleId();
+        return false;
     }
 
     public function getRoleName(): string
     {
-        $roleName = $this->getCurrentUser()?->getRole()?->getName();
+        $roleName = $this->normalizedRoleName();
 
-        return $roleName ? ucfirst(strtolower($roleName)) : 'Guest';
+        return '' !== $roleName ? ucfirst($roleName) : 'Guest';
     }
 
     public function getRoleBadgeClass(): string
     {
-        return match ($this->getRoleId()) {
-            self::ROLE_ADMIN => 'viewer-badge admin',
-            self::ROLE_RECRUITER => 'viewer-badge recruiter',
-            self::ROLE_CANDIDATE => 'viewer-badge candidate',
+        return match ($this->normalizedRoleName()) {
+            'admin' => 'viewer-badge admin',
+            'recruiter' => 'viewer-badge recruiter',
+            'candidate' => 'viewer-badge candidate',
             default => 'viewer-badge guest',
         };
     }
@@ -143,22 +89,22 @@ final class ViewerContext
 
     public function isAdminOrRecruiter(): bool
     {
-        return \in_array($this->getRoleId(), [self::ROLE_ADMIN, self::ROLE_RECRUITER], true);
+        return \in_array($this->normalizedRoleName(), ['admin', 'recruiter'], true);
     }
 
     public function isAdmin(): bool
     {
-        return self::ROLE_ADMIN === $this->getRoleId();
+        return 'admin' === $this->normalizedRoleName();
     }
 
     public function isRecruiter(): bool
     {
-        return self::ROLE_RECRUITER === $this->getRoleId();
+        return 'recruiter' === $this->normalizedRoleName();
     }
 
     public function isCandidate(): bool
     {
-        return self::ROLE_CANDIDATE === $this->getRoleId();
+        return 'candidate' === $this->normalizedRoleName();
     }
 
     public function canCreatePlans(): bool
@@ -224,66 +170,15 @@ final class ViewerContext
         return $this->canViewPlan($plan);
     }
 
-    private function getFallbackUser(): ?User
+    private function belongsToCurrentUser(?Users $user): bool
     {
-        $users = $this->getAvailableUsers();
+        $currentUser = $this->getCurrentUser();
 
-        return $users[0] ?? null;
+        return null !== $user && null !== $currentUser && $user->getId() === $currentUser->getId();
     }
 
-    private function findSelectableUser(int $userId): ?User
+    private function normalizedRoleName(): string
     {
-        $user = $this->userRepository->find($userId);
-        if (!$user) {
-            return null;
-        }
-
-        $roleId = $user->getRole()?->getRoleId();
-        if (!\in_array($roleId, [self::ROLE_ADMIN, self::ROLE_RECRUITER, self::ROLE_CANDIDATE], true)) {
-            return null;
-        }
-
-        $availableUsers = $this->getDemoUsersIndexedByRole();
-        if (($user->getUserId() ?? 0) !== ($availableUsers[$roleId]?->getUserId() ?? 0)) {
-            return null;
-        }
-
-        return $user;
-    }
-
-    /**
-     * @return array<int, User>
-     */
-    private function getDemoUsersIndexedByRole(): array
-    {
-        $usersByRole = [];
-        $availableUsers = $this->userRepository->findBy([], ['user_id' => 'ASC']);
-
-        foreach ($availableUsers as $user) {
-            $roleId = $user->getRole()?->getRoleId();
-            if (!\in_array($roleId, [self::ROLE_ADMIN, self::ROLE_RECRUITER, self::ROLE_CANDIDATE], true)) {
-                continue;
-            }
-
-            if (isset($usersByRole[$roleId])) {
-                continue;
-            }
-
-            $usersByRole[$roleId] = $user;
-        }
-
-        $orderedUsers = [];
-        foreach ([self::ROLE_ADMIN, self::ROLE_RECRUITER, self::ROLE_CANDIDATE] as $roleId) {
-            if (isset($usersByRole[$roleId])) {
-                $orderedUsers[$roleId] = $usersByRole[$roleId];
-            }
-        }
-
-        return $orderedUsers;
-    }
-
-    private function belongsToCurrentUser(?User $user): bool
-    {
-        return $user && $this->getCurrentUser() && $user->getUserId() === $this->getCurrentUser()?->getUserId();
+        return strtolower((string) $this->getCurrentUser()?->getRole()?->getName());
     }
 }

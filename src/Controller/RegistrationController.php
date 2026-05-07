@@ -2,9 +2,8 @@
 
 namespace App\Controller;
 
-use App\Entity\User;
+use App\Entity\Users;
 use App\Form\RegistrationFormType;
-use App\Service\GoogleOAuthService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,10 +17,9 @@ class RegistrationController extends AbstractController
     public function register(
         Request $request,
         UserPasswordHasherInterface $userPasswordHasher,
-        EntityManagerInterface $entityManager,
-        GoogleOAuthService $googleOAuthService,
+        EntityManagerInterface $entityManager
     ): Response {
-        $user = new User();
+        $user = new Users();
         $user->setStatus('active');
 
         $form = $this->createForm(RegistrationFormType::class, $user);
@@ -39,8 +37,7 @@ class RegistrationController extends AbstractController
                 $this->addFlash('error', 'Please choose a valid account type.');
 
                 return $this->render('registration/register.html.twig', [
-                    'registrationForm' => $form->createView(),
-                    'google_auth_enabled' => $googleOAuthService->isConfigured(),
+                    'registrationForm' => $form,
                 ]);
             }
 
@@ -57,8 +54,7 @@ class RegistrationController extends AbstractController
         }
 
         return $this->render('registration/register.html.twig', [
-            'registrationForm' => $form->createView(),
-            'google_auth_enabled' => $googleOAuthService->isConfigured(),
+            'registrationForm' => $form,
         ]);
     }
 }

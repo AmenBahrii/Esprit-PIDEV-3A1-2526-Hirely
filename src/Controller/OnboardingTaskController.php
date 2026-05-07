@@ -256,11 +256,11 @@ final class OnboardingTaskController extends AbstractController
         if ($this->isAdminArea($request) && !$viewerContext->isAdmin()) {
             $this->addFlash('error', 'The admin backend is reserved for admin accounts.');
 
-            return $this->redirectToRoute('app_workspace');
+            return $this->redirectToRoute('app_joboffer_index');
         }
 
         if (!$this->isAdminArea($request) && $viewerContext->isAdmin()) {
-            return $this->redirectToRoute('app_admin');
+            return $this->redirectToRoute('app_users_index');
         }
 
         return null;

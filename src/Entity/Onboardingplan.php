@@ -6,10 +6,18 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use App\Repository\OnboardingplanRepository;
+use Symfony\Component\Serializer\Annotation\Ignore;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: OnboardingplanRepository::class)]
-#[ORM\Table(name: 'onboardingplan')]
+#[ORM\Table(
+    name: 'onboardingplan',
+    indexes: [
+        new ORM\Index(name: 'idx_onboardingplan_user', columns: ['user_id']),
+        new ORM\Index(name: 'idx_onboardingplan_qr_token', columns: ['qr_token']),
+        new ORM\Index(name: 'idx_onboardingplan_status_deadline', columns: ['status', 'deadline']),
+    ]
+)]
 class Onboardingplan
 {
     public const STATUS_PENDING = 'pending';
@@ -36,15 +44,15 @@ class Onboardingplan
     #[ORM\Column(name: 'planId', type: 'integer')]
     private ?int $planId = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'onboardingplans')]
-    #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'user_id', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: Users::class)]
+    #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'user_id', nullable: true)]
     #[Assert\NotNull(message: 'Please select a user for this onboarding plan.', groups: ['full_edit'])]
-    private ?User $user = null;
+    private ?Users $user = null;
 
     #[ORM\Column(type: 'string', nullable: false)]
     #[Assert\NotBlank(message: 'Please choose a plan status.')]
     #[Assert\Choice(choices: self::STATUS_VALUES, message: 'Please choose a valid plan status.')]
-    private ?string $status = self::STATUS_PENDING;
+    private string $status = self::STATUS_PENDING;
 
     #[ORM\Column(type: 'date', nullable: true)]
     #[Assert\GreaterThanOrEqual(
@@ -54,14 +62,18 @@ class Onboardingplan
     )]
     private ?\DateTimeInterface $deadline = null;
 
-    #[ORM\Column(type: 'string', nullable: true)]
+    #[ORM\Column(type: 'string', length: 80, nullable: true)]
     #[Assert\Length(
         max: 80,
         maxMessage: 'The QR token cannot be longer than {{ limit }} characters.'
     )]
+    #[Ignore]
     private ?string $qr_token = null;
 
-    #[ORM\OneToMany(targetEntity: Onboardingtask::class, mappedBy: 'plan', orphanRemoval: true)]
+    /**
+     * @var Collection<int, Onboardingtask>
+     */
+    #[ORM\OneToMany(targetEntity: Onboardingtask::class, mappedBy: 'plan', cascade: ['persist'], orphanRemoval: true)]
     private Collection $onboardingtasks;
 
     public function __construct()
@@ -80,25 +92,25 @@ class Onboardingplan
         return $this;
     }
 
-    public function getUser(): ?User
+    public function getUser(): ?Users
     {
         return $this->user;
     }
 
-    public function setUser(?User $user): self
+    public function setUser(?Users $user): self
     {
         $this->user = $user;
         return $this;
     }
 
-    public function getStatus(): ?string
+    public function getStatus(): string
     {
         return $this->status;
     }
 
-    public function setStatus(?string $status): self
+    public function setStatus(string $status): self
     {
-        $this->status = null !== $status ? trim($status) : null;
+        $this->status = trim($status);
         return $this;
     }
 
@@ -113,6 +125,7 @@ class Onboardingplan
         return $this;
     }
 
+    #[Ignore]
     public function getQr_token(): ?string
     {
         return $this->qr_token;
@@ -124,6 +137,7 @@ class Onboardingplan
         return $this;
     }
 
+    #[Ignore]
     public function getQrToken(): ?string
     {
         return $this->qr_token;
@@ -135,6 +149,9 @@ class Onboardingplan
         return $this;
     }
 
+    /**
+     * @return Collection<int, Onboardingtask>
+     */
     public function getOnboardingtasks(): Collection
     {
         return $this->onboardingtasks;

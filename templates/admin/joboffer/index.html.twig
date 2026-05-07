@@ -1,168 +1,172 @@
-{% extends 'admin/base_admin.html.twig' %}
-
-{% set force_sidebar = true %}
-{% set topbar_title = 'Job Offers' %}
-{% set topbar_subtitle = 'Recruitment pipeline and open positions' %}
+{% extends 'base.html.twig' %}
 
 {% block title %}Job Offers{% endblock %}
+{% block workspace_title %}Admin Dashboard{% endblock %}
+{% block workspace_subtitle %}Recruitment and onboarding workspace{% endblock %}
 
-{% block admin_content %}
-    <section class="module-page">
-        <div class="module-section-head">
-            <div class="module-section-copy">
-                <span class="module-eyebrow">Job Offer Module</span>
-                <h1 class="module-section-title">Explore active hiring tracks</h1>
-                <p class="module-section-text">
-                    Recruiters manage their own offers, admins supervise the full list, and candidates discover only open roles.
-                </p>
-            </div>
+{% block content %}
+<section class="workspace-page">
+    <section class="workspace-hero">
+        <div class="workspace-hero-copy">
+            <p class="workspace-kicker">Admin</p>
+            <h2 class="workspace-section-title">Job offers overview</h2>
+            <p class="workspace-section-copy">A focused snapshot of published roles, hiring details, and offer visibility across the platform.</p>
         </div>
 
-        <div class="search-form-panel">
-            <div class="module-card-actions" style="justify-content: space-between; align-items: end;">
-                <div class="module-section-copy" style="gap: 6px;">
-                    <span class="module-eyebrow">Search and Sort</span>
-                    <p class="module-section-text">Scan the full hiring catalogue, search by content, and sort offers without leaving the admin workspace.</p>
-                </div>
-                <div class="inline-actions" style="width: min(100%, 760px);">
-                    <input
-                        type="text"
-                        id="admin-joboffer-search"
-                        class="search-input"
-                        placeholder="Search title, location, contract, or status"
-                    >
-                    <select id="admin-joboffer-sort" class="search-select">
-                        <option value="date_desc">Newest first</option>
-                        <option value="date_asc">Oldest first</option>
-                        <option value="salary_desc">Highest salary</option>
-                        <option value="salary_asc">Lowest salary</option>
-                        <option value="experience_desc">Most experience</option>
-                        <option value="experience_asc">Least experience</option>
-                    </select>
-                </div>
+        <div class="workspace-metric-grid" style="max-width: 430px; width: 100%;">
+            <div class="workspace-meta">
+                <span class="workspace-meta-label">Current Role</span>
+                <span class="workspace-meta-value">Admin</span>
             </div>
-        </div>
-
-        <div class="module-grid" id="admin-joboffer-grid">
-            {% for joboffer in joboffers %}
-                <article
-                    class="module-card"
-                    data-joboffer-card
-                    data-search="{{ (joboffer.title ?: '') ~ ' ' ~ (joboffer.location ?: '') ~ ' ' ~ (joboffer.contractType ?: '') ~ ' ' ~ (joboffer.status ?: '') }}"
-                    data-date="{{ joboffer.publicationDate ? joboffer.publicationDate|date('Y-m-d') : '' }}"
-                    data-salary="{{ joboffer.salary ?: 0 }}"
-                    data-experience="{{ joboffer.experienceRequired ?: 0 }}"
-                >
-                    <div class="module-card-header">
-                        <div>
-                            <span class="module-eyebrow">{{ joboffer.contractType ?: 'Contract not set' }}</span>
-                            <h2 class="module-card-title">{{ joboffer.title ?: 'Untitled job offer' }}</h2>
-                        </div>
-                        <span class="status-badge {{ (joboffer.status ?: 'unknown')|lower }}">
-                            {{ (joboffer.status ?: 'Unknown')|title }}
-                        </span>
-                    </div>
-
-                    <p class="module-card-description">
-                        {% set description = joboffer.description ?: '' %}
-                        {{ description|length > 180 ? description|slice(0, 180) ~ '...' : description }}
-                    </p>
-
-                    <div class="module-card-meta">
-                        <div class="module-meta-item">
-                            <span class="module-meta-label">Location</span>
-                            <span class="module-meta-value">{{ joboffer.location ?: 'Not specified' }}</span>
-                        </div>
-                        <div class="module-meta-item">
-                            <span class="module-meta-label">Salary</span>
-                            <span class="module-meta-value">{{ joboffer.salary ?: 'N/A' }}</span>
-                        </div>
-                        <div class="module-meta-item">
-                            <span class="module-meta-label">Experience</span>
-                            <span class="module-meta-value">{{ joboffer.experienceRequired ?: 0 }} years</span>
-                        </div>
-                        <div class="module-meta-item">
-                            <span class="module-meta-label">Published</span>
-                            <span class="module-meta-value">
-                                {{ joboffer.publicationDate ? joboffer.publicationDate|date('Y-m-d') : 'Not set' }}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="module-card-actions">
-                        <a href="{{ path('app_admin_joboffer_show', {'id': joboffer.id}) }}"
-                           class="btn-secondary topbar-logout-link">
-                            Open
-                        </a>
-
-                        <form method="post"
-                              action="{{ path('app_admin_joboffer_delete', {'id': joboffer.id}) }}"
-                              onsubmit="return confirm('Delete this job offer?');">
-                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ joboffer.id) }}">
-                            <button class="btn-primary topbar-logout-link" type="submit">Delete</button>
-                        </form>
-                    </div>
-                </article>
-            {% else %}
-                <div class="empty-state">No job offers match the current view.</div>
-            {% endfor %}
+            <div class="workspace-meta">
+                <span class="workspace-meta-label">Visible Offers</span>
+                <span class="workspace-meta-value">{{ joboffers|length }}</span>
+            </div>
         </div>
     </section>
-{% endblock %}
 
-{% block javascripts %}
-    {{ parent() }}
-    <script>
-        (() => {
-            const searchInput = document.getElementById('admin-joboffer-search');
-            const sortSelect = document.getElementById('admin-joboffer-sort');
-            const grid = document.getElementById('admin-joboffer-grid');
+    <section class="admin-metrics">
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Visible Offers</div>
+            <div class="admin-metric-value">{{ joboffers|length }}</div>
+        </article>
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Open Offers</div>
+            <div class="admin-metric-value">{{ joboffers|filter(joboffer => joboffer.status == 'Open')|length }}</div>
+        </article>
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Closed Offers</div>
+            <div class="admin-metric-value">{{ joboffers|filter(joboffer => joboffer.status != 'Open')|length }}</div>
+        </article>
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Tracked Locations</div>
+            <div class="admin-metric-value">{{ joboffers|map(joboffer => joboffer.location)|filter(location => location)|length }}</div>
+        </article>
+    </section>
 
-            if (!searchInput || !sortSelect || !grid) {
-                return;
-            }
+    <section class="workspace-toolbar">
+        <div class="workspace-toolbar-copy">
+            <span class="workspace-toolbar-label">Search and Sort</span>
+            <span class="workspace-toolbar-subtitle">Search job offers by title, location, contract, or status and reorder the cards instantly.</span>
+        </div>
 
-            const cards = Array.from(grid.querySelectorAll('[data-joboffer-card]'));
+        <div class="workspace-toolbar-controls">
+            <input type="text" id="jobSearch" placeholder="Search job offers..." class="search-input">
 
-            const sortCards = (sortValue) => {
-                const sorted = [...cards];
+            <select id="jobSort" class="sort-select">
+                <option value="date_desc">Newest first</option>
+                <option value="date_asc">Oldest first</option>
+                <option value="salary_desc">Salary high to low</option>
+                <option value="salary_asc">Salary low to high</option>
+                <option value="experience_desc">Experience high to low</option>
+                <option value="experience_asc">Experience low to high</option>
+            </select>
+        </div>
+    </section>
 
-                sorted.sort((a, b) => {
-                    if (sortValue === 'date_asc') {
-                        return String(a.dataset.date).localeCompare(String(b.dataset.date));
-                    }
-                    if (sortValue === 'salary_desc') {
-                        return Number(b.dataset.salary) - Number(a.dataset.salary);
-                    }
-                    if (sortValue === 'salary_asc') {
-                        return Number(a.dataset.salary) - Number(b.dataset.salary);
-                    }
-                    if (sortValue === 'experience_desc') {
-                        return Number(b.dataset.experience) - Number(a.dataset.experience);
-                    }
-                    if (sortValue === 'experience_asc') {
-                        return Number(a.dataset.experience) - Number(b.dataset.experience);
-                    }
+    <div class="workspace-page" id="jobCards">
+        {% for joboffer in joboffers %}
+            <article class="workspace-card"
+                     data-job-card
+                     data-search="{{ joboffer.title ~ ' ' ~ joboffer.location ~ ' ' ~ joboffer.contractType ~ ' ' ~ joboffer.status }}"
+                     data-date="{{ joboffer.publicationDate ? joboffer.publicationDate|date('Y-m-d') : '' }}"
+                     data-salary="{{ joboffer.salary }}"
+                     data-experience="{{ joboffer.experienceRequired }}">
+                <div class="workspace-card-head">
+                    <div>
+                        <span class="workspace-kicker">Job Offer</span>
+                        <h3 class="data-card-title">{{ joboffer.title }}</h3>
+                        <p class="workspace-card-summary">#{{ joboffer.id }} | {{ joboffer.location }}</p>
+                    </div>
 
-                    return String(b.dataset.date).localeCompare(String(a.dataset.date));
-                });
+                    {% if joboffer.status == 'Open' %}
+                        <span class="status status-accepted">Open</span>
+                    {% else %}
+                        <span class="status status-rejected">{{ joboffer.status }}</span>
+                    {% endif %}
+                </div>
 
-                sorted.forEach((card) => grid.appendChild(card));
-            };
+                <div class="workspace-meta-grid">
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Contract</span>
+                        <span class="workspace-meta-value">{{ joboffer.contractType }}</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Location</span>
+                        <span class="workspace-meta-value">{{ joboffer.location }}</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Salary</span>
+                        <span class="workspace-meta-value">{{ joboffer.salary }}</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Experience</span>
+                        <span class="workspace-meta-value">{{ joboffer.experienceRequired }} years</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Published</span>
+                        <span class="workspace-meta-value">{{ joboffer.publicationDate ? joboffer.publicationDate|date('Y-m-d') : 'N/A' }}</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Status</span>
+                        <span class="workspace-meta-value">{{ joboffer.status }}</span>
+                    </div>
+                </div>
 
-            const refresh = () => {
-                const query = searchInput.value.trim().toLowerCase();
+                <div class="workspace-card-actions">
+                    <a class="btn btn-view" href="{{ path('app_joboffer_show', {'id': joboffer.id}) }}">View</a>
+                </div>
+            </article>
+        {% else %}
+            <div class="empty-state">No job offers found</div>
+        {% endfor %}
+    </div>
+</section>
 
-                cards.forEach((card) => {
-                    const haystack = String(card.dataset.search || '').toLowerCase();
-                    card.style.display = haystack.includes(query) ? '' : 'none';
-                });
+<script>
+const jobSearch = document.getElementById('jobSearch');
+const jobSort = document.getElementById('jobSort');
+const jobCardsContainer = document.getElementById('jobCards');
+const jobCards = Array.from(jobCardsContainer.querySelectorAll('[data-job-card]'));
 
-                sortCards(sortSelect.value);
-            };
+function sortJobCards(cards, sortValue) {
+    const sorted = [...cards];
 
-            searchInput.addEventListener('input', refresh);
-            sortSelect.addEventListener('change', refresh);
-        })();
-    </script>
+    sorted.sort((a, b) => {
+        if (sortValue === 'date_asc') {
+            return String(a.dataset.date).localeCompare(String(b.dataset.date));
+        }
+        if (sortValue === 'salary_desc') {
+            return Number(b.dataset.salary) - Number(a.dataset.salary);
+        }
+        if (sortValue === 'salary_asc') {
+            return Number(a.dataset.salary) - Number(b.dataset.salary);
+        }
+        if (sortValue === 'experience_desc') {
+            return Number(b.dataset.experience) - Number(a.dataset.experience);
+        }
+        if (sortValue === 'experience_asc') {
+            return Number(a.dataset.experience) - Number(b.dataset.experience);
+        }
+
+        return String(b.dataset.date).localeCompare(String(a.dataset.date));
+    });
+
+    sorted.forEach(card => jobCardsContainer.appendChild(card));
+}
+
+function filterAndSortJobs() {
+    const search = jobSearch.value.toLowerCase();
+
+    jobCards.forEach(card => {
+        const matches = card.dataset.search.toLowerCase().includes(search);
+        card.style.display = matches ? '' : 'none';
+    });
+
+    sortJobCards(jobCards, jobSort.value);
+}
+
+jobSearch.addEventListener('input', filterAndSortJobs);
+jobSort.addEventListener('change', filterAndSortJobs);
+</script>
 {% endblock %}

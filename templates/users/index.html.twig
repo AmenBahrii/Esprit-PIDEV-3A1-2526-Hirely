@@ -1,149 +1,164 @@
-{% extends 'admin/base_admin.html.twig' %}
-
-{% set force_sidebar = true %}
-{% set topbar_title = 'Users Workspace' %}
-{% set topbar_subtitle = 'Accounts, roles, and access overview' %}
+{% extends 'base.html.twig' %}
 
 {% block title %}Users{% endblock %}
+{% block workspace_title %}Admin Dashboard{% endblock %}
+{% block workspace_subtitle %}Recruitment and onboarding workspace{% endblock %}
 
-{% block admin_content %}
-    <section class="module-page">
-        <div class="module-hero">
-            <div class="module-hero-copy">
-                <span class="module-eyebrow">User Module</span>
-                <h1 class="module-title">Manage platform accounts</h1>
-                <p class="module-subtitle">{{ ai_user_summary }}</p>
-            </div>
-
-            <div class="module-actions">
-                <a href="{{ path('app_admin_users_new') }}" class="btn-primary topbar-logout-link">Add user</a>
-            </div>
+{% block content %}
+<section class="workspace-page">
+    <section class="workspace-hero">
+        <div class="workspace-hero-copy">
+            <p class="workspace-kicker">Admin</p>
+            <h2 class="workspace-section-title">Users control center</h2>
+            <p class="workspace-section-copy">Manage access, review account health, and keep the team workspace organized.</p>
         </div>
 
-        <div class="module-stats">
-            <article class="module-stat">
-                <span class="module-stat-label">Total users</span>
-                <div class="module-stat-value">{{ users|length }}</div>
-            </article>
-            <article class="module-stat">
-                <span class="module-stat-label">Google linked</span>
-                <div class="module-stat-value">{{ google_linked_users }}</div>
-            </article>
-            <article class="module-stat">
-                <span class="module-stat-label">Face ID enabled</span>
-                <div class="module-stat-value">{{ face_enabled_users }}</div>
-            </article>
-            <article class="module-stat">
-                <span class="module-stat-label">Active users</span>
-                <div class="module-stat-value">{{ active_users }}</div>
-            </article>
-            <article class="module-stat">
-                <span class="module-stat-label">Profile photos</span>
-                <div class="module-stat-value">{{ profile_image_users }}</div>
-            </article>
-        </div>
-
-        <div class="search-form-panel">
-            <div class="module-card-actions" style="justify-content: space-between; align-items: end;">
-                <div class="module-section-copy" style="gap: 6px;">
-                    <span class="module-eyebrow">Search and Filter</span>
-                    <p class="module-section-text">Find accounts quickly by name, email, role, or status without leaving the users workspace.</p>
-                </div>
-                <div class="inline-actions" style="width: min(100%, 860px);">
-                    <input
-                        type="text"
-                        id="users-search"
-                        class="search-input"
-                        placeholder="Search user name or email"
-                    >
-                    <select id="users-role-filter" class="search-select">
-                        <option value="">All roles</option>
-                        <option value="admin">Admin</option>
-                        <option value="recruiter">Recruiter</option>
-                        <option value="candidate">Candidate</option>
-                    </select>
-                    <select id="users-status-filter" class="search-select">
-                        <option value="">All statuses</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
-                </div>
+        <div class="workspace-metric-grid" style="max-width: 520px; width: 100%;">
+            <div class="workspace-meta">
+                <span class="workspace-meta-label">Current Role</span>
+                <span class="workspace-meta-value">Admin</span>
             </div>
-        </div>
-
-        <div class="module-grid" id="users-grid">
-            {% for user in users %}
-                <article class="module-card"
-                         data-user-card
-                         data-search="{{ (user.firstName ~ ' ' ~ user.lastName ~ ' ' ~ user.email)|lower }}"
-                         data-role="{{ user.role ? user.role.name|lower : '' }}"
-                         data-status="{{ (user.status ?? 'inactive')|lower }}">
-                    <div class="module-card-header">
-                        <div>
-                            <span class="module-eyebrow">User #{{ user.id }}</span>
-                            <h2 class="module-card-title">{{ user.firstName }} {{ user.lastName }}</h2>
-                        </div>
-                        <span class="status-badge {{ (user.status ?? 'inactive')|lower }}">{{ (user.status ?? 'inactive')|title }}</span>
-                    </div>
-
-                    <p class="module-card-description">{{ user.email }}</p>
-
-                    <div class="module-card-meta">
-                        <div class="module-meta-item">
-                            <span class="module-meta-label">Role</span>
-                            <span class="module-meta-value">{{ user.role ? user.role.name|title : 'Unassigned' }}</span>
-                        </div>
-                        <div class="module-meta-item">
-                            <span class="module-meta-label">Profile</span>
-                            <span class="module-meta-value">{{ user.profilePic ? 'Linked image' : 'No image' }}</span>
-                        </div>
-                    </div>
-
-                    <div class="module-card-actions">
-                        <a href="{{ path('app_admin_users_show', {'id': user.id}) }}" class="btn-secondary topbar-logout-link">Open</a>
-                        <a href="{{ path('app_admin_users_edit', {'id': user.id}) }}" class="btn-primary topbar-logout-link">Edit</a>
-                        {% include 'users/_delete_form.html.twig' with {user: user} %}
-                    </div>
-                </article>
-            {% else %}
-                <div class="empty-state">No users found yet.</div>
-            {% endfor %}
+            <div class="workspace-meta">
+                <span class="workspace-meta-label">Focus</span>
+                <span class="workspace-meta-value">Platform user management</span>
+            </div>
         </div>
     </section>
-{% endblock %}
 
-{% block javascripts %}
-    {{ parent() }}
-    <script>
-        (() => {
-            const searchInput = document.getElementById('users-search');
-            const roleFilter = document.getElementById('users-role-filter');
-            const statusFilter = document.getElementById('users-status-filter');
-            const grid = document.getElementById('users-grid');
+    <section class="admin-metrics">
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Users</div>
+            <div class="admin-metric-value">{{ users|length }}</div>
+        </article>
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Google Linked</div>
+            <div class="admin-metric-value">{{ google_linked_users }}</div>
+        </article>
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Face ID Enabled</div>
+            <div class="admin-metric-value">{{ face_enabled_users }}</div>
+        </article>
+        <article class="admin-metric-card">
+            <div class="admin-metric-label">Active Users</div>
+            <div class="admin-metric-value">{{ users|filter(user => user.status == 'active')|length }}</div>
+        </article>
+    </section>
 
-            if (!searchInput || !roleFilter || !statusFilter || !grid) {
-                return;
-            }
+    <section class="workspace-card">
+        <div class="workspace-card-head">
+            <div>
+                <span class="workspace-kicker">AI Summary</span>
+                <h3 class="data-card-title">Workspace snapshot</h3>
+            </div>
+        </div>
+        <p class="workspace-card-summary" style="margin-top: 0;">{{ ai_user_summary }}</p>
+    </section>
 
-            const cards = Array.from(grid.querySelectorAll('[data-user-card]'));
+    <section class="workspace-toolbar">
+        <div class="workspace-toolbar-copy">
+            <span class="workspace-toolbar-label">Filter Users</span>
+            <span class="workspace-toolbar-subtitle">Search by name or email, then narrow the view by role and status.</span>
+        </div>
 
-            const refresh = () => {
-                const query = searchInput.value.trim().toLowerCase();
-                const role = roleFilter.value.trim().toLowerCase();
-                const status = statusFilter.value.trim().toLowerCase();
+        <div class="workspace-toolbar-controls">
+            <input type="text" id="userSearch" placeholder="Search user..." class="search-input">
 
-                cards.forEach((card) => {
-                    const matchesSearch = String(card.dataset.search || '').includes(query);
-                    const matchesRole = role === '' || String(card.dataset.role || '') === role;
-                    const matchesStatus = status === '' || String(card.dataset.status || '') === status;
+            <select id="roleFilter" class="sort-select">
+                <option value="">All roles</option>
+                <option value="admin">Admin</option>
+                <option value="recruiter">Recruiter</option>
+                <option value="candidate">Candidate</option>
+            </select>
 
-                    card.style.display = matchesSearch && matchesRole && matchesStatus ? '' : 'none';
-                });
-            };
+            <select id="statusFilter" class="sort-select">
+                <option value="">All status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+            </select>
 
-            searchInput.addEventListener('input', refresh);
-            roleFilter.addEventListener('change', refresh);
-            statusFilter.addEventListener('change', refresh);
-        })();
-    </script>
+            <a href="{{ path('app_users_new') }}" class="btn btn-primary">Add user</a>
+        </div>
+    </section>
+
+    <div class="workspace-page" id="userCards">
+        {% for user in users %}
+            <article class="workspace-card"
+                     data-user-card
+                     data-search="{{ (user.firstName ~ ' ' ~ user.lastName ~ ' ' ~ user.email)|lower }}"
+                     data-role="{{ user.role ? user.role.name|lower : '' }}"
+                     data-status="{{ user.status|lower }}">
+                <div class="workspace-card-head">
+                    <div class="user-cell">
+                        {% if user.profilePic %}
+                            <img src="{{ asset(user.profilePic) }}" class="avatar-small" alt="{{ user.firstName }} {{ user.lastName }}">
+                        {% else %}
+                            <div class="user-avatar-placeholder">
+                                {{ user.firstName|first }}{{ user.lastName|first }}
+                            </div>
+                        {% endif %}
+
+                        <div>
+                            <span class="workspace-kicker">User</span>
+                            <h3 class="data-card-title">{{ user.firstName }} {{ user.lastName }}</h3>
+                            <p class="workspace-card-summary">#{{ user.id }}</p>
+                        </div>
+                    </div>
+
+                    {% if user.status == 'active' %}
+                        <span class="status status-accepted">Active</span>
+                    {% else %}
+                        <span class="status status-rejected">{{ user.status }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="workspace-meta-grid">
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Email</span>
+                        <span class="workspace-meta-value">{{ user.email }}</span>
+                    </div>
+                    <div class="workspace-meta">
+                        <span class="workspace-meta-label">Role</span>
+                        <span class="workspace-meta-value">{{ user.role ? user.role.name : 'N/A' }}</span>
+                    </div>
+                </div>
+
+                <div class="workspace-card-actions">
+                    <a class="btn btn-edit" href="{{ path('app_users_edit', {'id': user.id}) }}">Edit</a>
+
+                    <form method="post" action="{{ path('app_users_delete', {'id': user.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
+                        <button class="btn btn-delete" type="submit">Delete</button>
+                    </form>
+                </div>
+            </article>
+        {% else %}
+            <div class="empty-state">No users found</div>
+        {% endfor %}
+    </div>
+</section>
+
+<script>
+const searchInput = document.getElementById('userSearch');
+const roleFilter = document.getElementById('roleFilter');
+const statusFilter = document.getElementById('statusFilter');
+const cards = document.querySelectorAll('[data-user-card]');
+
+function filterUsers() {
+    const search = searchInput.value.toLowerCase();
+    const role = roleFilter.value.toLowerCase();
+    const status = statusFilter.value.toLowerCase();
+
+    cards.forEach(card => {
+        const matchSearch = card.dataset.search.includes(search);
+        const matchRole = role === '' || card.dataset.role === role;
+        const matchStatus = status === '' || card.dataset.status === status;
+
+        card.style.display = matchSearch && matchRole && matchStatus ? '' : 'none';
+    });
+}
+
+searchInput.addEventListener('input', filterUsers);
+roleFilter.addEventListener('change', filterUsers);
+statusFilter.addEventListener('change', filterUsers);
+</script>
 {% endblock %}

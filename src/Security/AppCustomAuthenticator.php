@@ -43,20 +43,24 @@ class AppCustomAuthenticator extends AbstractLoginFormAuthenticator
     }
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
-    {
-        $user = $token->getUser();
-        $roles = \is_object($user) && method_exists($user, 'getRoles') ? $user->getRoles() : [];
+{
+    $user = $token->getUser();
+    $roles = $user->getRoles();
 
-        if (\in_array('ROLE_ADMIN', $roles, true)) {
-            return new RedirectResponse($this->urlGenerator->generate('app_admin'));
-        }
-
-        if (\in_array('ROLE_RECRUITER', $roles, true) || \in_array('ROLE_CANDIDATE', $roles, true)) {
-            return new RedirectResponse($this->urlGenerator->generate('app_workspace'));
-        }
-
-        return new RedirectResponse($this->urlGenerator->generate('app_home'));
+    if (in_array('ROLE_ADMIN', $roles)) {
+        return new RedirectResponse($this->urlGenerator->generate('app_joboffer_index'));
     }
+
+    if (in_array('ROLE_RECRUITER', $roles)) {
+        return new RedirectResponse($this->urlGenerator->generate('app_joboffer_index'));
+    }
+
+    if (in_array('ROLE_CANDIDATE', $roles)) {
+        return new RedirectResponse($this->urlGenerator->generate('app_joboffer_index'));
+    }
+
+    return new RedirectResponse($this->urlGenerator->generate('app_login'));
+}
 
     protected function getLoginUrl(Request $request): string
     {

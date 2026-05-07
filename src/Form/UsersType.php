@@ -3,7 +3,7 @@
 namespace App\Form;
 
 use App\Entity\Role;
-use App\Entity\User;
+use App\Entity\Users;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -68,7 +68,7 @@ class UsersType extends AbstractType
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'data_class' => User::class,
+            'data_class' => Users::class,
             'is_admin' => false,
             'password_required' => false,
         ]);

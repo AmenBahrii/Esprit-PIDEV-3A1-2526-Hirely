@@ -1,39 +1,3 @@
-<<<<<<< HEAD
-services:
-  _defaults:
-    autowire: true
-    autoconfigure: true
-    public: false
-
-  App\:
-    resource: '../src/'
-    exclude:
-      - '../src/DependencyInjection/'
-      - '../src/Entity/'
-      - '../src/Kernel.php'
-      - '../src/Tests/'
-      - '../src/Controller/'
-
-  App\Service\:
-    resource: '../src/Service'
-    autowire: true
-    public: true
-
-  App\Repository\:
-    resource: '../src/Repository'
-    autowire: true
-
-  App\Controller\:
-    resource: '../src/Controller'
-    autowire: true
-    autoconfigure: true
-    public: true
-
-  App\Security\AppAuthenticator:
-    arguments:
-      $entityManager: '@doctrine.orm.entity_manager'
-      $router: '@router'
-=======
 # This file is the entry point to configure your own services.
 # Files in the packages/ subdirectory configure your dependencies.
 
@@ -45,14 +9,6 @@ parameters:
     onboarding.public_base_url: '%env(default::ONBOARDING_PUBLIC_BASE_URL)%'
     onboarding.libretranslate.api_url: '%env(default::LIBRETRANSLATE_API_URL)%'
     onboarding.libretranslate.api_key: '%env(default::LIBRETRANSLATE_API_KEY)%'
-    app.mailer_from: '%env(string:MAILER_FROM)%'
-    app.groq_api_key: '%env(string:GROQ_API_KEY)%'
-    app.groq_resume_model: '%env(string:GROQ_RESUME_MODEL)%'
-    app.groq_review_model: '%env(string:GROQ_REVIEW_MODEL)%'
-    app.groq_user_summary_model: '%env(string:GROQ_USER_SUMMARY_MODEL)%'
-    app.google_client_id: '%env(default::GOOGLE_CLIENT_ID)%'
-    app.google_client_secret: '%env(default::GOOGLE_CLIENT_SECRET)%'
-    app.google_redirect_uri: '%env(string:default::GOOGLE_REDIRECT_URI)%'
 
 services:
     # default configuration for services in *this* file
@@ -69,8 +25,39 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
+    App\Controller\:
+        resource: '../src/Controller/'
+        tags: ['controller.service_arguments']
+
+    App\Service\GoogleOAuthService:
+        arguments:
+            $clientId: '%env(string:GOOGLE_CLIENT_ID)%'
+            $clientSecret: '%env(string:GOOGLE_CLIENT_SECRET)%'
+            $configuredRedirectUri: '%env(string:GOOGLE_REDIRECT_URI)%'
+
+    App\Service\ApplicationNotificationMailer:
+        arguments:
+            $fromAddress: '%env(string:MAILER_FROM)%'
+            $projectDir: '%kernel.project_dir%'
+
+    App\Service\ResumeAutofillService:
+        arguments:
+            $groqApiKey: '%env(string:GROQ_API_KEY)%'
+            $model: '%env(string:GROQ_RESUME_MODEL)%'
+
+    App\Service\ApplicationReviewAssistantService:
+        arguments:
+            $groqApiKey: '%env(string:GROQ_API_KEY)%'
+            $model: '%env(string:GROQ_REVIEW_MODEL)%'
+            $projectDir: '%kernel.project_dir%'
+
+    App\Service\UserRoleSummaryService:
+        arguments:
+            $groqApiKey: '%env(string:GROQ_API_KEY)%'
+            $model: '%env(string:GROQ_USER_SUMMARY_MODEL)%'
+
+    Smalot\PdfParser\Parser: ~
+
     App\Onboarding\AttachmentUploadConfiguration:
         arguments:
             $cloudName: '%onboarding.cloudinary.cloud_name%'
@@ -89,32 +76,5 @@ services:
         arguments:
             $projectDir: '%kernel.project_dir%'
 
-    App\Service\ApplicationNotificationMailer:
-        arguments:
-            $fromAddress: '%app.mailer_from%'
-            $projectDir: '%kernel.project_dir%'
-
-    App\Service\ResumeAutofillService:
-        arguments:
-            $groqApiKey: '%app.groq_api_key%'
-            $model: '%app.groq_resume_model%'
-
-    App\Service\ApplicationReviewAssistantService:
-        arguments:
-            $groqApiKey: '%app.groq_api_key%'
-            $model: '%app.groq_review_model%'
-            $projectDir: '%kernel.project_dir%'
-
-    App\Service\UserRoleSummaryService:
-        arguments:
-            $groqApiKey: '%app.groq_api_key%'
-            $model: '%app.groq_user_summary_model%'
-
-    App\Service\GoogleOAuthService:
-        arguments:
-            $clientId: '%app.google_client_id%'
-            $clientSecret: '%app.google_client_secret%'
-            $redirectUri: '%app.google_redirect_uri%'
-
-    Smalot\PdfParser\Parser: ~
->>>>>>> OnboardingCoordination
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones

@@ -45,8 +45,7 @@ Write 2 or 3 plain-English sentences.
 Rules:
 - Mention the total number of users.
 - Mention the most notable role/status patterns from the grouped data.
-- Mention Google-linked accounts when relevant.
-- Mention Face ID usage when relevant.
+- Mention Google-linked accounts and face-recognition-enabled accounts when relevant.
 - Keep it helpful and operational.
 - Do not use bullet points.
 - Do not invent anything not present in the stats.
@@ -54,7 +53,7 @@ Rules:
 Stats:
 Total users: {$totalUsers}
 Google-linked users: {$googleLinkedUsers}
-Face ID enabled users: {$faceEnabledUsers}
+Face-recognition-enabled users: {$faceEnabledUsers}
 Grouped users:
 PROMPT;
 
@@ -125,17 +124,11 @@ PROMPT;
             $parts[] = 'The largest groups are '.implode(' and ', $groupText).'.';
         }
 
-        if ($googleLinkedUsers > 0) {
+        if ($googleLinkedUsers > 0 || $faceEnabledUsers > 0) {
             $parts[] = sprintf(
-                '%d account%s use Google sign-in.',
+                '%d account%s use Google sign-in and %d account%s have face recognition enabled.',
                 $googleLinkedUsers,
-                $googleLinkedUsers === 1 ? '' : 's'
-            );
-        }
-
-        if ($faceEnabledUsers > 0) {
-            $parts[] = sprintf(
-                '%d account%s already have Face ID enabled.',
+                $googleLinkedUsers === 1 ? '' : 's',
                 $faceEnabledUsers,
                 $faceEnabledUsers === 1 ? '' : 's'
             );

@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Entity\User;
+use App\Entity\Users;
 use App\Security\AppCustomAuthenticator;
 use App\Service\FaceRecognitionService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -41,29 +41,28 @@ final class FaceAuthController extends AbstractController
             ], 422);
         }
 
-        /** @var User|null $user */
-        $user = $entityManager->getRepository(User::class)->findOneBy([
+        $user = $entityManager->getRepository(Users::class)->findOneBy([
             'email' => $email,
         ]);
 
-        if (!$user instanceof User || strtolower((string) $user->getStatus()) !== 'active') {
+        if (!$user instanceof Users || $user->getStatus() !== 'active') {
             return $this->json([
                 'success' => false,
                 'message' => 'No active user was found for that email.',
             ], 404);
         }
 
-        if ($faceRecognitionService->deserializeDescriptor($user->getFaceData()) === null) {
+        if ($user->getFaceData() === null || trim((string) $user->getFaceData()) === '') {
             return $this->json([
                 'success' => false,
-                'message' => 'You need to set up Face ID first.',
+                'message' => 'You need to set up face recognition first.',
             ], 409);
         }
 
         if (!$faceRecognitionService->matchesStoredDescriptor($user->getFaceData(), $descriptor)) {
             return $this->json([
                 'success' => false,
-                'message' => 'Face verification failed. Try again in better lighting and face the camera directly.',
+                'message' => 'Face verification failed. Try again in good lighting and face the camera directly.',
             ], 401);
         }
 
@@ -71,14 +70,14 @@ final class FaceAuthController extends AbstractController
 
         return $this->json([
             'success' => true,
-            'redirect' => $this->generateUrl(in_array('ROLE_ADMIN', $user->getRoles(), true) ? 'app_admin' : 'app_workspace'),
+            'redirect' => $this->generateUrl('app_joboffer_index'),
         ]);
     }
 
     #[Route('/users/{id}/enroll', name: 'app_face_auth_enroll', methods: ['POST'])]
     public function enroll(
         Request $request,
-        User $user,
+        Users $user,
         EntityManagerInterface $entityManager,
         FaceRecognitionService $faceRecognitionService
     ): JsonResponse {
@@ -89,7 +88,7 @@ final class FaceAuthController extends AbstractController
         if (!is_array($payload) || !$this->isCsrfTokenValid('face_enroll_' . $user->getId(), (string) ($payload['_token'] ?? ''))) {
             return $this->json([
                 'success' => false,
-                'message' => 'The Face ID enrollment request is invalid.',
+                'message' => 'The face enrollment request is invalid.',
             ], 400);
         }
 
@@ -107,7 +106,7 @@ final class FaceAuthController extends AbstractController
         } catch (\Throwable) {
             return $this->json([
                 'success' => false,
-                'message' => 'Unable to save the captured Face ID data.',
+                'message' => 'Unable to save the captured face data.',
             ], 422);
         }
 
@@ -120,7 +119,7 @@ final class FaceAuthController extends AbstractController
     #[Route('/users/{id}/remove', name: 'app_face_auth_remove', methods: ['POST'])]
     public function remove(
         Request $request,
-        User $user,
+        Users $user,
         EntityManagerInterface $entityManager
     ): JsonResponse {
         $this->denyFaceAccess($user);
@@ -130,7 +129,7 @@ final class FaceAuthController extends AbstractController
         if (!is_array($payload) || !$this->isCsrfTokenValid('face_remove_' . $user->getId(), (string) ($payload['_token'] ?? ''))) {
             return $this->json([
                 'success' => false,
-                'message' => 'The Face ID removal request is invalid.',
+                'message' => 'The face removal request is invalid.',
             ], 400);
         }
 
@@ -143,15 +142,14 @@ final class FaceAuthController extends AbstractController
         ]);
     }
 
-    private function denyFaceAccess(User $user): void
+    private function denyFaceAccess(Users $user): void
     {
         $currentUser = $this->getUser();
-
         if ($this->isGranted('ROLE_ADMIN')) {
             return;
         }
 
-        if (!$currentUser instanceof User || $currentUser->getId() !== $user->getId()) {
+        if (!$currentUser instanceof Users || $currentUser->getId() !== $user->getId()) {
             throw $this->createAccessDeniedException();
         }
     }

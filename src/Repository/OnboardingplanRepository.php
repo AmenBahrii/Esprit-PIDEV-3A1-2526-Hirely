@@ -3,7 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Onboardingplan;
-use App\Entity\User;
+use App\Entity\Users;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -13,6 +13,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class OnboardingplanRepository extends ServiceEntityRepository
 {
+    private const MAX_VISIBLE_PLANS = 10;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Onboardingplan::class);
@@ -21,14 +23,14 @@ class OnboardingplanRepository extends ServiceEntityRepository
     /**
      * @return Onboardingplan[]
      */
-    public function findVisibleFor(User $viewer, ?string $search = null, bool $caseSensitive = false, array $filters = []): array
+    public function findVisibleFor(Users $viewer, ?string $search = null, bool $caseSensitive = false, array $filters = []): array
     {
         $builder = $this->createQueryBuilder('plan')
+            ->select('plan.planId')
             ->leftJoin('plan.user', 'user')
-            ->addSelect('user')
             ->orderBy('plan.planId', 'DESC');
 
-        if (1 === $viewer->getRole()?->getRoleId()) {
+        if ('candidate' === strtolower((string) $viewer->getRole()?->getName())) {
             $builder
                 ->andWhere('plan.user = :viewer')
                 ->setParameter('viewer', $viewer);
@@ -38,7 +40,33 @@ class OnboardingplanRepository extends ServiceEntityRepository
         $this->applyFilters($builder, $filters);
         $this->applySorting($builder, (string) ($filters['sort'] ?? 'newest'));
 
-        return $builder->getQuery()->getResult();
+        $planIds = array_map(
+            static fn (array $row): int => (int) $row['planId'],
+            $builder
+                ->setMaxResults(self::MAX_VISIBLE_PLANS)
+                ->getQuery()
+                ->getArrayResult()
+        );
+
+        if ([] === $planIds) {
+            return [];
+        }
+
+        $plans = $this->createQueryBuilder('plan')
+            ->leftJoin('plan.user', 'user')
+            ->addSelect('user')
+            ->andWhere('plan.planId IN (:planIds)')
+            ->setParameter('planIds', $planIds)
+            ->getQuery()
+            ->getResult();
+
+        $positions = array_flip($planIds);
+        usort(
+            $plans,
+            static fn (Onboardingplan $left, Onboardingplan $right): int => ($positions[(int) $left->getPlanId()] ?? 0) <=> ($positions[(int) $right->getPlanId()] ?? 0)
+        );
+
+        return $plans;
     }
 
     public function findOneByQrToken(string $token): ?Onboardingplan

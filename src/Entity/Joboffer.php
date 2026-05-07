@@ -2,203 +2,224 @@
 
 namespace App\Entity;
 
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Doctrine\Common\Collections\ArrayCollection;
+
+use App\Entity\Users;
 use Doctrine\Common\Collections\Collection;
+use App\Entity\Application;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
-use App\Repository\JobofferRepository;
-
-#[ORM\Entity(repositoryClass: JobofferRepository::class)]
-#[ORM\Table(name: 'joboffer')]
+#[ORM\Entity]
 class Joboffer
 {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'jobOfferId', type: 'integer')]
-    private ?int $jobOfferId = null;
 
-    public function getJobOfferId(): ?int
+        #[ORM\Id]
+#[ORM\GeneratedValue]
+#[ORM\Column(name: "jobOfferId", type: "integer")]
+private ?int $id = null;
+
+    #[ORM\Column(name: "title", type: "string", length: 255)]
+#[Assert\NotBlank(message: "Title is required")]
+#[Assert\Length(min: 3, max: 255, minMessage: "Title must be at least {{ limit }} characters")]
+private string $title;
+
+#[ORM\Column(name: "description", type: "text")]
+#[Assert\NotBlank(message: "Description is required")]
+#[Assert\Length(min: 20, minMessage: "Description must be at least {{ limit }} characters")]
+private string $description;
+
+#[ORM\Column(name: "contractType", type: "string")]
+#[Assert\NotBlank(message: "Contract type is required")]
+#[Assert\Choice(choices: ["CDI", "CDD", "Internship", "Freelance"], message: "Please choose a valid contract type")]
+private string $contractType;
+
+#[ORM\Column(name: "salary", type: "float")]
+#[Assert\NotBlank(message: "Salary is required")]
+#[Assert\Positive(message: "Salary must be greater than 0")]
+private float $salary;
+
+#[ORM\Column(name: "location", type: "string", length: 255)]
+#[Assert\NotBlank(message: "Location is required")]
+#[Assert\Length(min: 2, max: 255, minMessage: "Location must be at least {{ limit }} characters")]
+private string $location;
+
+#[ORM\Column(name: "experienceRequired", type: "integer")]
+#[Assert\NotBlank(message: "Experience is required")]
+#[Assert\PositiveOrZero(message: "Experience cannot be negative")]
+private int $experienceRequired;
+
+#[ORM\Column(name: "publicationDate", type: "date")]
+#[Assert\NotNull(message: "Publication date is required")]
+private \DateTimeInterface $publicationDate;
+
+#[ORM\Column(name: "status", type: "string")]
+#[Assert\NotBlank(message: "Status is required")]
+#[Assert\Choice(choices: ["Open", "Closed"], message: "Please choose a valid status")]
+private string $status;
+
+        #[ORM\ManyToOne(targetEntity: Users::class, inversedBy: "joboffers")]
+#[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'user_id', onDelete: 'CASCADE')]
+#[Assert\NotNull(message: "A recruiter is required for the job offer")]
+private ?Users $user = null;
+
+public function getUser(): ?Users
+{
+    return $this->user;
+}
+public function __construct()
+{
+    $this->applications = new ArrayCollection();
+}
+public function setUser(?Users $user): self
+{
+    $this->user = $user;
+    return $this;
+}
+
+    public function getId()
     {
-        return $this->jobOfferId;
+        return $this->id;
     }
 
-    public function getId(): ?int
+    public function setId($value)
     {
-        return $this->jobOfferId;
+        $this->id = $value;
     }
 
-    public function setJobOfferId(int $jobOfferId): self
-    {
-        $this->jobOfferId = $jobOfferId;
-        return $this;
-    }
-
-    public function setId(int $id): self
-    {
-        $this->jobOfferId = $id;
-
-        return $this;
-    }
-
-    #[ORM\Column(type: 'string', nullable: true)]
-    private ?string $title = null;
-
-    public function getTitle(): ?string
+    public function getTitle()
     {
         return $this->title;
     }
 
-    public function setTitle(?string $title): self
+    public function setTitle($value)
     {
-        $this->title = $title;
-        return $this;
+        $this->title = $value;
     }
 
-    #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $description = null;
-
-    public function getDescription(): ?string
+    public function getDescription()
     {
         return $this->description;
     }
 
-    public function setDescription(?string $description): self
+    public function setDescription($value)
     {
-        $this->description = $description;
-        return $this;
+        $this->description = $value;
     }
 
-    #[ORM\Column(name: 'contractType', type: 'string', nullable: true)]
-    private ?string $contractType = null;
-
-    public function getContractType(): ?string
+    public function getContractType()
     {
         return $this->contractType;
     }
 
-    public function setContractType(?string $contractType): self
+    public function setContractType($value)
     {
-        $this->contractType = $contractType;
-        return $this;
+        $this->contractType = $value;
     }
 
-    #[ORM\Column(type: 'decimal', nullable: true)]
-    private ?string $salary = null;
-
-    public function getSalary(): ?string
+    public function getSalary()
     {
         return $this->salary;
     }
 
-    public function setSalary(?string $salary): self
+    public function setSalary($value)
     {
-        $this->salary = $salary;
-        return $this;
+        $this->salary = $value;
     }
 
-    #[ORM\Column(type: 'string', nullable: true)]
-    private ?string $location = null;
-
-    public function getLocation(): ?string
+    public function getLocation()
     {
         return $this->location;
     }
 
-    public function setLocation(?string $location): self
+    public function setLocation($value)
     {
-        $this->location = $location;
-        return $this;
+        $this->location = $value;
     }
 
-    #[ORM\Column(name: 'experienceRequired', type: 'integer', nullable: true)]
-    private ?int $experienceRequired = null;
-
-    public function getExperienceRequired(): ?int
+    public function getExperienceRequired()
     {
         return $this->experienceRequired;
     }
 
-    public function setExperienceRequired(?int $experienceRequired): self
+    public function setExperienceRequired($value)
     {
-        $this->experienceRequired = $experienceRequired;
-        return $this;
+        $this->experienceRequired = $value;
     }
 
-    #[ORM\Column(name: 'publicationDate', type: 'date', nullable: true)]
-    private ?\DateTimeInterface $publicationDate = null;
-
-    public function getPublicationDate(): ?\DateTimeInterface
+    public function getPublicationDate()
     {
         return $this->publicationDate;
     }
 
-    public function setPublicationDate(?\DateTimeInterface $publicationDate): self
+    public function setPublicationDate($value)
     {
-        $this->publicationDate = $publicationDate;
-        return $this;
+        $this->publicationDate = $value;
     }
 
-    #[ORM\Column(type: 'string', nullable: true)]
-    private ?string $status = null;
-
-    public function getStatus(): ?string
+    public function getStatus()
     {
         return $this->status;
     }
 
-    public function setStatus(?string $status): self
+    public function setStatus($value)
     {
-        $this->status = $status;
-        return $this;
+        $this->status = $value;
     }
 
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'joboffers')]
-    #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'user_id')]
-    private ?User $user = null;
-
-    public function getUser(): ?User
-    {
-        return $this->user;
-    }
-
-    public function setUser(?User $user): self
-    {
-        $this->user = $user;
-        return $this;
-    }
-
-    #[ORM\OneToMany(targetEntity: Application::class, mappedBy: 'joboffer')]
-    private Collection $applications;
-
-    public function __construct()
-    {
-        $this->applications = new ArrayCollection();
-    }
+    
 
     /**
-     * @return Collection<int, Application>
+     * @var Collection<int, Application>
      */
-    public function getApplications(): Collection
-    {
-        if (!$this->applications instanceof Collection) {
-            $this->applications = new ArrayCollection();
+    #[ORM\OneToMany(mappedBy: 'jobOffer', targetEntity: Application::class)]
+    private Collection $applications;
+
+        public function getApplications(): Collection
+        {
+            return $this->applications;
         }
-        return $this->applications;
-    }
-
-    public function addApplication(Application $application): self
-    {
-        if (!$this->getApplications()->contains($application)) {
-            $this->getApplications()->add($application);
+    
+        public function addApplication(Application $application): self
+        {
+            if (!$this->applications->contains($application)) {
+                $this->applications[] = $application;
+                $application->setJobOffer($this);
+            }
+    
+            return $this;
         }
-        return $this;
-    }
+    
+        public function removeApplication(Application $application): self
+        {
+            if ($this->applications->removeElement($application)) {
+                // set the owning side to null (unless already changed)
+                if ($application->getJobOffer() === $this) {
+                    $application->setJobOffer(null);
+                }
+            }
+    
+            return $this;
+        }
 
-    public function removeApplication(Application $application): self
+    #[Assert\Callback]
+    public function validateBusinessRules(ExecutionContextInterface $context): void
     {
-        $this->getApplications()->removeElement($application);
-        return $this;
-    }
+        if ($this->user instanceof Users && !in_array('ROLE_RECRUITER', $this->user->getRoles(), true)) {
+            $context->buildViolation('Only recruiters can own job offers.')
+                ->atPath('user')
+                ->addViolation();
+        }
 
+        if (
+            isset($this->contractType, $this->experienceRequired)
+            && $this->contractType === 'Internship'
+            && $this->experienceRequired > 2
+        ) {
+            $context->buildViolation('Internships cannot require more than 2 years of experience.')
+                ->atPath('experienceRequired')
+                ->addViolation();
+        }
+    }
 }

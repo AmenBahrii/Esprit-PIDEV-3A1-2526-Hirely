@@ -1,0 +1,174 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Interview Details - Hirely{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3>Interview Details</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Candidate</h6>
+                            <p class="mb-3">
+                                {% if interview.application_id.user %}
+                                    {{ interview.application_id.user.firstName }} {{ interview.application_id.user.lastName }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Job Offer</h6>
+                            <p class="mb-3">
+                                {% if interview.application_id.jobOffer %}
+                                    {{ interview.application_id.jobOffer.title }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Interview Type</h6>
+                            <p class="mb-3">
+                                {% if interview.interview_type_id %}
+                                    {{ interview.interview_type_id.type_name }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Round</h6>
+                            <p class="mb-3">{{ interview.interview_round }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Scheduled Date</h6>
+                            <p class="mb-3">{{ interview.scheduled_date.format('F d, Y') }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Time</h6>
+                            <p class="mb-3">
+                                {% if interview.scheduled_time %}
+                                    {{ interview.scheduled_time }}
+                                {% else %}
+                                    Not set
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Duration</h6>
+                            <p class="mb-3">{{ interview.duration_minutes }} minutes</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Status</h6>
+                            <p class="mb-3">
+                                <span class="badge 
+                                    {% if interview.status == 'scheduled' %}bg-warning
+                                    {% elseif interview.status == 'completed' %}bg-success
+                                    {% elseif interview.status == 'cancelled' %}bg-danger
+                                    {% endif %}">
+                                    {{ interview.status|capitalize }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Location</h6>
+                            <p class="mb-3">
+                                {% if interview.location %}
+                                    {{ interview.location }}
+                                {% else %}
+                                    Not set
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <h6 class="text-muted">Meeting Link</h6>
+                            <p class="mb-3">
+                                {% if interview.meeting_link %}
+                                    <a href="{{ interview.meeting_link }}" target="_blank" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-link"></i> Join Meeting
+                                    </a>
+                                {% else %}
+                                    Not set
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <h6 class="text-muted">Notes</h6>
+                            <p>
+                                {% if interview.notes %}
+                                    {{ interview.notes }}
+                                {% else %}
+                                    No notes
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <div class="d-flex gap-2">
+                    <a href="{{ path('app_interview_index') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+
+                    {% if interview.status == 'scheduled' %}
+                        <form method="POST" action="{{ path('app_interview_complete', {'interviewId': interview.interview_id}) }}" style="display: inline;">
+                            <button type="submit" class="btn btn-success" onclick="return confirm('Mark this interview as completed?')">
+                                <i class="fas fa-check"></i> Complete
+                            </button>
+                        </form>
+
+                        <a href="{{ path('app_interview_edit', {'interviewId': interview.interview_id}) }}" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+
+                        <form method="POST" action="{{ path('app_interview_cancel', {'interviewId': interview.interview_id}) }}" style="display: inline;">
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Cancel this interview?')">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                        </form>
+                    {% endif %}
+
+                    <form method="POST" action="{{ path('app_interview_delete', {'interviewId': interview.interview_id}) }}" style="display: inline;">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ interview.interview_id) }}">
+                        <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Delete this interview permanently?')">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </form>
+
+                    {% if interview.status == 'completed' %}
+                        <a href="{{ path('app_evaluation_new', {'interviewId': interview.interview_id}) }}" class="btn btn-success">
+                            <i class="fas fa-star"></i> Create Evaluation
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -2,7 +2,7 @@
 
 namespace App\Onboarding;
 
-use App\Entity\User;
+use App\Entity\Users;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final class OnboardingPlanTemplateSelection
@@ -11,7 +11,7 @@ final class OnboardingPlanTemplateSelection
     private ?string $templateKey = null;
 
     #[Assert\NotNull(message: 'Please choose a user for this onboarding plan.')]
-    private ?User $user = null;
+    private ?Users $user = null;
 
     #[Assert\GreaterThanOrEqual(value: 'today', message: 'The deadline cannot be in the past.')]
     private ?\DateTimeInterface $deadline = null;
@@ -28,12 +28,12 @@ final class OnboardingPlanTemplateSelection
         return $this;
     }
 
-    public function getUser(): ?User
+    public function getUser(): ?Users
     {
         return $this->user;
     }
 
-    public function setUser(?User $user): self
+    public function setUser(?Users $user): self
     {
         $this->user = $user;
 

@@ -3,7 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Joboffer;
-use App\Entity\User;
+use App\Entity\Users;
 use PhpOffice\PhpWord\IOFactory;
 use Smalot\PdfParser\Parser;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -22,7 +22,7 @@ class ResumeAutofillService
     /**
      * @return array{phone:?string, portfolioUrl:?string, experienceYears:?int, coverLetter:?string}
      */
-    public function extractApplicationDraft(UploadedFile $resumeFile, User $candidate, Joboffer $jobOffer): array
+    public function extractApplicationDraft(UploadedFile $resumeFile, Users $candidate, Joboffer $jobOffer): array
     {
         if (trim($this->groqApiKey) === '') {
             throw new \RuntimeException('Resume autofill is not configured yet. Add your Groq API key first.');

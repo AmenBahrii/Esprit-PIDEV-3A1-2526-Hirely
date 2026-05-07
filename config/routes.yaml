@@ -1,10 +1,5 @@
 controllers:
-<<<<<<< HEAD
-  resource: ../src/Controller/
-  type: attribute
-=======
     resource:
         path: ../src/Controller/
         namespace: App\Controller
     type: attribute
->>>>>>> OnboardingCoordination

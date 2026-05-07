@@ -4,7 +4,7 @@ namespace App\Onboarding;
 
 use App\Entity\Onboardingplan;
 use App\Entity\Onboardingtask;
-use App\Entity\User;
+use App\Entity\Users;
 
 final class OnboardingPlanTemplateCatalog
 {
@@ -159,7 +159,7 @@ final class OnboardingPlanTemplateCatalog
         return $this->all()[$key] ?? null;
     }
 
-    public function createPlanFromTemplate(string $key, User $user, ?\DateTimeInterface $deadline = null): ?Onboardingplan
+    public function createPlanFromTemplate(string $key, Users $user, ?\DateTimeInterface $deadline = null): ?Onboardingplan
     {
         $template = $this->find($key);
         if (null === $template) {

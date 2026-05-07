@@ -1,0 +1,161 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Schedule Interview - Hirely{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-7">
+            <!-- Header Section -->
+            <div class="mb-5">
+                <h1 class="display-5 fw-bold text-dark mb-2">Schedule Interview</h1>
+                <p class="text-muted lead">Set up a new interview for the selected candidate</p>
+            </div>
+
+            <!-- Application Details Card -->
+            <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+                <div class="card-body p-4">
+                    <h6 class="text-uppercase fw-bold text-muted mb-3" style="font-size: 0.75rem; letter-spacing: 0.5px;">Application Details</h6>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="detail-box">
+                                <span class="badge bg-secondary mb-2">Candidate</span>
+                                <p class="mb-0 fw-bold text-dark" style="font-size: 1.1rem;">
+                                    {% if application.user %}
+                                        {{ application.user.firstName }} {{ application.user.lastName }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-box">
+                                <span class="badge bg-info mb-2">Position</span>
+                                <p class="mb-0 fw-bold text-dark" style="font-size: 1.1rem;">
+                                    {% if application.jobOffer %}
+                                        {{ application.jobOffer.title }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Card -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form method="POST" novalidate>
+                        
+                        <!-- Interview Type Section -->
+                        <div class="mb-4">
+                            <label for="interview_type_id" class="form-label fw-bold mb-3">
+                                <i class="fas fa-microphone text-primary me-2"></i>Interview Type
+                            </label>
+                            <select name="interview_type_id" id="interview_type_id" class="form-select form-select-lg" required style="border-radius: 8px; border: 2px solid #e9ecef;">
+                                <option value="">-- Select Interview Type --</option>
+                                {% for type in interview_types %}
+                                    <option value="{{ type.interview_type_id }}">{{ type.type_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Date & Time Section -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-dark mb-3">
+                                <i class="fas fa-calendar-alt text-primary me-2"></i>Schedule
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="scheduled_date" class="form-label">Date</label>
+                                    <input type="date" name="scheduled_date" id="scheduled_date" class="form-control form-control-lg" min="{{ 'now'|date('Y-m-d') }}" required style="border-radius: 8px; border: 1px solid #dee2e6;">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="scheduled_time" class="form-label">Time <span class="text-muted">(Optional)</span></label>
+                                    <input type="time" name="scheduled_time" id="scheduled_time" class="form-control form-control-lg" style="border-radius: 8px; border: 1px solid #dee2e6;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Interview Details Section -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-dark mb-3">
+                                <i class="fas fa-sliders-h text-primary me-2"></i>Interview Details
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="duration_minutes" class="form-label">Duration <span class="badge bg-light text-dark">minutes</span></label>
+                                    <input type="number" name="duration_minutes" id="duration_minutes" class="form-control form-control-lg" value="60" min="15" required style="border-radius: 8px; border: 1px solid #dee2e6;">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="interview_round" class="form-label">Round</label>
+                                    <input type="number" name="interview_round" id="interview_round" class="form-control form-control-lg" value="1" min="1" required style="border-radius: 8px; border: 1px solid #dee2e6;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Location & Meeting Section -->
+                        <div class="mb-4">
+                            {% include 'recruiter/interview/_location_picker.html.twig' %}
+
+                            <div class="mt-4">
+                                <label for="meeting_link" class="form-label fw-bold">
+                                    <i class="fas fa-link text-primary me-2"></i>Meeting Link <span class="text-muted">(Optional)</span>
+                                </label>
+                                <input type="text" name="meeting_link" id="meeting_link" class="form-control form-control-lg" placeholder="e.g., https://meet.google.com/..." style="border-radius: 12px; border: 1px solid #dee2e6;">
+                            </div>
+                        </div>
+
+                        <!-- Notes Section -->
+                        <div class="mb-4">
+                            <label for="notes" class="form-label fw-bold">
+                                <i class="fas fa-sticky-note text-primary me-2"></i>Notes <span class="text-muted">(Optional)</span>
+                            </label>
+                            <textarea name="notes" id="notes" class="form-control" rows="4" placeholder="Add any additional notes or instructions for the interview..." style="border-radius: 8px; border: 1px solid #dee2e6;"></textarea>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-3 pt-3">
+                            <button type="submit" class="btn btn-lg btn-success" style="border-radius: 8px; padding: 0.75rem 2rem;">
+                                <i class="fas fa-calendar-check me-2"></i>Schedule Interview
+                            </button>
+                            <a href="{{ path('app_interview_index') }}" class="btn btn-lg btn-outline-secondary" style="border-radius: 8px; padding: 0.75rem 2rem;">
+                                <i class="fas fa-arrow-left me-2"></i>Back
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .detail-box {
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 8px;
+        border-left: 4px solid #0d6efd;
+    }
+    
+    .form-select-lg, .form-control-lg {
+        font-size: 1rem;
+        padding: 0.75rem 1rem;
+    }
+    
+    .badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+</style>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

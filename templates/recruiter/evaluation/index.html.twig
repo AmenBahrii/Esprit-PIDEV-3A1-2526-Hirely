@@ -1,0 +1,209 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Evaluations - Hirely{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Interview Evaluations</h1>
+            </div>
+
+            {% if evaluations is empty %}
+                <div class="alert alert-info">
+                    <p>No evaluations found.</p>
+                </div>
+            {% else %}
+                <section class="workspace-toolbar mb-3">
+                    <div class="workspace-toolbar-copy">
+                        <span class="workspace-toolbar-label">Search and Sort</span>
+                        <span class="workspace-toolbar-subtitle">Search by candidate, job offer, recommendation, decision, or status and reorder the visible evaluations instantly.</span>
+                    </div>
+
+                    <div class="workspace-toolbar-controls">
+                        <input type="search" id="evaluation-search" class="search-input" placeholder="Search candidates, status, or decisions">
+
+                        <select id="evaluation-sort" class="sort-select">
+                            <option value="date_desc">Newest first</option>
+                            <option value="date_asc">Oldest first</option>
+                            <option value="rating_desc">Highest rating first</option>
+                            <option value="rating_asc">Lowest rating first</option>
+                            <option value="candidate_asc">Candidate A to Z</option>
+                            <option value="job_asc">Job title A to Z</option>
+                            <option value="status_asc">Status A to Z</option>
+                        </select>
+                    </div>
+                </section>
+
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="evaluation-table">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Candidate</th>
+                                <th>Job Offer</th>
+                                <th>Overall Rating</th>
+                                <th>Recommendation</th>
+                                <th>Hire Decision</th>
+                                <th>Status</th>
+                                <th>Evaluated Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="evaluation-table-body">
+                            {% for evaluation in evaluations %}
+                                <tr data-search="{{
+                                    ((evaluation.interview_id.application_id.user ? evaluation.interview_id.application_id.user.firstName ~ ' ' ~ evaluation.interview_id.application_id.user.lastName : 'N/A') ~ ' ' ~
+                                    (evaluation.interview_id.application_id.jobOffer ? evaluation.interview_id.application_id.jobOffer.title : 'N/A') ~ ' ' ~
+                                    evaluation.recommendation ~ ' ' ~
+                                    evaluation.hire_decision ~ ' ' ~
+                                    (evaluation.is_draft ? 'draft' : 'submitted'))
+                                |lower }}">
+                                    <td>
+                                        {% if evaluation.interview_id.application_id.user %}
+                                            {{ evaluation.interview_id.application_id.user.firstName }} {{ evaluation.interview_id.application_id.user.lastName }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if evaluation.interview_id.application_id.jobOffer %}
+                                            {{ evaluation.interview_id.application_id.jobOffer.title }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong>{{ evaluation.overall_rating }}/10</strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ evaluation.recommendation|capitalize }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if evaluation.hire_decision == 'hire' %}bg-success
+                                            {% elseif evaluation.hire_decision == 'no_hire' %}bg-danger
+                                            {% elseif evaluation.hire_decision == 'maybe' %}bg-warning
+                                            {% else %}bg-secondary
+                                            {% endif %}">
+                                            {{ evaluation.hire_decision|capitalize }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if evaluation.is_draft %}bg-secondary
+                                            {% else %}bg-success
+                                            {% endif %}">
+                                            {% if evaluation.is_draft %}Draft{% else %}Submitted{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>{{ evaluation.evaluated_at.format('M d, Y') }}</td>
+                                    <td>
+                                        <a href="{{ path('app_evaluation_show', {'evaluationId': evaluation.evaluation_id}) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                        <a href="{{ path('app_evaluation_export_pdf', {'evaluationId': evaluation.evaluation_id}) }}" class="btn btn-sm btn-dark">
+                                            <i class="fas fa-file-pdf"></i> PDF
+                                        </a>
+                                        {% if evaluation.is_draft %}
+                                            <a href="{{ path('app_evaluation_edit', {'evaluationId': evaluation.evaluation_id}) }}" class="btn btn-sm btn-warning">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </a>
+                                            <form method="POST" action="{{ path('app_evaluation_delete', {'evaluationId': evaluation.evaluation_id}) }}" style="display: inline;">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ evaluation.evaluation_id) }}">
+                                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this draft evaluation?')">
+                                                    <i class="fas fa-trash"></i> Delete
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <button type="button" class="btn btn-sm btn-warning" disabled title="Submitted evaluations cannot be edited">Edit</button>
+                                            <button type="button" class="btn btn-sm btn-danger" disabled title="Submitted evaluations cannot be deleted">Delete</button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <p id="evaluation-empty-state" class="text-muted mt-2 d-none">No evaluations match your search.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('evaluation-search');
+    const sortSelect = document.getElementById('evaluation-sort');
+    const tbody = document.getElementById('evaluation-table-body');
+    const emptyState = document.getElementById('evaluation-empty-state');
+
+    if (!searchInput || !sortSelect || !tbody || !emptyState) {
+        return;
+    }
+
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+
+    function cellText(row, index) {
+        return (row.cells[index]?.textContent || '').trim();
+    }
+
+    function parseDate(text) {
+        const timestamp = Date.parse(text);
+        return Number.isNaN(timestamp) ? 0 : timestamp;
+    }
+
+    function parseRating(text) {
+        const match = text.match(/([0-9]+(?:\.[0-9]+)?)/);
+        return match ? parseFloat(match[1]) : 0;
+    }
+
+    function compareRows(a, b, sortKey) {
+        switch (sortKey) {
+            case 'date_asc':
+                return parseDate(cellText(a, 6)) - parseDate(cellText(b, 6));
+            case 'date_desc':
+                return parseDate(cellText(b, 6)) - parseDate(cellText(a, 6));
+            case 'rating_asc':
+                return parseRating(cellText(a, 2)) - parseRating(cellText(b, 2));
+            case 'rating_desc':
+                return parseRating(cellText(b, 2)) - parseRating(cellText(a, 2));
+            case 'candidate_asc':
+                return cellText(a, 0).localeCompare(cellText(b, 0));
+            case 'job_asc':
+                return cellText(a, 1).localeCompare(cellText(b, 1));
+            case 'status_asc':
+                return cellText(a, 5).localeCompare(cellText(b, 5));
+            default:
+                return 0;
+        }
+    }
+
+    function refreshRows() {
+        const query = searchInput.value.trim().toLowerCase();
+        const sortKey = sortSelect.value;
+
+        const filteredRows = rows.filter(function (row) {
+            const searchable = (row.dataset.search || '').toLowerCase();
+            const match = query === '' || searchable.includes(query);
+            row.classList.toggle('d-none', !match);
+            return match;
+        });
+
+        filteredRows.sort(function (a, b) {
+            return compareRows(a, b, sortKey);
+        });
+
+        filteredRows.forEach(function (row) {
+            tbody.appendChild(row);
+        });
+
+        emptyState.classList.toggle('d-none', filteredRows.length > 0);
+    }
+
+    searchInput.addEventListener('input', refreshRows);
+    sortSelect.addEventListener('change', refreshRows);
+    refreshRows();
+});
+</script>
+{% endblock %}

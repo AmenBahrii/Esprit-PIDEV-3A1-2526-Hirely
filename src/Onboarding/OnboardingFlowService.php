@@ -381,7 +381,7 @@ final class OnboardingFlowService
 
         usort($tasks, fn (Onboardingtask $left, Onboardingtask $right): int => $this->taskPriorityScore($right, $today) <=> $this->taskPriorityScore($left, $today));
 
-        return $tasks[0] ?? null;
+        return $tasks[0];
     }
 
     private function taskPriorityScore(Onboardingtask $task, \DateTimeImmutable $today): int

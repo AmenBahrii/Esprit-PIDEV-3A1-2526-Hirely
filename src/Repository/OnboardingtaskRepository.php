@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Onboardingplan;
 use App\Entity\Onboardingtask;
-use App\Entity\User;
+use App\Entity\Users;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -14,6 +14,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class OnboardingtaskRepository extends ServiceEntityRepository
 {
+    private const MAX_VISIBLE_TASKS = 10;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Onboardingtask::class);
@@ -33,13 +35,16 @@ class OnboardingtaskRepository extends ServiceEntityRepository
         $this->applyFilters($builder, $filters);
         $this->applySorting($builder, (string) ($filters['sort'] ?? 'newest'));
 
-        return $builder->getQuery()->getResult();
+        return $builder
+            ->setMaxResults(self::MAX_VISIBLE_TASKS)
+            ->getQuery()
+            ->getResult();
     }
 
     /**
      * @return Onboardingtask[]
      */
-    public function findVisibleFor(User $viewer, ?string $search = null, bool $caseSensitive = false, array $filters = []): array
+    public function findVisibleFor(Users $viewer, ?string $search = null, bool $caseSensitive = false, array $filters = []): array
     {
         $builder = $this->createQueryBuilder('task')
             ->leftJoin('task.plan', 'plan')
@@ -47,7 +52,7 @@ class OnboardingtaskRepository extends ServiceEntityRepository
             ->addSelect('plan', 'user')
             ->orderBy('task.taskId', 'DESC');
 
-        if (1 === $viewer->getRole()?->getRoleId()) {
+        if ('candidate' === strtolower((string) $viewer->getRole()?->getName())) {
             $builder
                 ->andWhere('plan.user = :viewer')
                 ->setParameter('viewer', $viewer);
@@ -57,7 +62,10 @@ class OnboardingtaskRepository extends ServiceEntityRepository
         $this->applyFilters($builder, $filters);
         $this->applySorting($builder, (string) ($filters['sort'] ?? 'newest'));
 
-        return $builder->getQuery()->getResult();
+        return $builder
+            ->setMaxResults(self::MAX_VISIBLE_TASKS)
+            ->getQuery()
+            ->getResult();
     }
 
     /**
@@ -134,11 +142,10 @@ class OnboardingtaskRepository extends ServiceEntityRepository
         }
 
         $tasks = $this->createQueryBuilder('task')
-            ->leftJoin('task.plan', 'plan')
-            ->addSelect('plan')
             ->andWhere('task.plan IN (:planIds)')
             ->setParameter('planIds', $planIds)
             ->orderBy('task.taskId', 'DESC')
+            ->setMaxResults(self::MAX_VISIBLE_TASKS)
             ->getQuery()
             ->getResult();
 
