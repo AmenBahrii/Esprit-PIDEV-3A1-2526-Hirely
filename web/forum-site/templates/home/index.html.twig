@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin Dashboard | Hirely{% endblock %}
+
+{% block body %}
+    {% set notification_summary = forum_notification_menu_data(12) %}
+
+    <div class="metrics-grid metrics-grid-dashboard">
+        <article class="metric-card metric-card-dashboard">
+            <div class="metric-label">Forum</div>
+            <div class="metric-value">Active</div>
+        </article>
+        <article class="metric-card metric-card-dashboard">
+            <div class="metric-label">Onboarding</div>
+            <div class="metric-value">Active</div>
+        </article>
+        <article class="metric-card metric-card-dashboard">
+            <div class="metric-label">Applications</div>
+            <div class="metric-value">Active</div>
+        </article>
+        <article class="metric-card metric-card-dashboard">
+            <div class="metric-label">Unread</div>
+            <div class="metric-value">{{ notification_summary.unread_count }}</div>
+        </article>
+    </div>
+
+    <section class="hirely-demo-band" aria-label="Dashboard preview area"></section>
+{% endblock %}

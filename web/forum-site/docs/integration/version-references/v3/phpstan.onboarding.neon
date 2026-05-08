@@ -1,0 +1,13 @@
+parameters:
+    level: 5
+    paths:
+        - src/Controller/OnboardingPlanController.php
+        - src/Controller/OnboardingTaskController.php
+        - src/Entity/Onboardingplan.php
+        - src/Entity/Onboardingtask.php
+        - src/Form/OnboardingPlanType.php
+        - src/Form/OnboardingPlanTemplateAssignmentType.php
+        - src/Form/OnboardingTaskType.php
+        - src/Onboarding
+        - src/Repository/OnboardingplanRepository.php
+        - src/Repository/OnboardingtaskRepository.php

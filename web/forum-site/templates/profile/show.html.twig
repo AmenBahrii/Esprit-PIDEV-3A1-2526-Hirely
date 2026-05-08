@@ -1,0 +1,137 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Profile | {{ profile_user.displayName }}{% endblock %}
+
+{% block body %}
+    <section class="dashboard-hero">
+        <div class="dashboard-hero-copy">
+            <span class="dashboard-hero-kicker">Forum Profile</span>
+            <h1 class="dashboard-hero-title">{{ profile_user.displayName }}</h1>
+            <p class="dashboard-hero-text">
+                Email: {{ profile_user.email ?: 'Not available' }}<br>
+                Role: {{ profile_is_admin ? 'Admin' : 'User' }}<br>
+                Status: {{ profile_user.status ?: 'active' }}
+            </p>
+        </div>
+
+        <div class="dashboard-hero-rail">
+            <div class="dashboard-hero-chip">
+                <span class="dashboard-hero-chip-label">Posts</span>
+                <strong class="dashboard-hero-chip-value">{{ post_count }}</strong>
+            </div>
+            <div class="dashboard-hero-chip">
+                <span class="dashboard-hero-chip-label">Comments</span>
+                <strong class="dashboard-hero-chip-value">{{ comment_count }}</strong>
+            </div>
+        </div>
+    </section>
+
+    <div class="metrics-grid metrics-grid-dashboard">
+        <article class="metric-card metric-card-dashboard">
+            <div class="metric-label">Visibility</div>
+            <div class="metric-value">{{ can_see_hidden ? 'Full' : 'Public' }}</div>
+        </article>
+        <article class="metric-card metric-card-dashboard">
+            <div class="metric-label">Account type</div>
+            <div class="metric-value">{{ profile_is_admin ? 'Admin' : 'User' }}</div>
+        </article>
+        <article class="metric-card metric-card-dashboard">
+            <div class="metric-label">Owner view</div>
+            <div class="metric-value">{{ is_owner ? 'Yes' : 'No' }}</div>
+        </article>
+        <article class="metric-card metric-card-dashboard">
+            <div class="metric-label">Community status</div>
+            <div class="metric-value">{{ profile_user.status ?: 'active' }}</div>
+        </article>
+    </div>
+
+    <section class="card card-immersive forum-section-card">
+        <div class="section-header">
+            <div>
+                <h2 class="section-title">Created Posts</h2>
+                <p class="section-kicker">Forum publishing history preserved under the reference template styling.</p>
+            </div>
+        </div>
+
+        <div class="record-grid forum-record-grid">
+            {% for post in posts %}
+                <article class="record-card forum-post-card">
+                    <div class="record-card-top">
+                        <div class="forum-status-group">
+                            <span class="status-pill status-pill-{{ post.status|lower }}">{{ post.status|title }}</span>
+                            {% if post.pinned %}<span class="status-pill status-pill-accent">Pinned</span>{% endif %}
+                        </div>
+                        {% if post.tag %}
+                            <span class="forum-tag">{{ post.tag }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <p class="record-eyebrow">Post #{{ post.id }}</p>
+                        <h3 class="record-title">{{ post.title }}</h3>
+                        <p class="record-subtitle">{{ post.createdAt|date('d M Y - H:i') }}</p>
+                    </div>
+
+                    <p class="record-description record-description-clamp">{{ post.content }}</p>
+
+                    <div class="record-meta">
+                        <div class="record-meta-item">
+                            <span class="record-meta-label">Likes</span>
+                            <span class="record-meta-value">{{ post.likeCount }}</span>
+                        </div>
+                        <div class="record-meta-item">
+                            <span class="record-meta-label">Comments</span>
+                            <span class="record-meta-value">{{ post.commentCount }}</span>
+                        </div>
+                    </div>
+
+                    <div class="record-actions actions-cell forum-card-actions">
+                        <a href="{{ path('forum_post_show', {id: post.id}) }}" class="btn-primary">Open post</a>
+                        {% if is_owner or is_granted('ROLE_ADMIN') %}
+                            <a href="{{ path('forum_post_edit', {id: post.id}) }}" class="btn-secondary">Edit</a>
+                        {% endif %}
+                    </div>
+                </article>
+            {% else %}
+                <div class="record-card forum-empty-card">
+                    <p class="record-eyebrow">No posts</p>
+                    <h3 class="record-title">No visible posts yet</h3>
+                    <p class="record-description">This user has not published any posts currently visible in the forum.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="card card-immersive forum-section-card">
+        <div class="section-header">
+            <div>
+                <h2 class="section-title">Recent Comments</h2>
+                <p class="section-kicker">Recent discussion activity preserved during the UI migration.</p>
+            </div>
+        </div>
+
+        <div class="forum-comment-list forum-comment-grid">
+            {% for comment in comments %}
+                <article class="forum-comment-card">
+                    <div class="record-card-top">
+                        <div>
+                            <p class="record-eyebrow">Comment #{{ comment.id }}</p>
+                            <p class="record-subtitle">{{ comment.createdAt|date('d M Y - H:i') }}</p>
+                        </div>
+                        <span class="status-pill status-pill-{{ comment.status|lower }}">{{ comment.status|title }}</span>
+                    </div>
+
+                    <div class="forum-copy-block">{{ comment.content|nl2br }}</div>
+
+                    {% if comment.post %}
+                        <a href="{{ path('forum_post_show', {id: comment.post.id}) }}" class="forum-inline-action">Open related post</a>
+                    {% endif %}
+                </article>
+            {% else %}
+                <div class="forum-empty-card">
+                    <p class="record-description">No comments yet.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+{% endblock %}

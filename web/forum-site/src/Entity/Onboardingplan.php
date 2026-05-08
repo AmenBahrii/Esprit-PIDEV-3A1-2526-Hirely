@@ -1,0 +1,179 @@
+<?php
+
+namespace App\Entity;
+
+use App\Repository\OnboardingplanRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+
+#[ORM\Entity(repositoryClass: OnboardingplanRepository::class)]
+#[ORM\Table(
+    name: 'onboardingplan',
+    indexes: [
+        new ORM\Index(name: 'idx_onboardingplan_user', columns: ['user_id']),
+        new ORM\Index(name: 'idx_onboardingplan_qr_token', columns: ['qr_token']),
+        new ORM\Index(name: 'idx_onboardingplan_status_deadline', columns: ['status', 'deadline']),
+    ]
+)]
+class Onboardingplan
+{
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_IN_PROGRESS = 'in_progress';
+    public const STATUS_COMPLETED = 'completed';
+    public const STATUS_ON_HOLD = 'on_hold';
+
+    public const STATUS_VALUES = [
+        self::STATUS_PENDING,
+        self::STATUS_IN_PROGRESS,
+        self::STATUS_COMPLETED,
+        self::STATUS_ON_HOLD,
+    ];
+
+    public const STATUS_CHOICES = [
+        'Pending' => self::STATUS_PENDING,
+        'In Progress' => self::STATUS_IN_PROGRESS,
+        'Completed' => self::STATUS_COMPLETED,
+        'On Hold' => self::STATUS_ON_HOLD,
+    ];
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(name: 'planId', type: Types::INTEGER)]
+    private ?int $planId = null;
+
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'user_id', nullable: true, onDelete: 'SET NULL')]
+    #[Assert\NotNull(message: 'Please select a user for this onboarding plan.')]
+    private ?User $user = null;
+
+    #[ORM\Column(type: Types::STRING, length: 255)]
+    #[Assert\Choice(choices: self::STATUS_VALUES, message: 'Please choose a valid plan status.')]
+    private string $status = self::STATUS_PENDING;
+
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $deadline = null;
+
+    #[ORM\Column(name: 'qr_token', type: Types::STRING, length: 80, nullable: true)]
+    #[Assert\Length(max: 80)]
+    private ?string $qrToken = null;
+
+    /**
+     * @var Collection<int, Onboardingtask>
+     */
+    #[ORM\OneToMany(mappedBy: 'plan', targetEntity: Onboardingtask::class, cascade: ['persist'], orphanRemoval: true)]
+    private Collection $onboardingtasks;
+
+    public function __construct()
+    {
+        $this->onboardingtasks = new ArrayCollection();
+    }
+
+    public function getPlanId(): ?int
+    {
+        return $this->planId;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): self
+    {
+        $this->user = $user;
+
+        return $this;
+    }
+
+    public function getStatus(): string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(string $status): self
+    {
+        $this->status = trim($status);
+
+        return $this;
+    }
+
+    public function getDeadline(): ?\DateTimeInterface
+    {
+        return $this->deadline;
+    }
+
+    public function setDeadline(?\DateTimeInterface $deadline): self
+    {
+        $this->deadline = $deadline;
+
+        return $this;
+    }
+
+    public function getQrToken(): ?string
+    {
+        return $this->qrToken;
+    }
+
+    public function setQrToken(?string $qrToken): self
+    {
+        $this->qrToken = $qrToken !== null ? trim($qrToken) : null;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Onboardingtask>
+     */
+    public function getOnboardingtasks(): Collection
+    {
+        return $this->onboardingtasks;
+    }
+
+    public function addOnboardingtask(Onboardingtask $onboardingtask): self
+    {
+        if (!$this->onboardingtasks->contains($onboardingtask)) {
+            $this->onboardingtasks->add($onboardingtask);
+            $onboardingtask->setPlan($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOnboardingtask(Onboardingtask $onboardingtask): self
+    {
+        if ($this->onboardingtasks->removeElement($onboardingtask) && $onboardingtask->getPlan() === $this) {
+            $onboardingtask->setPlan(null);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function getStatusChoices(): array
+    {
+        return self::STATUS_CHOICES;
+    }
+
+    public function isCompleted(): bool
+    {
+        return self::STATUS_COMPLETED === $this->status;
+    }
+
+    public function isOverdue(?\DateTimeInterface $referenceDate = null): bool
+    {
+        if ($this->deadline === null || $this->isCompleted()) {
+            return false;
+        }
+
+        $referenceDate ??= new \DateTimeImmutable('today');
+        $deadline = \DateTimeImmutable::createFromInterface($this->deadline)->setTime(0, 0);
+        $reference = \DateTimeImmutable::createFromInterface($referenceDate)->setTime(0, 0);
+
+        return $deadline < $reference;
+    }
+}

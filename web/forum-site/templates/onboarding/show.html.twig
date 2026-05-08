@@ -1,0 +1,90 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Onboarding Plan{% endblock %}
+
+{% block body %}
+    <div class="workspace-page">
+        {% if not schema_ready %}
+            <div class="empty-state">
+                <strong>Onboarding module is wired safely.</strong>
+                <p>{{ schema_message }}</p>
+                <a class="btn-secondary" href="{{ path('onboarding_index') }}">Back to plans</a>
+            </div>
+        {% elseif plan %}
+            <section class="workspace-hero">
+                <div class="workspace-hero-copy">
+                    <p class="workspace-kicker">Plan #{{ plan.planId }}</p>
+                    <h1 class="workspace-section-title">{{ plan.user ? plan.user.displayName : 'Unassigned user' }}</h1>
+                    <p class="workspace-section-copy">{{ plan.user and plan.user.email ? plan.user.email : 'No email available' }}</p>
+                </div>
+                <div class="workspace-card">
+                    <span class="status-pill status-{{ plan.status|replace({'_': '-'}) }}">{{ plan.status|replace({'_': ' '})|title }}</span>
+                    <p class="muted-text">Deadline: {{ plan.deadline ? plan.deadline|date('Y-m-d') : 'No deadline' }}</p>
+                </div>
+            </section>
+
+            {% set summary = task_summary ?? {total: 0, completed: 0, in_progress: 0, blocked: 0, on_hold: 0, not_started: 0} %}
+            <div class="explorer-metrics">
+                <div class="explorer-metric-card">
+                    <span class="explorer-metric-label">Total</span>
+                    <strong class="explorer-metric-value">{{ summary.total }}</strong>
+                </div>
+                <div class="explorer-metric-card">
+                    <span class="explorer-metric-label">Completed</span>
+                    <strong class="explorer-metric-value">{{ summary.completed }}</strong>
+                </div>
+                <div class="explorer-metric-card">
+                    <span class="explorer-metric-label">In Progress</span>
+                    <strong class="explorer-metric-value">{{ summary.in_progress }}</strong>
+                </div>
+                <div class="explorer-metric-card">
+                    <span class="explorer-metric-label">Blocked</span>
+                    <strong class="explorer-metric-value">{{ summary.blocked }}</strong>
+                </div>
+            </div>
+
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Tasks</h2>
+                    <p class="section-kicker">Small active integration: viewing plans and tasks is enabled; v3 create/edit workflows stay staged until database migration is approved.</p>
+                </div>
+                <a class="btn-secondary" href="{{ path('onboarding_index') }}">Back to plans</a>
+            </div>
+
+            <div class="record-grid">
+                {% for task in tasks %}
+                    <article class="record-card task-card compact">
+                        <div class="record-card-top">
+                            <div>
+                                <p class="record-eyebrow">Task #{{ task.taskId }}</p>
+                                <h3 class="record-title">{{ task.title ?: 'Untitled task' }}</h3>
+                            </div>
+                            <span class="status-pill status-{{ task.status|replace({'_': '-'}) }}">{{ task.status|replace({'_': ' '})|title }}</span>
+                        </div>
+                        <p class="record-description">{{ task.description ?: 'No description added yet.' }}</p>
+                        <div class="record-stats">
+                            <div>
+                                <span class="record-meta-label">Deadline</span>
+                                <span class="record-meta-value">{{ task.deadline ? task.deadline|date('Y-m-d') : 'No deadline' }}</span>
+                            </div>
+                            <div>
+                                <span class="record-meta-label">Attachment</span>
+                                <span class="record-meta-value">{{ task.hasAttachment ? task.attachmentLabel : 'No attachment' }}</span>
+                            </div>
+                        </div>
+                        {% if task.hasAttachment %}
+                            <div class="record-actions">
+                                <a class="attachment-link" href="{{ task.filePath }}" target="_blank" rel="noreferrer">Open attachment</a>
+                            </div>
+                        {% endif %}
+                    </article>
+                {% else %}
+                    <div class="empty-state">
+                        <strong>No tasks yet.</strong>
+                        <p>This plan is available, but no onboarding tasks were found.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

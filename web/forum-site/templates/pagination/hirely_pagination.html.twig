@@ -1,0 +1,50 @@
+{% if pageCount > 1 %}
+    <nav class="forum-pagination" aria-label="Pagination">
+        <div class="forum-pagination-summary">
+            <span class="forum-pagination-count">
+                Showing {{ firstItemNumber|default(0) }}-{{ lastItemNumber|default(0) }} of {{ totalCount|default(totalItemCount|default(0)) }}
+            </span>
+            <span class="forum-pagination-page">Page {{ current }} of {{ pageCount }}</span>
+        </div>
+
+        <div class="forum-pagination-links">
+            {% if previous is defined %}
+                <a class="forum-pagination-link forum-pagination-link-edge" rel="prev" href="{{ path(route, knp_pagination_query(query, previous, options)) }}">
+                    Previous
+                </a>
+            {% else %}
+                <span class="forum-pagination-link forum-pagination-link-edge is-disabled">Previous</span>
+            {% endif %}
+
+            {% if first is defined and current != first %}
+                <a class="forum-pagination-link" href="{{ path(route, knp_pagination_query(query, first, options)) }}">1</a>
+                {% if pagesInRange[0] > first + 1 %}
+                    <span class="forum-pagination-ellipsis">…</span>
+                {% endif %}
+            {% endif %}
+
+            {% for page in pagesInRange %}
+                {% if page == current %}
+                    <span class="forum-pagination-link is-current">{{ page }}</span>
+                {% else %}
+                    <a class="forum-pagination-link" href="{{ path(route, knp_pagination_query(query, page, options)) }}">{{ page }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if last is defined and current != last %}
+                {% if pagesInRange|last < last - 1 %}
+                    <span class="forum-pagination-ellipsis">…</span>
+                {% endif %}
+                <a class="forum-pagination-link" href="{{ path(route, knp_pagination_query(query, last, options)) }}">{{ last }}</a>
+            {% endif %}
+
+            {% if next is defined %}
+                <a class="forum-pagination-link forum-pagination-link-edge" rel="next" href="{{ path(route, knp_pagination_query(query, next, options)) }}">
+                    Next
+                </a>
+            {% else %}
+                <span class="forum-pagination-link forum-pagination-link-edge is-disabled">Next</span>
+            {% endif %}
+        </div>
+    </nav>
+{% endif %}

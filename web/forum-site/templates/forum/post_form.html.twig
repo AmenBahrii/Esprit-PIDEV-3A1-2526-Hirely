@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ page_title }} | Hirely{% endblock %}
+
+{% block body %}
+    <section class="forum-page-head">
+        <a href="{{ post.id ? path('forum_post_show', {id: post.id}) : path('forum_index') }}" class="btn-secondary" data-go-back="true" data-fallback="{{ post.id ? path('forum_post_show', {id: post.id}) : path('forum_index') }}">
+            Back
+        </a>
+    </section>
+
+    <section class="card card-immersive forum-form-card">
+        <div class="section-header">
+            <div>
+                <h1 class="section-title">{{ page_title }}</h1>
+                <p class="section-kicker">Only the presentation changed. Posting and moderation behavior remain intact.</p>
+            </div>
+        </div>
+
+        {% if not post.id %}
+            <div class="forum-note-card">
+                <h3>Forum-safe posting</h3>
+                <p>Hirely quietly checks new posts for spam links, repeated promotion, and suspicious markup before they enter the forum feed.</p>
+            </div>
+        {% endif %}
+
+        {{ form_start(form, {attr: {class: 'forum-form-grid'}}) }}
+            {{ form_errors(form) }}
+
+            <div class="forum-input-shell">
+                {{ form_label(form.title) }}
+                {{ form_widget(form.title) }}
+                {{ form_errors(form.title) }}
+            </div>
+
+            <div class="forum-input-shell">
+                {{ form_label(form.content) }}
+                {{ form_widget(form.content) }}
+                {{ form_errors(form.content) }}
+            </div>
+
+            <div class="forum-input-shell">
+                {{ form_label(form.tag) }}
+                {{ form_widget(form.tag) }}
+                {{ form_errors(form.tag) }}
+            </div>
+
+            <div class="forum-form-actions">
+                <button class="btn-primary" type="submit">{{ submit_label }}</button>
+            </div>
+        {{ form_end(form) }}
+    </section>
+{% endblock %}

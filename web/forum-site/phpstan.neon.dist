@@ -1,0 +1,16 @@
+includes:
+    - vendor/phpstan/phpstan-symfony/extension.neon
+    - vendor/phpstan/phpstan-doctrine/extension.neon
+
+parameters:
+    level: 5
+    paths:
+        - src/Controller
+        - src/Entity
+        - src/Form
+        - src\Repository
+        - src\Service/Forum
+        - src/Twig
+        - src/DataFixtures
+    tmpDir: var/phpstan
+    treatPhpDocTypesAsCertain: false

@@ -1,0 +1,113 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}AI Feedback | Hirely{% endblock %}
+
+{% block body %}
+    <section class="dashboard-hero">
+        <div class="dashboard-hero-copy">
+            <span class="dashboard-hero-kicker">AI Moderation</span>
+            <h1 class="dashboard-hero-title">Feedback and audit history</h1>
+            <p class="dashboard-hero-text">
+                Browse stored moderation notes for posts and comments, audit the desktop-clone AI behavior, and export the dataset as CSV.
+            </p>
+        </div>
+
+        <div class="dashboard-hero-rail">
+            <div class="dashboard-hero-chip">
+                <span class="dashboard-hero-chip-label">Posts</span>
+                <strong class="dashboard-hero-chip-value">{{ post_count }}</strong>
+            </div>
+            <div class="dashboard-hero-chip">
+                <span class="dashboard-hero-chip-label">Comments</span>
+                <strong class="dashboard-hero-chip-value">{{ comment_count }}</strong>
+            </div>
+            <div class="dashboard-hero-chip">
+                <span class="dashboard-hero-chip-label">Fallbacks</span>
+                <strong class="dashboard-hero-chip-value">{{ fallback_count }}</strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="card card-immersive forum-toolbar-card">
+        <div class="section-header">
+            <div>
+                <h2 class="section-title">Feedback filter</h2>
+                <p class="section-kicker">Keep the Hirely admin surface while exposing the desktop app's moderation insights.</p>
+            </div>
+            <div class="forum-toolbar-actions">
+                <form method="post" action="{{ path('admin_forum_ai_audit') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('ai_audit') }}">
+                    <button class="btn-secondary" type="submit">AI Audit Last 50</button>
+                </form>
+                <a href="{{ path('admin_forum_feedback_export', {filter: filter}) }}" class="btn-primary">Export CSV</a>
+            </div>
+        </div>
+
+        <form method="get" class="forum-filter-form forum-filter-form-two" data-auto-submit="true">
+            <div class="forum-input-shell">
+                <label for="feedback-filter">Type</label>
+                <select id="feedback-filter" name="filter">
+                    <option value="all" {{ filter == 'all' ? 'selected' : '' }}>All</option>
+                    <option value="posts" {{ filter == 'posts' ? 'selected' : '' }}>Posts</option>
+                    <option value="comments" {{ filter == 'comments' ? 'selected' : '' }}>Comments</option>
+                </select>
+            </div>
+        </form>
+    </section>
+
+    <section class="forum-feedback-grid">
+        {% for row in rows %}
+            <article class="record-card forum-feedback-card">
+                <div class="record-card-top">
+                    <div class="forum-status-group">
+                        <span class="status-pill status-pill-role">{{ row.type }}</span>
+                        <span class="status-pill status-pill-{{ row.decision|lower }}">{{ row.decision }}</span>
+                    </div>
+                    <span class="forum-tag">{{ row.category }}</span>
+                </div>
+
+                <div>
+                    <p class="record-eyebrow">{{ row.target }}</p>
+                    <h2 class="record-title">Reviewed {{ row.createdAt|date('d M Y - H:i') }}</h2>
+                    <p class="record-subtitle">Fallback used: {{ row.fallback }}</p>
+                </div>
+
+                <div class="record-meta forum-feedback-meta">
+                    <div class="record-meta-item">
+                        <span class="record-meta-label">Toxicity</span>
+                        <span class="record-meta-value">{{ row.toxicity }}</span>
+                    </div>
+                    <div class="record-meta-item">
+                        <span class="record-meta-label">Quality</span>
+                        <span class="record-meta-value">{{ row.quality }}</span>
+                    </div>
+                    <div class="record-meta-item">
+                        <span class="record-meta-label">Duplicate</span>
+                        <span class="record-meta-value">{{ row.duplicate }}</span>
+                    </div>
+                    <div class="record-meta-item">
+                        <span class="record-meta-label">Link threat</span>
+                        <span class="record-meta-value">{{ row.linkThreat }}</span>
+                    </div>
+                </div>
+
+                <div class="forum-note-card">
+                    <h3>Stored note</h3>
+                    <p>{{ row.moderationNote }}</p>
+                </div>
+
+                <div class="record-actions actions-cell forum-card-actions">
+                    {% if row.postId %}
+                        <a href="{{ path('admin_forum_post_show', {id: row.postId}) }}" class="btn-secondary">Open thread</a>
+                    {% endif %}
+                </div>
+            </article>
+        {% else %}
+            <div class="record-card forum-empty-card">
+                <p class="record-eyebrow">No analysis</p>
+                <h2 class="record-title">No moderation feedback yet</h2>
+                <p class="record-description">Run an AI audit or moderate content to populate this view.</p>
+            </div>
+        {% endfor %}
+    </section>
+{% endblock %}

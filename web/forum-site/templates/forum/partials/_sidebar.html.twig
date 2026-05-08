@@ -1,0 +1,55 @@
+{% set current_route = app.request.attributes.get('_route')|default('') %}
+
+<aside class="hirely-sidebar" aria-label="Main navigation">
+    <div class="hirely-sidebar-brand">
+        <div class="hirely-sidebar-mark" aria-hidden="true">*</div>
+        <div>
+            <div class="hirely-sidebar-title">Hirely</div>
+            <div class="hirely-sidebar-subtitle">{{ is_granted('ROLE_ADMIN') ? 'Admin Backend' : 'Workspace' }}</div>
+        </div>
+    </div>
+
+    <div class="hirely-sidebar-status">
+        <span class="hirely-sidebar-status-label">Control Center</span>
+        <strong>Workspace ready</strong>
+        <div class="hirely-sidebar-status-meta">
+            <span>Role mode</span>
+            <span>Synchronized</span>
+        </div>
+    </div>
+
+    <nav class="hirely-sidebar-nav">
+        <a href="{{ path('app_home') }}" class="hirely-sidebar-link {{ current_route == 'app_home' ? 'active' : '' }}">
+            Dashboard
+        </a>
+        <a href="{{ path('forum_index') }}" class="hirely-sidebar-link {{ current_route starts with 'forum_' and current_route != 'forum_post_new' ? 'active' : '' }}">
+            Forum
+        </a>
+        <a href="{{ path('onboarding_index') }}" class="hirely-sidebar-link {{ current_route starts with 'onboarding_' ? 'active' : '' }}">
+            Onboarding Plans
+        </a>
+        <a href="{{ path('app_joboffer_index') }}" class="hirely-sidebar-link {{ current_route starts with 'app_joboffer_' ? 'active' : '' }}">
+            Job Offers
+        </a>
+        <a href="{{ path('app_applications') }}" class="hirely-sidebar-link {{ current_route == 'app_applications' or current_route starts with 'app_application' ? 'active' : '' }}">
+            Applications
+        </a>
+        <a href="{{ path('app_evaluations') }}" class="hirely-sidebar-link {{ current_route == 'app_evaluations' or current_route starts with 'app_evaluation' ? 'active' : '' }}">
+            Evaluations
+        </a>
+        <a href="{{ path('forum_post_new') }}" class="hirely-sidebar-link {{ current_route == 'forum_post_new' ? 'active' : '' }}">
+            Create Forum Post
+        </a>
+        <a href="{{ path('notification_history') }}" class="hirely-sidebar-link {{ current_route starts with 'notification_' ? 'active' : '' }}">
+            Notifications
+        </a>
+        <a href="{{ path('profile_me') }}" class="hirely-sidebar-link {{ current_route starts with 'profile_' ? 'active' : '' }}">
+            Profile
+        </a>
+        {% if is_granted('ROLE_ADMIN') %}
+            <a href="{{ path('admin_forum_dashboard') }}" class="hirely-sidebar-link {{ current_route starts with 'admin_forum_' ? 'active' : '' }}">
+                Forum Moderation
+            </a>
+        {% endif %}
+    </nav>
+</aside>

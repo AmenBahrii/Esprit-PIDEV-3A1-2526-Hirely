@@ -1,0 +1,119 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Onboarding Plans{% endblock %}
+
+{% block body %}
+    <div class="workspace-page">
+        <section class="workspace-hero">
+            <div class="workspace-hero-copy">
+                <p class="workspace-kicker">Hirely v3 module</p>
+                <h1 class="workspace-section-title">Onboarding dashboard</h1>
+                <p class="workspace-section-copy">Review candidate onboarding plans, task progress, deadlines, and attachment status without changing the protected forum module.</p>
+            </div>
+            <div class="workspace-card">
+                <span class="workspace-meta-label">Runtime status</span>
+                <strong class="workspace-meta-value">{{ schema_ready ? 'Active' : 'Waiting for schema' }}</strong>
+            </div>
+        </section>
+
+        {% if not schema_ready %}
+            <div class="empty-state">
+                <strong>Onboarding module is wired safely.</strong>
+                <p>{{ schema_message }}</p>
+            </div>
+        {% else %}
+            <form method="get" action="{{ path('onboarding_index') }}" class="search-form search-form-panel">
+                <label for="onboarding-search" class="search-label">Find a plan</label>
+                <input id="onboarding-search" class="search-input" type="search" name="q" value="{{ search_term }}" placeholder="Search by candidate, email, status, or QR token">
+                <select class="sort-select" name="status" aria-label="Filter by status">
+                    <option value="">All statuses</option>
+                    {% for label, value in plan_status_choices %}
+                        <option value="{{ value }}" {{ selected_status == value ? 'selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <button class="btn-primary" type="submit">Filter</button>
+                <a class="btn-secondary" href="{{ path('onboarding_index') }}">Reset</a>
+            </form>
+
+            <div class="explorer-metrics">
+                <div class="explorer-metric-card">
+                    <span class="explorer-metric-label">Plans</span>
+                    <strong class="explorer-metric-value">{{ plans|length }}</strong>
+                </div>
+                <div class="explorer-metric-card">
+                    <span class="explorer-metric-label">Completed Tasks</span>
+                    <strong class="explorer-metric-value">
+                        {% set completed_total = 0 %}
+                        {% for summary in task_summary %}
+                            {% set completed_total = completed_total + summary.completed %}
+                        {% endfor %}
+                        {{ completed_total }}
+                    </strong>
+                </div>
+                <div class="explorer-metric-card">
+                    <span class="explorer-metric-label">Blocked Tasks</span>
+                    <strong class="explorer-metric-value">
+                        {% set blocked_total = 0 %}
+                        {% for summary in task_summary %}
+                            {% set blocked_total = blocked_total + summary.blocked %}
+                        {% endfor %}
+                        {{ blocked_total }}
+                    </strong>
+                </div>
+            </div>
+
+            <div class="record-grid">
+                {% for plan in plans %}
+                    {% set plan_id = plan.planId %}
+                    {% set summary = task_summary[plan_id] ?? {total: 0, completed: 0, in_progress: 0, blocked: 0, on_hold: 0, not_started: 0} %}
+                    <article class="record-card">
+                        <div class="record-card-top">
+                            <div>
+                                <p class="record-eyebrow">Plan #{{ plan_id }}</p>
+                                <h2 class="record-title">{{ plan.user ? plan.user.displayName : 'Unassigned user' }}</h2>
+                                <p class="record-description">{{ plan.user and plan.user.email ? plan.user.email : 'No email available' }}</p>
+                            </div>
+                            <span class="status-pill status-{{ plan.status|replace({'_': '-'}) }}">{{ plan.status|replace({'_': ' '})|title }}</span>
+                        </div>
+
+                        <div class="record-stats record-stats-plan">
+                            <div>
+                                <span class="record-meta-label">Deadline</span>
+                                <span class="record-meta-value">{{ plan.deadline ? plan.deadline|date('Y-m-d') : 'No deadline' }}</span>
+                            </div>
+                            <div>
+                                <span class="record-meta-label">Tasks</span>
+                                <span class="record-meta-value">{{ summary.total }}</span>
+                            </div>
+                            <div>
+                                <span class="record-meta-label">Done</span>
+                                <span class="record-meta-value">{{ summary.completed }}</span>
+                            </div>
+                            <div>
+                                <span class="record-meta-label">Blocked</span>
+                                <span class="record-meta-value">{{ summary.blocked }}</span>
+                            </div>
+                        </div>
+
+                        {% if tasks_by_plan[plan_id] is defined and tasks_by_plan[plan_id] is not empty %}
+                            <div class="record-mini-list">
+                                {% for task in tasks_by_plan[plan_id] %}
+                                    <span>{{ task.title ?: 'Untitled task' }} - {{ task.status|replace({'_': ' '})|title }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <div class="record-actions">
+                            <a class="btn-primary" href="{{ path('onboarding_plan_show', {id: plan_id}) }}">Open plan</a>
+                        </div>
+                    </article>
+                {% else %}
+                    <div class="empty-state">
+                        <strong>No onboarding plans found.</strong>
+                        <p>Load the dev/test schema patch and demo data from docs/integration/onboarding_runtime_schema.sql.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

@@ -1,0 +1,140 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin Forum | Hirely{% endblock %}
+
+{% block body %}
+    <section class="dashboard-hero">
+        <div class="dashboard-hero-copy">
+            <span class="dashboard-hero-kicker">Admin Backend</span>
+            <h1 class="dashboard-hero-title">Moderation overview</h1>
+            <p class="dashboard-hero-text">
+                Filter posts, review pending activity, and preserve the existing moderation flow for forum content.
+            </p>
+        </div>
+
+        <div class="dashboard-hero-rail">
+            <div class="dashboard-hero-chip">
+                <span class="dashboard-hero-chip-label">Pending posts</span>
+                <strong class="dashboard-hero-chip-value">{{ pending_posts }}</strong>
+            </div>
+            <div class="dashboard-hero-chip">
+                <span class="dashboard-hero-chip-label">Pending comments</span>
+                <strong class="dashboard-hero-chip-value">{{ pending_comments }}</strong>
+            </div>
+        </div>
+    </section>
+
+    <div class="metrics-grid metrics-grid-dashboard">
+        <article class="metric-card metric-card-dashboard">
+            <div class="metric-label">Visible results</div>
+            <div class="metric-value">{{ posts.getTotalItemCount }}</div>
+        </article>
+        <article class="metric-card metric-card-dashboard">
+            <div class="metric-label">Status filter</div>
+            <div class="metric-value">{{ status|title }}</div>
+        </article>
+        <article class="metric-card metric-card-dashboard">
+            <div class="metric-label">Sort order</div>
+            <div class="metric-value">
+                {{ sort == 'old' ? 'Oldest' : (sort == 'liked' ? 'Most liked' : 'Newest') }}
+            </div>
+        </article>
+        <article class="metric-card metric-card-dashboard">
+            <div class="metric-label">Search</div>
+            <div class="metric-value">{{ search is not empty ? 'Active' : 'All' }}</div>
+        </article>
+    </div>
+
+    <section class="card card-immersive forum-toolbar-card">
+        <div class="section-header">
+            <div>
+                <h2 class="section-title">Moderation filters</h2>
+                <p class="section-kicker">Use the same forum admin logic with the migrated Hirely control surface.</p>
+            </div>
+            <div class="forum-toolbar-actions">
+                <form method="post" action="{{ path('admin_forum_ai_audit') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('ai_audit') }}">
+                    <button class="btn-secondary" type="submit">AI Audit Last 50</button>
+                </form>
+                <a href="{{ path('admin_forum_comments') }}" class="btn-secondary">Review comments</a>
+                <a href="{{ path('admin_forum_feedback') }}" class="btn-primary">Open AI feedback</a>
+            </div>
+        </div>
+
+        <form method="get" class="forum-filter-form" data-auto-submit="true">
+            <div class="forum-input-shell">
+                <label for="admin-search">Search posts</label>
+                <input id="admin-search" type="search" name="q" value="{{ search }}" placeholder="Search title or content" data-auto-submit-input="true">
+            </div>
+
+            <div class="forum-input-shell">
+                <label for="admin-status">Status</label>
+                <select id="admin-status" name="status">
+                    <option value="ALL" {{ status == 'ALL' ? 'selected' : '' }}>All statuses</option>
+                    <option value="APPROVED" {{ status == 'APPROVED' ? 'selected' : '' }}>Approved</option>
+                    <option value="PENDING" {{ status == 'PENDING' ? 'selected' : '' }}>Pending</option>
+                    <option value="REJECTED" {{ status == 'REJECTED' ? 'selected' : '' }}>Rejected</option>
+                </select>
+            </div>
+
+            <div class="forum-input-shell">
+                <label for="admin-sort">Sort</label>
+                <select id="admin-sort" name="sort">
+                    <option value="new" {{ sort == 'new' ? 'selected' : '' }}>Newest</option>
+                    <option value="old" {{ sort == 'old' ? 'selected' : '' }}>Oldest</option>
+                    <option value="liked" {{ sort == 'liked' ? 'selected' : '' }}>Most liked</option>
+                </select>
+            </div>
+        </form>
+    </section>
+
+    <section class="record-grid forum-record-grid">
+        {% for post in posts %}
+            <article class="record-card forum-post-card">
+                <div class="record-card-top">
+                    <div class="forum-status-group">
+                        <span class="status-pill status-pill-{{ post.status|lower }}">{{ post.status|title }}</span>
+                        {% if post.pinned %}<span class="status-pill status-pill-accent">Pinned</span>{% endif %}
+                        {% if post.locked %}<span class="status-pill status-pill-rejected">Locked</span>{% endif %}
+                    </div>
+                    {% if post.tag %}<span class="forum-tag">{{ post.tag }}</span>{% endif %}
+                </div>
+
+                <div>
+                    <p class="record-eyebrow">Post #{{ post.id }}</p>
+                    <h2 class="record-title">{{ post.title }}</h2>
+                    <p class="record-subtitle">
+                        <a href="{{ path('profile_show', {id: post.author.id}) }}" class="forum-inline-link">{{ post.author.displayName }}</a>
+                        • {{ post.createdAt|date('d M Y - H:i') }}
+                    </p>
+                </div>
+
+                <p class="record-description record-description-clamp">{{ post.content }}</p>
+
+                <div class="record-meta">
+                    <div class="record-meta-item">
+                        <span class="record-meta-label">Likes</span>
+                        <span class="record-meta-value">{{ post.likeCount }}</span>
+                    </div>
+                    <div class="record-meta-item">
+                        <span class="record-meta-label">Comments</span>
+                        <span class="record-meta-value">{{ post.commentCount }}</span>
+                    </div>
+                </div>
+
+                <div class="record-actions actions-cell forum-card-actions">
+                    <a href="{{ path('admin_forum_post_show', {id: post.id}) }}" class="btn-primary">Review post</a>
+                    <a href="{{ path('admin_forum_post_edit', {id: post.id}) }}" class="btn-secondary">Moderate</a>
+                </div>
+            </article>
+        {% else %}
+            <div class="record-card forum-empty-card">
+                <p class="record-eyebrow">No results</p>
+                <h2 class="record-title">No posts matched</h2>
+                <p class="record-description">Adjust the moderation filters to review other forum content.</p>
+            </div>
+        {% endfor %}
+    </section>
+
+    {{ knp_pagination_render(posts) }}
+{% endblock %}

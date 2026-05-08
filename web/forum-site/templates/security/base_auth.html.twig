@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block body_class %}auth-root{% endblock %}
+
+{% block body %}
+    <div class="auth-shell">
+        <div class="auth-card">
+            {% for label, messages in app.flashes %}
+                {% if messages is not empty %}
+                    <div class="auth-flash-stack">
+                        {% for message in messages %}
+                            <div class="flash-message {{ label }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+            {% block auth_body %}{% endblock %}
+        </div>
+    </div>
+{% endblock %}

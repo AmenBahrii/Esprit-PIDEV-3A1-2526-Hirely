@@ -1,0 +1,58 @@
+antispam:
+    enabled: true
+    passive: false
+    stealth: false
+    quarantine:
+        only_spam: true
+        file:
+            dir: '%kernel.project_dir%/var/forum-antispam-quarantine'
+            max_days: 21
+    profiles:
+        forum_post_submission:
+            stealth: true
+            honeypot:
+                field: portfolio_link
+                attributes:
+                    style: 'display:none'
+                    tabindex: '-1'
+                    autocomplete: 'off'
+                    aria-hidden: 'true'
+            timer:
+                field: forum_post_timer
+                min: 4
+                max: 5400
+            banned_markup: true
+            banned_phrases:
+                phrases:
+                    - 'earn money fast'
+                    - 'guaranteed profit'
+                    - 'contact me on telegram'
+                    - 'adult dating'
+                    - 'seo service'
+            url_count:
+                max: 3
+                max_identical: 1
+
+        forum_comment_submission:
+            stealth: true
+            honeypot:
+                field: profile_homepage
+                attributes:
+                    style: 'display:none'
+                    tabindex: '-1'
+                    autocomplete: 'off'
+                    aria-hidden: 'true'
+            timer:
+                field: forum_comment_timer
+                min: 2
+                max: 3600
+            banned_markup: true
+            banned_phrases:
+                phrases:
+                    - 'earn money fast'
+                    - 'guaranteed profit'
+                    - 'contact me on telegram'
+                    - 'adult dating'
+            url_count:
+                max: 2
+                max_identical: 1

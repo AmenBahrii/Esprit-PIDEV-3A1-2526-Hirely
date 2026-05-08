@@ -1,0 +1,164 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin Review | {{ post.title }}{% endblock %}
+
+{% block body %}
+    <section class="forum-page-head">
+        <a href="{{ path('admin_forum_dashboard') }}" class="btn-secondary" data-go-back="true" data-fallback="{{ path('admin_forum_dashboard') }}">
+            Back to dashboard
+        </a>
+    </section>
+
+    <section class="dashboard-hero">
+        <div class="dashboard-hero-copy">
+            <div class="forum-status-group forum-status-group-spaced">
+                <span class="status-pill status-pill-{{ post.status|lower }}">{{ post.status|title }}</span>
+                {% if post.pinned %}<span class="status-pill status-pill-accent">Pinned</span>{% endif %}
+                {% if post.locked %}<span class="status-pill status-pill-rejected">Locked</span>{% endif %}
+                {% if post.tag %}<span class="forum-tag">{{ post.tag }}</span>{% endif %}
+            </div>
+            <h1 class="dashboard-hero-title">{{ post.title }}</h1>
+            <p class="dashboard-hero-text">
+                By <a href="{{ path('profile_show', {id: post.author.id}) }}" class="forum-inline-link">{{ post.author.displayName }}</a>
+                on {{ post.createdAt|date('d M Y - H:i') }}
+            </p>
+        </div>
+
+        <div class="dashboard-hero-rail">
+            <div class="dashboard-hero-chip">
+                <span class="dashboard-hero-chip-label">Likes</span>
+                <strong class="dashboard-hero-chip-value">{{ post.likeCount }}</strong>
+            </div>
+            <div class="dashboard-hero-chip">
+                <span class="dashboard-hero-chip-label">Comments</span>
+                <strong class="dashboard-hero-chip-value">{{ comments.getTotalItemCount }}</strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="forum-two-column" data-dynamic-region="admin-post-review">
+        <article class="record-card forum-detail-card">
+            <div class="forum-copy-block">{{ post.content|nl2br }}</div>
+
+            {% if post.moderationNote %}
+                <div class="forum-note-card">
+                    <h3>Moderation note</h3>
+                    <p>{{ post.moderationNote }}</p>
+                </div>
+            {% endif %}
+
+            <div class="record-actions actions-cell forum-detail-actions">
+                <form method="post" action="{{ path('admin_forum_post_ai_analyze', {id: post.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('ai_post_' ~ post.id) }}">
+                    <button class="btn-secondary" type="submit">Analyze Post (AI)</button>
+                </form>
+                <form method="post" action="{{ path('admin_forum_post_ai_reclassify', {id: post.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('ai_reclassify_post_' ~ post.id) }}">
+                    <button class="btn-secondary" type="submit">AI Reclassify</button>
+                </form>
+                <a href="{{ path('admin_forum_post_edit', {id: post.id}) }}" class="btn-primary">Moderate post</a>
+                <a href="{{ path('admin_forum_post_delete_confirm', {id: post.id}) }}" class="forum-danger-button">Delete post</a>
+            </div>
+        </article>
+
+        <aside class="card card-immersive forum-panel">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Comments</h2>
+                    <p class="section-kicker">Moderate forum replies without changing underlying comment logic.</p>
+                </div>
+            </div>
+
+            <form method="get" class="forum-sort-form" data-auto-submit="true">
+                <div class="forum-input-shell">
+                    <label for="comment-sort">Sort comments</label>
+                    <select id="comment-sort" name="comments">
+                        <option value="new" {{ comment_sort == 'new' ? 'selected' : '' }}>Newest</option>
+                        <option value="old" {{ comment_sort == 'old' ? 'selected' : '' }}>Oldest</option>
+                        <option value="top" {{ comment_sort == 'top' ? 'selected' : '' }}>Top</option>
+                    </select>
+                </div>
+            </form>
+
+            <div class="forum-live-status" data-gemini-status="admin-post-review" hidden>Gemini is replying...</div>
+
+            {{ form_start(comment_form, {attr: {class: 'forum-form-grid', 'data-gemini-status-target': "[data-gemini-status='admin-post-review']"}, action: path('admin_forum_comment_new', {id: post.id, comments: comment_sort, commentPage: comments.currentPageNumber})}) }}
+                {{ form_errors(comment_form) }}
+                <div class="forum-input-shell">
+                    {{ form_label(comment_form.content) }}
+                    {{ form_widget(comment_form.content) }}
+                    {{ form_errors(comment_form.content) }}
+                </div>
+                <div class="forum-form-split">
+                    <div class="forum-input-shell">
+                        {{ form_label(comment_form.status) }}
+                        {{ form_widget(comment_form.status) }}
+                        {{ form_errors(comment_form.status) }}
+                    </div>
+                    <div class="forum-input-shell">
+                        {{ form_label(comment_form.moderationNote) }}
+                        {{ form_widget(comment_form.moderationNote) }}
+                        {{ form_errors(comment_form.moderationNote) }}
+                    </div>
+                </div>
+                <div class="forum-checkbox-grid">
+                    <div class="forum-checkbox-card">
+                        {{ form_widget(comment_form.isPinned) }}
+                        <span>{{ comment_form.isPinned.vars.label }}</span>
+                    </div>
+                </div>
+                <div class="forum-form-actions">
+                    <button class="btn-primary" type="submit">Add comment</button>
+                </div>
+            {{ form_end(comment_form) }}
+
+            <div class="forum-comment-list">
+                {% for comment in comments %}
+                    <article class="forum-comment-card">
+                        <div class="record-card-top">
+                            <div>
+                                <p class="record-eyebrow">Comment #{{ comment.id }}</p>
+                                <h3 class="forum-comment-author">
+                                    <a href="{{ path('profile_show', {id: comment.author.id}) }}" class="forum-inline-link">{{ comment.author.displayName }}</a>
+                                    {% if comment.author.email == 'gemini@hirely.local' %}
+                                        <span class="status-pill status-pill-accent forum-inline-badge">Gemini</span>
+                                    {% endif %}
+                                </h3>
+                                <p class="record-subtitle">{{ comment.createdAt|date('d M Y - H:i') }}</p>
+                            </div>
+                            <div class="forum-status-group">
+                                <span class="status-pill status-pill-{{ comment.status|lower }}">{{ comment.status|title }}</span>
+                                {% if comment.pinned %}<span class="status-pill status-pill-accent">Pinned</span>{% endif %}
+                            </div>
+                        </div>
+
+                        <div class="forum-copy-block">{{ comment.content|nl2br }}</div>
+
+                        {% if comment.moderationNote %}
+                            <div class="forum-note-inline">Moderation note: {{ comment.moderationNote }}</div>
+                        {% endif %}
+
+                        <div class="record-actions actions-cell forum-comment-actions">
+                            <form method="post" action="{{ path('admin_forum_comment_ai_analyze', {id: comment.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('ai_comment_' ~ comment.id) }}">
+                                <button class="forum-inline-action forum-inline-button" type="submit">Analyze AI</button>
+                            </form>
+                            <form method="post" action="{{ path('admin_forum_comment_pin', {id: comment.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('pin_comment_' ~ comment.id) }}">
+                                <button class="forum-inline-action forum-inline-button" type="submit">{{ comment.pinned ? 'Unpin' : 'Pin' }}</button>
+                            </form>
+                            <a href="{{ path('admin_forum_comment_edit', {id: comment.id}) }}" class="forum-inline-action">Moderate</a>
+                            <a href="{{ path('admin_forum_comment_delete_confirm', {id: comment.id}) }}" class="forum-inline-danger">Delete</a>
+                        </div>
+                    </article>
+                {% else %}
+                    <div class="forum-empty-card">
+                        <p class="record-description">No comments yet.</p>
+                    </div>
+                {% endfor %}
+            </div>
+
+            {{ knp_pagination_render(comments) }}
+        </aside>
+    </section>
+{% endblock %}

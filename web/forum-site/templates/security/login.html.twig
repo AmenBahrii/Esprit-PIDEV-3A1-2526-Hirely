@@ -1,0 +1,47 @@
+{% extends 'security/base_auth.html.twig' %}
+
+{% block title %}Login | Hirely Forum{% endblock %}
+
+{% block auth_body %}
+    <div class="auth-header">
+        <h1 class="auth-brand">Hirely</h1>
+        <h2 class="auth-title">Forum workspace login</h2>
+        <p class="auth-text">Access the Hirely forum shell with the same visual workspace used across the reference project.</p>
+    </div>
+
+    {% if error %}
+        <div class="flash-message error">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+    {% endif %}
+
+    <form method="post" class="auth-form" novalidate>
+        <div class="auth-field">
+            <label for="inputEmail">Email</label>
+            <input id="inputEmail" type="email" name="email" value="{{ last_username }}" required autofocus placeholder="Enter your email">
+        </div>
+
+        <div class="auth-field">
+            <label for="inputPassword">Password</label>
+            <input id="inputPassword" type="password" name="password" required placeholder="Enter your password">
+        </div>
+
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+        <div class="auth-meta">
+            <label class="auth-checkbox">
+                <input type="checkbox" name="_remember_me">
+                <span>Remember me</span>
+            </label>
+            <span>Secure Hirely access</span>
+        </div>
+
+        <div class="auth-actions">
+            <button class="btn-primary" type="submit">Sign in</button>
+        </div>
+    </form>
+
+    <div class="auth-note-card">
+        <h3>Demo access</h3>
+        <p>Recruiter: <strong>recruiter@example.com</strong> / <strong>password</strong></p>
+        <p>Candidate: <strong>candidate@example.com</strong> / <strong>password</strong></p>
+    </div>
+{% endblock %}

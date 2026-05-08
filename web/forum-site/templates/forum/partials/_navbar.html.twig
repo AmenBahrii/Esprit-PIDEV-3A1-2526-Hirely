@@ -1,0 +1,73 @@
+
+{% set current_route = app.request.attributes.get('_route')|default('') %}
+{% set notification_menu = forum_notification_menu_data(12) %}
+{% set resolved_topbar_kicker = topbar_kicker|default('Connected View - Live Workspace')|trim %}
+{% set resolved_topbar_title = topbar_title|default(current_route starts with 'admin_forum_' ? 'Admin Dashboard' : 'Hirely')|trim %}
+{% set resolved_topbar_subtitle = topbar_subtitle|default('Recruitment and onboarding workspace')|trim %}
+{% set role_label = is_granted('ROLE_ADMIN') ? 'Admin' : 'Member' %}
+{% set user_name = app.user.displayName %}
+{% set initials = user_name|split(' ')|map(part => part|first)|join|upper|slice(0, 2) %}
+
+<header class="hirely-top-header">
+    <div class="hirely-top-copy">
+        <div class="hirely-top-kicker">{{ resolved_topbar_kicker }}</div>
+        <h1 class="hirely-top-title">{{ resolved_topbar_title }}</h1>
+        <p class="hirely-top-subtitle">{{ resolved_topbar_subtitle }}</p>
+    </div>
+
+    <div class="hirely-top-actions">
+        <div class="notification-wrap hirely-notification-wrap" data-notification-wrap="true">
+            <button type="button" class="hirely-icon-button" data-notification-toggle="true" aria-label="Open notifications">
+                <svg class="hirely-bell-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                {% if notification_menu.unread_count > 0 %}
+                    <span class="notification-badge">{{ notification_menu.unread_count > 99 ? '99+' : notification_menu.unread_count }}</span>
+                {% endif %}
+            </button>
+
+            <div class="notification-menu" data-notification-menu="true" hidden>
+                <div class="notification-menu-head">
+                    <h3>Notifications</h3>
+                    <form method="post" action="{{ path('notification_mark_all_read') }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('mark_all_notifications_read') }}">
+                        <button class="notification-text-link" type="submit">Mark all read</button>
+                    </form>
+                </div>
+
+                <div class="notification-list">
+                    {% for item in notification_menu.notifications %}
+                        <a class="notification-item {{ item.is_read ? 'is-read' : 'is-unread' }}" href="{{ item.open_url }}">
+                            <span class="notification-item-dot" aria-hidden="true"></span>
+                            <span class="notification-content">
+                                <span class="notification-message">{{ item.message }}</span>
+                                {% if item.created_at %}
+                                    <span class="notification-time">{{ item.created_at|date('d M Y - H:i') }}</span>
+                                {% endif %}
+                            </span>
+                        </a>
+                    {% else %}
+                        <div class="notification-empty">
+                            <span>No notifications yet.</span>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="notification-menu-foot">
+                    <a href="{{ path('notification_history') }}" class="notification-text-link">View full history</a>
+                </div>
+            </div>
+        </div>
+
+        <a href="{{ path('profile_me') }}" class="hirely-profile-card">
+            <span class="hirely-profile-avatar">{{ initials ?: 'AH' }}</span>
+            <span class="hirely-profile-copy">
+                <span class="hirely-profile-role">{{ role_label }}</span>
+                <strong>{{ user_name }}</strong>
+            </span>
+        </a>
+
+        <a href="{{ path('app_logout') }}" class="hirely-logout-button">Logout</a>
+    </div>
+</header>

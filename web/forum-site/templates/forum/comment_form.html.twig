@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Comment | Hirely{% endblock %}
+{% block topbar_title %}Edit Comment{% endblock %}
+{% block topbar_subtitle %}Update an existing forum comment while keeping the same business rules and moderation flow.{% endblock %}
+
+{% block body %}
+    <section class="forum-page-head">
+        <a href="{{ path('forum_post_show', {id: comment.post.id}) }}" class="btn-secondary" data-go-back="true" data-fallback="{{ path('forum_post_show', {id: comment.post.id}) }}">
+            Back
+        </a>
+    </section>
+
+    <section class="card card-immersive forum-form-card">
+        <div class="section-header">
+            <div>
+                <h1 class="section-title">Edit Comment</h1>
+                <p class="section-kicker">Comment editing remains unchanged; only the interface now follows the reference Hirely shell.</p>
+            </div>
+        </div>
+
+        {{ form_start(form, {attr: {class: 'forum-form-grid'}}) }}
+            <div class="forum-input-shell">
+                {{ form_label(form.content) }}
+                {{ form_widget(form.content) }}
+                {{ form_errors(form.content) }}
+            </div>
+
+            <div class="forum-form-actions">
+                <button class="btn-primary" type="submit">Save comment</button>
+            </div>
+        {{ form_end(form) }}
+    </section>
+{% endblock %}

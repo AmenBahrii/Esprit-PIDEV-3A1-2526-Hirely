@@ -1,0 +1,26 @@
+when@dev:
+    doctrine_doctor:
+        enabled: true
+        analyzers:
+            n_plus_one:
+                enabled: true
+                threshold: 3
+            slow_query:
+                enabled: true
+                threshold: 25
+            missing_index:
+                enabled: true
+                slow_query_threshold: 10
+                explain_queries: true
+                min_rows_scanned: 100
+            dql_injection:
+                enabled: true
+            sql_injection_raw_queries:
+                enabled: true
+        profiler:
+            show_in_toolbar: true
+            show_debug_info: false
+
+when@test:
+    doctrine_doctor:
+        enabled: false

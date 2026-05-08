@@ -1,0 +1,23 @@
+# Symfony / PHP
+web/vendor/
+web/var/
+web/.env.local
+web/.env.*.local
+
+# Python AI
+web/ai_service/.venv/
+web/ai_service/__pycache__/
+web/ai_service/*.pyc
+web/ai_service/.pytest_cache/
+
+# Java / build
+target/
+*.class
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

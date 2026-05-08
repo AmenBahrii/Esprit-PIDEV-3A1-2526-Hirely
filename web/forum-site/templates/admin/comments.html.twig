@@ -1,0 +1,107 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin Comments | Hirely{% endblock %}
+
+{% block body %}
+    <section class="dashboard-hero">
+        <div class="dashboard-hero-copy">
+            <span class="dashboard-hero-kicker">Admin Backend</span>
+            <h1 class="dashboard-hero-title">Moderate forum comments</h1>
+            <p class="dashboard-hero-text">
+                Review replies across the whole forum, preserve the existing moderation rules, and keep the workflow demo-ready for grading.
+            </p>
+        </div>
+
+        <div class="dashboard-hero-rail">
+            <div class="dashboard-hero-chip">
+                <span class="dashboard-hero-chip-label">Visible comments</span>
+                <strong class="dashboard-hero-chip-value">{{ comments.getTotalItemCount }}</strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="card card-immersive forum-toolbar-card">
+        <div class="section-header">
+            <div>
+                <h2 class="section-title">Comment filters</h2>
+                <p class="section-kicker">Search, sort, and moderate comment traffic without leaving the forum module.</p>
+            </div>
+        </div>
+
+        <form method="get" class="forum-filter-form" data-auto-submit="true">
+            <div class="forum-input-shell">
+                <label for="admin-comment-search">Search comments</label>
+                <input id="admin-comment-search" type="search" name="q" value="{{ search }}" placeholder="Search comment content or post title" data-auto-submit-input="true">
+            </div>
+
+            <div class="forum-input-shell">
+                <label for="admin-comment-status">Status</label>
+                <select id="admin-comment-status" name="status">
+                    <option value="ALL" {{ status == 'ALL' ? 'selected' : '' }}>All statuses</option>
+                    <option value="APPROVED" {{ status == 'APPROVED' ? 'selected' : '' }}>Approved</option>
+                    <option value="PENDING" {{ status == 'PENDING' ? 'selected' : '' }}>Pending</option>
+                    <option value="REJECTED" {{ status == 'REJECTED' ? 'selected' : '' }}>Rejected</option>
+                </select>
+            </div>
+
+            <div class="forum-input-shell">
+                <label for="admin-comment-sort">Sort</label>
+                <select id="admin-comment-sort" name="sort">
+                    <option value="new" {{ sort == 'new' ? 'selected' : '' }}>Newest</option>
+                    <option value="old" {{ sort == 'old' ? 'selected' : '' }}>Oldest</option>
+                    <option value="top" {{ sort == 'top' ? 'selected' : '' }}>Top liked</option>
+                </select>
+            </div>
+        </form>
+    </section>
+
+    <section class="forum-comment-list">
+        {% for comment in comments %}
+            <article class="forum-comment-card">
+                <div class="record-card-top">
+                    <div>
+                        <p class="record-eyebrow">Comment #{{ comment.id }}</p>
+                        <h3 class="forum-comment-author">
+                            <a href="{{ path('profile_show', {id: comment.author.id}) }}" class="forum-inline-link">{{ comment.author.displayName }}</a>
+                        </h3>
+                        <p class="record-subtitle">
+                            On post
+                            <a href="{{ path('admin_forum_post_show', {id: comment.post.id}) }}" class="forum-inline-link">{{ comment.post.title }}</a>
+                            • {{ comment.createdAt|date('d M Y - H:i') }}
+                        </p>
+                    </div>
+                    <div class="forum-status-group">
+                        <span class="status-pill status-pill-{{ comment.status|lower }}">{{ comment.status|title }}</span>
+                        {% if comment.pinned %}<span class="status-pill status-pill-accent">Pinned</span>{% endif %}
+                    </div>
+                </div>
+
+                <div class="forum-copy-block">{{ comment.content|nl2br }}</div>
+
+                <div class="record-meta">
+                    <div class="record-meta-item">
+                        <span class="record-meta-label">Likes</span>
+                        <span class="record-meta-value">{{ comment.likeCount }}</span>
+                    </div>
+                </div>
+
+                {% if comment.moderationNote %}
+                    <div class="forum-note-inline">Moderation note: {{ comment.moderationNote }}</div>
+                {% endif %}
+
+                <div class="record-actions actions-cell forum-comment-actions">
+                    <a href="{{ path('admin_forum_post_show', {id: comment.post.id}) }}" class="btn-secondary">Open thread</a>
+                    <a href="{{ path('admin_forum_comment_edit', {id: comment.id}) }}" class="btn-primary">Moderate</a>
+                </div>
+            </article>
+        {% else %}
+            <div class="forum-empty-card">
+                <p class="record-eyebrow">No results</p>
+                <h2 class="record-title">No comments matched</h2>
+                <p class="record-description">Adjust the moderation filters to review other replies.</p>
+            </div>
+        {% endfor %}
+    </section>
+
+    {{ knp_pagination_render(comments) }}
+{% endblock %}

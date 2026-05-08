@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hirely Home{% endblock %}
+{% block workspace_eyebrow %}Unified Workspace{% endblock %}
+{% block workspace_title %}Hirely Modules{% endblock %}
+{% block workspace_subtitle %}Move between hiring and forum workflows from one shared app entry without leaving the Hirely shell.{% endblock %}
+
+{% block body %}
+<div class="home-wrap">
+    <div class="workspace-card" style="max-width: 820px; margin: 40px auto; position: relative; overflow: hidden;">
+        <div style="display: flex; align-items: center; gap: 16px; position: relative; z-index: 1;">
+            <img src="/images/logo.png" alt="Hirely Logo" style="width: 64px; height: 64px; object-fit: contain;">
+            <div>
+                <h1 style="color: var(--hirely-title); font-size: 28px; font-weight: 800; margin: 0;">Hirely Symfony</h1>
+                <p style="color: var(--hirely-muted); font-size: 14px; font-weight: 600; margin-top: 6px;">Unified Platform Hub</p>
+            </div>
+        </div>
+
+        <p style="margin: 20px 0; color: var(--hirely-muted); font-size: 15px; line-height: 1.75;">
+            Open the forum, recruitment tools, and moderation surfaces from the same shared Hirely entry point.
+        </p>
+
+        <div class="workspace-card-grid" style="margin-top: 26px;">
+            {% for module in modules %}
+                <article class="workspace-card" style="padding: 20px;">
+                    <p class="workspace-kicker">{{ module.label }}</p>
+                    <h3 class="record-title" style="font-size: 20px; margin-bottom: 8px;">{{ module.title }}</h3>
+                    <p class="muted-text" style="font-size: 13px;">{{ module.subtitle }}</p>
+                    <div class="workspace-card-actions" style="margin-top: 18px;">
+                        <a href="{{ path(module.route) }}" class="btn-primary" style="text-decoration:none;">{{ module.cta }}</a>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

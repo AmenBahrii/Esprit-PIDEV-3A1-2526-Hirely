@@ -1,0 +1,64 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Notifications | Hirely{% endblock %}
+
+{% block body %}
+    <section class="dashboard-hero">
+        <div class="dashboard-hero-copy">
+            <span class="dashboard-hero-kicker">Forum Activity</span>
+            <h1 class="dashboard-hero-title">Your notification history</h1>
+            <p class="dashboard-hero-text">
+                Follow likes, comments, and moderation updates through a clean history page that complements the header notification dropdown.
+            </p>
+        </div>
+
+        <div class="dashboard-hero-rail">
+            <div class="dashboard-hero-chip">
+                <span class="dashboard-hero-chip-label">Notifications</span>
+                <strong class="dashboard-hero-chip-value">{{ notifications.getTotalItemCount }}</strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="card card-immersive forum-section-card">
+        <div class="section-header">
+            <div>
+                <h2 class="section-title">Recent activity</h2>
+                <p class="section-kicker">Forum history is now available as a fully navigable page, not only in the header dropdown.</p>
+            </div>
+            <form method="post" action="{{ path('notification_mark_all_read') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('mark_all_notifications_read') }}">
+                <button class="btn-secondary" type="submit">Mark all as read</button>
+            </form>
+        </div>
+
+        <div class="forum-comment-list">
+            {% for notification in notifications %}
+                <article class="forum-comment-card">
+                    <div class="record-card-top">
+                        <div>
+                            <p class="record-eyebrow">{{ notification.type|replace({'_': ' '})|title }}</p>
+                            <h3 class="forum-comment-author">{{ notification.message }}</h3>
+                            <p class="record-subtitle">{{ notification.createdAt|date('d M Y - H:i') }}</p>
+                        </div>
+                        <div class="forum-status-group">
+                            <span class="status-pill {{ notification.read ? 'status-pill-role' : 'status-pill-accent' }}">{{ notification.read ? 'Read' : 'Unread' }}</span>
+                        </div>
+                    </div>
+
+                    <div class="record-actions actions-cell forum-card-actions">
+                        <a href="{{ path('notification_open', {id: notification.id}) }}" class="btn-primary">Open notification</a>
+                    </div>
+                </article>
+            {% else %}
+                <div class="forum-empty-card">
+                    <p class="record-eyebrow">No activity</p>
+                    <h2 class="record-title">No notifications yet</h2>
+                    <p class="record-description">New likes, comments, and moderation events will appear here.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    {{ knp_pagination_render(notifications) }}
+{% endblock %}

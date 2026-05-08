@@ -1,0 +1,69 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Moderate Post | Hirely{% endblock %}
+
+{% block body %}
+    <section class="forum-page-head">
+        <a href="{{ path('admin_forum_post_show', {id: post.id}) }}" class="btn-secondary" data-go-back="true" data-fallback="{{ path('admin_forum_post_show', {id: post.id}) }}">
+            Back
+        </a>
+    </section>
+
+    <section class="card card-immersive forum-form-card">
+        <div class="section-header">
+            <div>
+                <h1 class="section-title">Moderate post</h1>
+                <p class="section-kicker">All forum moderation controls remain active; only the UI shell changed.</p>
+            </div>
+        </div>
+
+        {{ form_start(form, {attr: {class: 'forum-form-grid'}}) }}
+            <div class="forum-input-shell">
+                {{ form_label(form.title) }}
+                {{ form_widget(form.title) }}
+                {{ form_errors(form.title) }}
+            </div>
+
+            <div class="forum-input-shell">
+                {{ form_label(form.content) }}
+                {{ form_widget(form.content) }}
+                {{ form_errors(form.content) }}
+            </div>
+
+            <div class="forum-input-shell">
+                {{ form_label(form.tag) }}
+                {{ form_widget(form.tag) }}
+                {{ form_errors(form.tag) }}
+            </div>
+
+            <div class="forum-form-split">
+                <div class="forum-input-shell">
+                    {{ form_label(form.status) }}
+                    {{ form_widget(form.status) }}
+                    {{ form_errors(form.status) }}
+                </div>
+            </div>
+
+            <div class="forum-checkbox-grid">
+                <div class="forum-checkbox-card">
+                    {{ form_widget(form.isPinned) }}
+                    <span>{{ form.isPinned.vars.label }}</span>
+                </div>
+                <div class="forum-checkbox-card">
+                    {{ form_widget(form.isLocked) }}
+                    <span>{{ form.isLocked.vars.label }}</span>
+                </div>
+            </div>
+
+            <div class="forum-input-shell">
+                {{ form_label(form.moderationNote) }}
+                {{ form_widget(form.moderationNote) }}
+                {{ form_errors(form.moderationNote) }}
+            </div>
+
+            <div class="forum-form-actions">
+                <button class="btn-primary" type="submit">Save moderation</button>
+            </div>
+        {{ form_end(form) }}
+    </section>
+{% endblock %}

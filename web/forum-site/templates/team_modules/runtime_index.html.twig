@@ -1,0 +1,82 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ module_title }}{% endblock %}
+
+{% block body %}
+    <div class="workspace-page">
+        <section class="workspace-hero">
+            <div class="workspace-hero-copy">
+                <p class="workspace-kicker">{{ module_kicker }}</p>
+                <h1 class="workspace-section-title">{{ module_title }}</h1>
+                <p class="workspace-section-copy">{{ module_description }}</p>
+            </div>
+            <div class="workspace-card">
+                <span class="workspace-meta-label">Integration status</span>
+                <strong class="workspace-meta-value">{{ dashboard.schema_ready ? module_status : 'Waiting for schema' }}</strong>
+            </div>
+        </section>
+
+        {% if not dashboard.schema_ready %}
+            <div class="empty-state">
+                <strong>{{ module_title }} route is active.</strong>
+                <p>{{ dashboard.schema_message }}</p>
+                <p>This protects the forum/S3 work while still giving the homepage a real module page instead of a broken link.</p>
+            </div>
+        {% else %}
+            <div class="explorer-metrics">
+                <div class="explorer-metric-card">
+                    <span class="explorer-metric-label">Source table</span>
+                    <strong class="explorer-metric-value">{{ dashboard.table }}</strong>
+                </div>
+                <div class="explorer-metric-card">
+                    <span class="explorer-metric-label">Rows</span>
+                    <strong class="explorer-metric-value">{{ dashboard.total }}</strong>
+                </div>
+                <div class="explorer-metric-card">
+                    <span class="explorer-metric-label">Displayed</span>
+                    <strong class="explorer-metric-value">{{ dashboard.rows|length }}</strong>
+                </div>
+            </div>
+
+            {% if dashboard.schema_message %}
+                <div class="empty-state">
+                    <strong>{{ dashboard.schema_message }}</strong>
+                </div>
+            {% endif %}
+
+            <div class="record-grid">
+                {% for row in dashboard.rows %}
+                    <article class="record-card compact">
+                        <div class="record-card-top">
+                            <div>
+                                <p class="record-eyebrow">{{ module_kicker }} record</p>
+                                <h2 class="record-title">
+                                    {% set first_column = dashboard.columns|first %}
+                                    {{ first_column ? row[first_column] : 'Record' }}
+                                </h2>
+                            </div>
+                            <span class="status-pill status-pill-role">Active</span>
+                        </div>
+
+                        <div class="record-stats">
+                            {% for column in dashboard.columns %}
+                                <div>
+                                    <span class="record-meta-label">{{ column|replace({'_': ' '})|title }}</span>
+                                    <span class="record-meta-value">
+                                        {% set value = row[column] ?? '' %}
+                                        {{ value is same as(null) or value == '' ? 'N/A' : value }}
+                                    </span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </article>
+                {% else %}
+                    <div class="empty-state">
+                        <strong>No rows yet.</strong>
+                        <p>The table exists, but no demo records were found.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

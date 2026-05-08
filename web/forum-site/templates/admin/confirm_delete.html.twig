@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ title }} | Hirely{% endblock %}
+
+{% block body %}
+    <section class="card card-immersive forum-form-card forum-confirm-card">
+        <div class="section-header">
+            <div>
+                <h1 class="section-title">{{ title }}</h1>
+                <p class="section-kicker">{{ message }}</p>
+            </div>
+        </div>
+
+        <div class="forum-note-card forum-note-card-warning">
+            <h3>Admin confirmation</h3>
+            <p>This action is immediate and cannot be undone after submission.</p>
+        </div>
+
+        <div class="forum-form-actions">
+            <a href="{{ path(cancel_route, cancel_route_params|default({})) }}" class="btn-secondary">Cancel</a>
+            <form method="post" action="{{ path(delete_route, delete_route_params|default({})) }}">
+                <input type="hidden" name="_token" value="{{ csrf_token(csrf_token_id) }}">
+                <button class="forum-danger-button" type="submit">Delete {{ subject }}</button>
+            </form>
+        </div>
+    </section>
+{% endblock %}

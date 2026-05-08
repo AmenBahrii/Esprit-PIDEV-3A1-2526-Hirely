@@ -1,0 +1,162 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ post.title }} | Hirely{% endblock %}
+
+{% block body %}
+    <section class="forum-page-head">
+        <a href="{{ path('forum_index') }}" class="btn-secondary" data-go-back="true" data-fallback="{{ path('forum_index') }}">
+            Back to feed
+        </a>
+    </section>
+
+    <section class="dashboard-hero">
+        <div class="dashboard-hero-copy">
+            <div class="forum-status-group forum-status-group-spaced">
+                <span class="status-pill status-pill-{{ post.status|lower }}">{{ post.status|title }}</span>
+                {% if post.pinned %}<span class="status-pill status-pill-accent">Pinned</span>{% endif %}
+                {% if post.locked %}<span class="status-pill status-pill-rejected">Locked</span>{% endif %}
+                {% if post.tag %}<span class="forum-tag">{{ post.tag }}</span>{% endif %}
+            </div>
+            <h1 class="dashboard-hero-title">{{ post.title }}</h1>
+            <p class="dashboard-hero-text">
+                By <a href="{{ path('profile_show', {id: post.author.id}) }}" class="forum-inline-link">{{ post.author.displayName }}</a>
+                on {{ post.createdAt|date('d M Y - H:i') }}
+            </p>
+        </div>
+
+        <div class="dashboard-hero-rail">
+            <div class="dashboard-hero-chip">
+                <span class="dashboard-hero-chip-label">Likes</span>
+                <strong class="dashboard-hero-chip-value">{{ post.likeCount }}</strong>
+            </div>
+            <div class="dashboard-hero-chip">
+                <span class="dashboard-hero-chip-label">Comments</span>
+                <strong class="dashboard-hero-chip-value">{{ comments.getTotalItemCount }}</strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="forum-two-column" data-dynamic-region="forum-thread">
+        <article class="record-card forum-detail-card">
+            <div class="forum-copy-block">{{ post.content|nl2br }}</div>
+
+            {% if post.moderationNote and is_granted('ROLE_ADMIN') %}
+                <div class="forum-note-card">
+                    <h3>Moderation note</h3>
+                    <p>{{ post.moderationNote }}</p>
+                </div>
+            {% endif %}
+
+            <div class="record-actions actions-cell forum-detail-actions">
+                <form method="post" action="{{ path('forum_post_like', {id: post.id}) }}" class="forum-like-form">
+                    <input type="hidden" name="_token" value="{{ csrf_token('like_post_' ~ post.id) }}">
+                    <button class="forum-like-button {{ post.likedByCurrentUser ? 'is-liked' : '' }}" type="submit" aria-label="{{ post.likedByCurrentUser ? 'Unlike post' : 'Like post' }}">
+                        <span aria-hidden="true">{{ post.likedByCurrentUser ? '♥' : '♡' }}</span>
+                    </button>
+                    <span class="forum-like-count">{{ post.likeCount }} likes</span>
+                </form>
+
+                {% if app.user.id == post.author.id or is_granted('ROLE_ADMIN') %}
+                    <a href="{{ path('forum_post_edit', {id: post.id}) }}" class="btn-secondary">Edit post</a>
+                    <a href="{{ path('forum_post_delete_confirm', {id: post.id}) }}" class="forum-danger-button">Delete post</a>
+                {% endif %}
+            </div>
+        </article>
+
+        <aside class="card card-immersive forum-panel">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Comments</h2>
+                    <p class="section-kicker">Keep the full discussion thread active in the migrated UI.</p>
+                </div>
+            </div>
+
+            <form method="get" class="forum-sort-form" data-auto-submit="true">
+                <div class="forum-input-shell">
+                    <label for="comment-sort">Sort comments</label>
+                    <select id="comment-sort" name="comments">
+                        <option value="new" {{ comment_sort == 'new' ? 'selected' : '' }}>Newest</option>
+                        <option value="old" {{ comment_sort == 'old' ? 'selected' : '' }}>Oldest</option>
+                        <option value="top" {{ comment_sort == 'top' ? 'selected' : '' }}>Top</option>
+                    </select>
+                </div>
+            </form>
+
+            {% if not post.locked or is_granted('ROLE_ADMIN') %}
+                <div class="forum-note-card">
+                    <h3>Protected discussion replies</h3>
+                    <p>New comments pass through Hirely anti-spam checks for suspicious links, markup, and repeated promotional phrases before they appear in the thread.</p>
+                </div>
+
+                <div class="forum-live-status" data-gemini-status="forum-thread" hidden>Gemini is replying...</div>
+
+                {{ form_start(comment_form, {attr: {class: 'forum-form-grid', 'data-gemini-status-target': "[data-gemini-status='forum-thread']"}, action: path('forum_comment_new', {id: post.id, comments: comment_sort, commentPage: comments.currentPageNumber})}) }}
+                    {{ form_errors(comment_form) }}
+                    <div class="forum-input-shell">
+                        {{ form_label(comment_form.content) }}
+                        {{ form_widget(comment_form.content) }}
+                        {{ form_errors(comment_form.content) }}
+                    </div>
+                    <div class="forum-form-actions">
+                        <button class="btn-primary" type="submit">Add comment</button>
+                    </div>
+                {{ form_end(comment_form) }}
+            {% else %}
+                <div class="forum-note-card forum-note-card-warning">
+                    <h3>Comments locked</h3>
+                    <p>This post is currently locked for new comments.</p>
+                </div>
+            {% endif %}
+
+            <div class="forum-comment-list">
+                {% for comment in comments %}
+                    <article class="forum-comment-card">
+                        <div class="record-card-top">
+                            <div>
+                                <p class="record-eyebrow">Comment #{{ comment.id }}</p>
+                                <h3 class="forum-comment-author">
+                                    <a href="{{ path('profile_show', {id: comment.author.id}) }}" class="forum-inline-link">{{ comment.author.displayName }}</a>
+                                    {% if comment.author.email == 'gemini@hirely.local' %}
+                                        <span class="status-pill status-pill-accent forum-inline-badge">Gemini</span>
+                                    {% endif %}
+                                </h3>
+                                <p class="record-subtitle">{{ comment.createdAt|date('d M Y - H:i') }}</p>
+                            </div>
+                            <div class="forum-status-group">
+                                <span class="status-pill status-pill-{{ comment.status|lower }}">{{ comment.status|title }}</span>
+                                {% if comment.pinned %}<span class="status-pill status-pill-accent">Pinned</span>{% endif %}
+                            </div>
+                        </div>
+
+                        <div class="forum-copy-block">{{ comment.content|nl2br }}</div>
+
+                        {% if comment.moderationNote and is_granted('ROLE_ADMIN') %}
+                            <div class="forum-note-inline">Admin note: {{ comment.moderationNote }}</div>
+                        {% endif %}
+
+                        <div class="record-actions actions-cell forum-comment-actions">
+                            <form method="post" action="{{ path('forum_comment_like', {id: comment.id}) }}" class="forum-like-form forum-like-form-compact">
+                                <input type="hidden" name="_token" value="{{ csrf_token('like_comment_' ~ comment.id) }}">
+                                <button class="forum-like-button forum-like-button-small {{ comment.likedByCurrentUser ? 'is-liked' : '' }}" type="submit" aria-label="{{ comment.likedByCurrentUser ? 'Unlike comment' : 'Like comment' }}">
+                                    <span aria-hidden="true">{{ comment.likedByCurrentUser ? '♥' : '♡' }}</span>
+                                </button>
+                                <span class="forum-like-count">{{ comment.likeCount }}</span>
+                            </form>
+
+                            {% if app.user.id == comment.author.id or is_granted('ROLE_ADMIN') %}
+                                <a href="{{ path('forum_comment_edit', {id: comment.id}) }}" class="forum-inline-action">Edit</a>
+                                <a href="{{ path('forum_comment_delete_confirm', {id: comment.id}) }}" class="forum-inline-danger">Delete</a>
+                            {% endif %}
+                        </div>
+                    </article>
+                {% else %}
+                    <div class="forum-empty-card">
+                        <p class="record-description">No comments yet.</p>
+                    </div>
+                {% endfor %}
+            </div>
+
+            {{ knp_pagination_render(comments) }}
+        </aside>
+    </section>
+{% endblock %}

@@ -1,0 +1,28 @@
+form:
+  stealthed: 'Hirely anti-spam blocked this forum submission. Please remove suspicious links or markup and try again.'
+
+  honeypot:
+    not_empty: 'An invisible anti-spam field was filled unexpectedly.'
+  timer:
+    corrupted: 'Hirely could not validate the submission timer. Please reload the form and try again.'
+    mismatch_ip: 'Your connection details changed while submitting. Please try again.'
+    too_fast: 'This forum form was submitted too quickly to look human. Please wait a few seconds and try again.'
+    too_slow: 'This forum form stayed open too long. Reload the page and submit again.'
+
+validator:
+  stealthed: 'This forum field triggered the anti-spam protection. Please review the content and try again.'
+
+  banned_markup:
+    html: 'HTML markup is not allowed in forum submissions.'
+    bbcode: 'BBCode markup is not allowed in forum submissions.'
+
+  banned_phrases:
+    phrase_found: 'The submitted text contains a phrase commonly associated with forum spam.'
+
+  url_count:
+    exceeded: >-
+      {count, plural,
+        =1    {The submitted text contains a link, which is not allowed for this forum form.}
+        other {The submitted text contains # links, which is more than this forum form allows.}
+      }
+    duplicates: 'The same link appears too many times in this forum submission.'

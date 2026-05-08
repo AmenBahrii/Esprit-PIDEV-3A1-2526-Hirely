@@ -1,0 +1,115 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Forum Feed | Hirely{% endblock %}
+
+{% block body %}
+    <section class="dashboard-hero">
+        <div class="dashboard-hero-copy">
+            <span class="dashboard-hero-kicker">Community Feed</span>
+            <h1 class="dashboard-hero-title">Discuss, react, and follow updates</h1>
+            <p class="dashboard-hero-text">
+                Search posts, open conversations, and keep the full forum behavior while using the migrated Hirely template.
+            </p>
+        </div>
+
+        <div class="dashboard-hero-rail">
+            <div class="dashboard-hero-chip">
+                <span class="dashboard-hero-chip-label">Visible posts</span>
+                <strong class="dashboard-hero-chip-value">{{ posts.getTotalItemCount }}</strong>
+            </div>
+            <div class="dashboard-hero-chip">
+                <span class="dashboard-hero-chip-label">Available tags</span>
+                <strong class="dashboard-hero-chip-value">{{ tags|length }}</strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="card card-immersive forum-toolbar-card">
+        <div class="section-header">
+            <div>
+                <h2 class="section-title">Search and filter</h2>
+                <p class="section-kicker">Refine the feed without changing how posts or forum logic work.</p>
+            </div>
+            <a href="{{ path('forum_post_new') }}" class="btn-primary">New Post</a>
+        </div>
+
+        <form method="get" class="forum-filter-form" data-auto-submit="true">
+            <div class="forum-input-shell">
+                <label for="forum-search">Search</label>
+                <input id="forum-search" type="search" name="q" value="{{ search }}" placeholder="Search title, content, or tag" data-auto-submit-input="true">
+            </div>
+
+            <div class="forum-input-shell">
+                <label for="forum-tag">Tag</label>
+                <select id="forum-tag" name="tag">
+                    <option value="ALL" {{ selected_tag == 'ALL' ? 'selected' : '' }}>All tags</option>
+                    {% for tag in tags %}
+                        <option value="{{ tag }}" {{ selected_tag == tag ? 'selected' : '' }}>{{ tag }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="forum-input-shell">
+                <label for="forum-sort">Sort</label>
+                <select id="forum-sort" name="sort">
+                    <option value="new" {{ sort == 'new' ? 'selected' : '' }}>Newest</option>
+                    <option value="old" {{ sort == 'old' ? 'selected' : '' }}>Oldest</option>
+                    <option value="liked" {{ sort == 'liked' ? 'selected' : '' }}>Most liked</option>
+                </select>
+            </div>
+        </form>
+    </section>
+
+    <section class="record-grid forum-record-grid">
+        {% for post in posts %}
+            <article class="record-card forum-post-card">
+                <div class="record-card-top">
+                    <div class="forum-status-group">
+                        <span class="status-pill status-pill-{{ post.status|lower }}">{{ post.status|title }}</span>
+                        {% if post.pinned %}<span class="status-pill status-pill-accent">Pinned</span>{% endif %}
+                    </div>
+                    {% if post.tag %}
+                        <span class="forum-tag">{{ post.tag }}</span>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <p class="record-eyebrow">Post #{{ post.id }}</p>
+                    <h2 class="record-title">{{ post.title }}</h2>
+                    <p class="record-subtitle">
+                        By <a href="{{ path('profile_show', {id: post.author.id}) }}" class="forum-inline-link">{{ post.author.displayName }}</a>
+                        on {{ post.createdAt|date('d M Y - H:i') }}
+                    </p>
+                </div>
+
+                <p class="record-description record-description-clamp">{{ post.content }}</p>
+
+                <div class="record-meta">
+                    <div class="record-meta-item">
+                        <span class="record-meta-label">Likes</span>
+                        <span class="record-meta-value">{{ post.likeCount }}</span>
+                    </div>
+                    <div class="record-meta-item">
+                        <span class="record-meta-label">Comments</span>
+                        <span class="record-meta-value">{{ post.commentCount }}</span>
+                    </div>
+                </div>
+
+                <div class="record-actions actions-cell forum-card-actions">
+                    <a href="{{ path('forum_post_show', {id: post.id}) }}" class="btn-primary">Open discussion</a>
+                    {% if app.user.id == post.author.id or is_granted('ROLE_ADMIN') %}
+                        <a href="{{ path('forum_post_edit', {id: post.id}) }}" class="btn-secondary">Edit</a>
+                    {% endif %}
+                </div>
+            </article>
+        {% else %}
+            <div class="record-card forum-empty-card">
+                <p class="record-eyebrow">No results</p>
+                <h2 class="record-title">No posts found</h2>
+                <p class="record-description">Try a different keyword or create a new discussion.</p>
+            </div>
+        {% endfor %}
+    </section>
+
+    {{ knp_pagination_render(posts) }}
+{% endblock %}

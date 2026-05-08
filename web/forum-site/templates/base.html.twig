@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Hirely{% endblock %}</title>
+    {% block stylesheets %}
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="{{ asset('assets/css/hirely.css') }}?v=20260423-1">
+        <link rel="stylesheet" href="{{ asset('assets/css/forum-theme.css') }}?v=20260423-1">
+        <link rel="stylesheet" href="{{ asset('assets/css/dashboard-shell.css') }}?v=20260508-2">
+    {% endblock %}
+</head>
+<body class="app-root hirely-dashboard-root {% block body_class %}{% endblock %}">
+
+    {% if app.user %}
+        {% set current_route = app.request.attributes.get('_route')|default('') %}
+        {% set default_topbar_kicker = 'Connected View - Live Workspace' %}
+        {% set default_topbar_title = 'Hirely' %}
+        {% set default_topbar_subtitle = 'Recruitment and onboarding workspace' %}
+
+        {% if current_route starts with 'admin_forum_' %}
+            {% set default_topbar_title = 'Admin Dashboard' %}
+            {% set default_topbar_subtitle = 'Forum moderation and review workspace' %}
+        {% elseif current_route starts with 'forum_' %}
+            {% set default_topbar_title = 'Forum Feed' %}
+            {% set default_topbar_subtitle = 'Community posts, comments, moderation, and notifications' %}
+        {% elseif current_route starts with 'onboarding_' %}
+            {% set default_topbar_title = 'Onboarding Plans' %}
+            {% set default_topbar_subtitle = 'Runtime slice integrated from Hirely v3 and adapted to the current User entity' %}
+        {% elseif current_route starts with 'app_joboffer_' %}
+            {% set default_topbar_title = 'Job Offers' %}
+            {% set default_topbar_subtitle = 'Recruitment offers connected to the integrated Hirely workspace' %}
+        {% elseif current_route starts with 'app_applications' %}
+            {% set default_topbar_title = 'Applications' %}
+            {% set default_topbar_subtitle = 'Application tracking entry point for the recruitment flow' %}
+        {% elseif current_route starts with 'app_evaluations' %}
+            {% set default_topbar_title = 'Evaluations' %}
+            {% set default_topbar_subtitle = 'Assessment and evaluation entry point for candidates' %}
+        {% elseif current_route starts with 'app_home' %}
+            {% set default_topbar_title = 'Admin Dashboard' %}
+        {% endif %}
+
+        {% set captured_topbar_kicker %}{% block topbar_kicker %}{% endblock %}{% endset %}
+        {% set captured_topbar_title %}{% block topbar_title %}{% endblock %}{% endset %}
+        {% set captured_topbar_subtitle %}{% block topbar_subtitle %}{% endblock %}{% endset %}
+
+        {% set resolved_topbar_kicker = captured_topbar_kicker|trim %}
+        {% set resolved_topbar_title = captured_topbar_title|trim %}
+        {% set resolved_topbar_subtitle = captured_topbar_subtitle|trim %}
+
+        {% if resolved_topbar_kicker == '' %}
+            {% set resolved_topbar_kicker = default_topbar_kicker %}
+        {% endif %}
+        {% if resolved_topbar_title == '' %}
+            {% set resolved_topbar_title = default_topbar_title %}
+        {% endif %}
+        {% if resolved_topbar_subtitle == '' %}
+            {% set resolved_topbar_subtitle = default_topbar_subtitle %}
+        {% endif %}
+
+        <div class="hirely-dashboard-shell">
+            {% include 'forum/partials/_sidebar.html.twig' %}
+
+            <div class="hirely-dashboard-main">
+                {% include 'forum/partials/_navbar.html.twig' with {
+                    topbar_kicker: resolved_topbar_kicker,
+                    topbar_title: resolved_topbar_title,
+                    topbar_subtitle: resolved_topbar_subtitle
+                } %}
+
+                <main class="hirely-dashboard-content">
+                    {% for label, messages in app.flashes %}
+                        {% for message in messages %}
+                            <div class="flash-message {{ label }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endfor %}
+
+                    <div class="hirely-content-region">
+                        {{ block('body') }}
+                    </div>
+                </main>
+            </div>
+        </div>
+    {% else %}
+        {{ block('body') }}
+    {% endif %}
+
+    {% block javascripts %}
+        <script>
+            (function () {
+                const autoForms = document.querySelectorAll('[data-auto-submit="true"]');
+                autoForms.forEach(function (form) {
+                    const selects = form.querySelectorAll('select');
+                    selects.forEach(function (select) {
+                        select.addEventListener('change', function () {
+                            form.requestSubmit();
+                        });
+                    });
+
+                    const inputs = form.querySelectorAll('[data-auto-submit-input="true"]');
+                    inputs.forEach(function (input) {
+                        let timerId = null;
+                        input.addEventListener('input', function () {
+                            window.clearTimeout(timerId);
+                            timerId = window.setTimeout(function () {
+                                form.requestSubmit();
+                            }, 320);
+                        });
+                    });
+                });
+
+                const backTriggers = document.querySelectorAll('[data-go-back="true"]');
+                backTriggers.forEach(function (trigger) {
+                    trigger.addEventListener('click', function (event) {
+                        event.preventDefault();
+                        const fallback = trigger.getAttribute('data-fallback') || '/home';
+                        const canGoBack = window.history.length > 1;
+                        let sameOriginReferrer = false;
+
+                        if (document.referrer) {
+                            try {
+                                sameOriginReferrer = new URL(document.referrer).origin === window.location.origin;
+                            } catch (error) {
+                                sameOriginReferrer = false;
+                            }
+                        }
+
+                        if (canGoBack && sameOriginReferrer) {
+                            window.history.back();
+                            return;
+                        }
+
+                        window.location.assign(fallback);
+                    });
+                });
+
+                const geminiAwareForms = document.querySelectorAll('[data-gemini-status-target]');
+                geminiAwareForms.forEach(function (form) {
+                    form.addEventListener('submit', function () {
+                        const status = document.querySelector(form.getAttribute('data-gemini-status-target'));
+                        const textarea = form.querySelector('textarea');
+
+                        if (status && textarea && /(^|[^A-Za-z0-9._%+-])@gemini\b/i.test(textarea.value)) {
+                            status.hidden = false;
+                        }
+                    });
+                });
+
+                const notificationWrap = document.querySelector('[data-notification-wrap="true"]');
+                const notificationToggle = document.querySelector('[data-notification-toggle="true"]');
+                const notificationMenu = document.querySelector('[data-notification-menu="true"]');
+
+                if (notificationWrap && notificationToggle && notificationMenu) {
+                    notificationToggle.addEventListener('click', function (event) {
+                        event.stopPropagation();
+                        const isHidden = notificationMenu.hasAttribute('hidden');
+                        if (isHidden) {
+                            notificationMenu.removeAttribute('hidden');
+                        } else {
+                            notificationMenu.setAttribute('hidden', 'hidden');
+                        }
+                    });
+
+                    document.addEventListener('click', function (event) {
+                        if (!notificationWrap.contains(event.target)) {
+                            notificationMenu.setAttribute('hidden', 'hidden');
+                        }
+                    });
+
+                    document.addEventListener('keydown', function (event) {
+                        if (event.key === 'Escape') {
+                            notificationMenu.setAttribute('hidden', 'hidden');
+                        }
+                    });
+                }
+            })();
+        </script>
+    {% endblock %}
+</body>
+</html>

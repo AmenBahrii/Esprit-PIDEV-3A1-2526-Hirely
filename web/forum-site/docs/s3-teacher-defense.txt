@@ -1,0 +1,215 @@
+S3 Teacher Defense - Hirely Forum Module
+
+Project I will run:
+C:\Users\Firas\OneDrive\Desktop\hirely2\hirely\web\forum-site
+
+My main focus for Sprint 3 was the forum module. I did not make Gemini the main subject this week. Gemini was only checked because it was an older missed feature. For S3, I focused on code quality, testing, DoctrineDoctor, performance proof, scenarios, test data, dependency cleanup, and integration with the team project.
+
+1. Static analysis / PHPStan
+
+For this criterion, I added two kinds of static analysis.
+
+First, I created 8 custom forum static checks in:
+tools/forum_static_checks.php
+
+These checks verify important project rules:
+- PHP files have valid syntax.
+- No debug output like dd(), dump(), var_dump(), or print_r() is left in forum code.
+- SQL is kept inside repositories instead of controllers/services.
+- Controller render() calls point to existing Twig templates.
+- Mutating forum routes like like/delete/comment use POST.
+- Key forum classes can autoload correctly.
+- AI integrations have fallback paths instead of crashing.
+- Forum list pages paginate Doctrine queries instead of loading full arrays first.
+
+Second, I installed and configured real PHPStan:
+- phpstan/phpstan
+- phpstan/phpstan-symfony
+- phpstan/phpstan-doctrine
+
+The configuration is in:
+phpstan.neon.dist
+
+I run:
+vendor\bin\phpstan analyse -c phpstan.neon.dist
+
+Current result: PHPStan passes at level 5 with Symfony and Doctrine extensions, with no broad ignore file or baseline hiding the problems.
+
+2. Unit tests
+
+For this criterion, I added 8 focused forum unit tests in:
+tests/run_forum_unit_tests.php
+
+The tests cover real forum behavior:
+- Gemini trigger detection is case-insensitive and does not trigger on emails.
+- Gemini replies only to approved or pending human comments, not rejected comments or its own bot comments.
+- Gemini trigger text is cleaned before building the prompt.
+- Forum tags are normalized correctly.
+- Forum likes/interactions normalize target and type values.
+- Notification messages are trimmed safely for the database.
+- Moderation notes preserve AI metrics and decisions.
+- Safe Browsing does not call the external API when there is no URL.
+
+I run:
+php tests\run_forum_unit_tests.php
+
+Current result: 8 tests pass.
+
+3. DoctrineDoctor
+
+For this criterion, I installed DoctrineDoctor with Composer:
+ahmed-bhs/doctrine-doctor
+
+Because my project runs PHP 8.1, the compatible installed version is:
+0.1.0-alpha.3
+
+This version works through the Symfony web profiler instead of a normal CLI report command.
+
+I verified that the configuration and collector are registered using:
+php bin\console debug:config doctrine_doctor
+php bin\console debug:container --tag=data_collector
+php bin\console debug:container | findstr /i doctor
+
+During the demo, I can open:
+/forum
+/forum/post/{id}
+/admin/forum
+
+Then I open the Symfony profiler toolbar and inspect the DoctrineDoctor collector/panel for Doctrine issues such as slow queries, N+1 queries, missing indexes, or mapping problems.
+
+4. Performance report
+
+For this criterion, I prepared the forum performance report in:
+docs/forum-performance-report.md
+
+I also filled the Word performance report template with the forum report.
+
+The report contains measurable commands, not just text. Examples:
+- Measure-Command { php bin\console lint:container }
+- Measure-Command { php tools\forum_static_checks.php }
+- Measure-Command { php tests\run_forum_unit_tests.php }
+- Measure-Command { vendor\bin\phpstan analyse -c phpstan.neon.dist }
+- Measure-Command { php bin\console doctrine:fixtures:load --dry-run --append --no-interaction }
+
+I also documented current test data volume:
+- forum posts
+- forum comments
+- forum interactions
+- forum notifications
+- approved and pending post counts
+
+For optimization, I used pagination, grouped repository queries for counts, notification cooldown, Safe Browsing short-circuit when there is no URL, and Python AI fallback instead of crashing.
+
+5. Scenario and test data
+
+For this criterion, I prepared:
+docs/forum-test-scenarios.md
+
+It includes logical demo scenarios:
+- User creates a valid post.
+- Anti-spam blocks or reviews suspicious content.
+- Brief Gemini smoke test.
+- Like and notification flow.
+- Comment moderation.
+- Admin moderation dashboard.
+- Pagination and search.
+- Python AI unavailable fallback.
+- Onboarding runtime integration scenario.
+
+I also added fixtures in:
+src/DataFixtures/ForumFixtures.php
+
+The fixture data includes:
+- normal forum user
+- admin user
+- approved, pending, and rejected posts
+- comments
+- likes/interactions
+- notifications
+- moderation notes with AI metrics
+
+Safe command:
+php bin\console doctrine:fixtures:load --dry-run --append --no-interaction
+
+For a real dev database only:
+php bin\console doctrine:fixtures:load --append --no-interaction
+
+6. Mastery of subject and code explanation
+
+If the teacher asks me what I actually did, I can explain it like this:
+
+I improved the forum module without blindly rewriting it. I kept the working Symfony structure and added quality proof around it. The forum now has moderation, likes, notifications, pagination, anti-spam, admin moderation, AI fallback, fixtures, unit tests, static checks, and PHPStan.
+
+I can explain why each choice was made:
+- Composer packages are better than manually downloaded folders because versions and autoloading are managed properly.
+- PHPStan catches type and Symfony/Doctrine mistakes before runtime.
+- Custom static checks enforce project-specific rules that PHPStan alone does not check.
+- Unit tests cover business logic that is easy to break.
+- DoctrineDoctor helps inspect database performance and Doctrine problems through the profiler.
+- Fixtures make the demo repeatable.
+- Python AI fallback prevents the app from crashing when the AI service or libraries are unavailable.
+
+7. Quantity of work / value added
+
+The added value I can show is:
+- Forum static checks.
+- Real PHPStan with Symfony and Doctrine extensions.
+- 8 unit tests.
+- DoctrineDoctor integration.
+- DoctrineDoctor performance fixes for forum query pagination.
+- Forum performance report.
+- Test scenarios and fixture data.
+- Composer dependency cleanup.
+- KnpPaginatorBundle integration.
+- AntiSpamBundle integration.
+- DoctrineFixturesBundle and data-fixtures integration.
+- Python AI setup scripts and dependency checks.
+- Gemini pending-comment behavior fixed.
+- Unified Hirely dashboard layout with sidebar navigation.
+- Safe runtime integration/navigation for the team modules.
+
+8. Collaborative platform and integration
+
+For team integration, I compared the other app versions and kept my current Symfony project as the protected base because the forum/S3 work was complete and passing.
+
+I documented integration in:
+docs/integration/team-integration-report.md
+
+I used Hirely v3 and hirely4 as references, then integrated carefully instead of copying the whole project blindly.
+
+The current app has one shared dashboard layout with navigation to:
+- Forum
+- Onboarding
+- Job Offers
+- Applications
+- Evaluations
+
+I avoided copying unsafe folders such as vendor, .env, full database dumps, and conflicting User systems. This protects the working app while still integrating the team modules.
+
+Dependency cleanup explanation
+
+Before, some bundles were manually downloaded as folders. I removed those folders and replaced them through Composer:
+- KnpPaginatorBundle -> knplabs/knp-paginator-bundle
+- AntiSpamBundle -> omines/antispam-bundle
+- DoctrineFixturesBundle -> doctrine/doctrine-fixtures-bundle
+- DoctrineDataFixtures -> doctrine/data-fixtures
+
+doctrine/data-fixtures is installed automatically because doctrine/doctrine-fixtures-bundle depends on it.
+
+Commands I can run to prove everything
+
+composer validate --no-check-publish
+composer audit --locked
+php bin\console lint:container
+php bin\console lint:yaml config
+php bin\console lint:twig templates
+php tools\forum_static_checks.php
+php tests\run_forum_unit_tests.php
+vendor\bin\phpstan analyse -c phpstan.neon.dist
+php bin\console list doctrine:fixtures
+php bin\console doctrine:fixtures:load --dry-run --append --no-interaction
+python -m py_compile ..\ai_service\app.py
+
+Short final explanation to say to the teacher
+
+For S3, I focused mainly on making the forum module provable and maintainable. I added static analysis, PHPStan, unit tests, DoctrineDoctor, a performance report, clear scenarios, fixtures, dependency cleanup, and safe integration with the team modules. I can run the proof commands live, and the project now has repeatable evidence for every S3 grading criterion.
