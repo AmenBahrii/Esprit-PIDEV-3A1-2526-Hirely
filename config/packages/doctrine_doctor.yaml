@@ -1,0 +1,17 @@
+doctrine_doctor:
+    enabled: true
+    profiler:
+        show_in_toolbar: true
+        show_debug_info: false
+    analyzers:
+        n_plus_one:
+            enabled: true
+        join_optimization:
+            enabled: true
+        collection_initialization:
+            enabled: true
+        foreign_key_mapping:
+            enabled: true
+    debug:
+        enabled: false
+        internal_logging: false

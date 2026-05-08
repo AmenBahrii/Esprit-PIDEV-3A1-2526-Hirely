@@ -1,0 +1,749 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+2 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+3 0 obj
+<< /Length 3337 >>
+stream
+BT
+/F2 20 Tf
+1 0 0 1 50 781.89 Tm
+(Sprint 2 Grid Defense Script) Tj
+/F2 15 Tf
+1 0 0 1 50 745.89 Tm
+(Task 1 - Static Tests \(PhpStan\)) Tj
+/F2 12 Tf
+1 0 0 1 50 715.89 Tm
+(User / Role) Tj
+/F1 10.5 Tf
+1 0 0 1 50 697.89 Tm
+(What we did:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 683.89 Tm
+(? Installed PhpStan and the Symfony/Doctrine extensions.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 669.89 Tm
+(? Created a dedicated configuration file: `phpstan.user-role.neon`.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 655.89 Tm
+(? Ran a first analysis on the unoptimized version and captured the errors.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 641.89 Tm
+(? Fixed the issues related to `Users`, `Role`, and their related classes.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 619.89 Tm
+(What we fixed:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 605.89 Tm
+(? Doctrine collection typing in `Users` and `Role`) Tj
+/F1 10.5 Tf
+1 0 0 1 50 591.89 Tm
+(? Uninitialized collections) Tj
+/F1 10.5 Tf
+1 0 0 1 50 577.89 Tm
+(? Safer type handling in user and role logic) Tj
+/F1 10.5 Tf
+1 0 0 1 50 555.89 Tm
+(What to say:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 541.89 Tm
+(? For static testing, I used PhpStan with a dedicated configuration focused on my) Tj
+/F1 10.5 Tf
+1 0 0 1 50 527.89 Tm
+(module.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 513.89 Tm
+(? I first ran the analysis on the initial version, captured the errors, then corrected) Tj
+/F1 10.5 Tf
+1 0 0 1 50 499.89 Tm
+(them and reran until the result was clean.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 477.89 Tm
+(Result:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 463.89 Tm
+(? Before optimization: real static-analysis errors were detected.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 449.89 Tm
+(? After optimization: PhpStan returned no errors on the scoped configuration.) Tj
+/F2 12 Tf
+1 0 0 1 50 427.89 Tm
+(Joboffer / Application) Tj
+/F1 10.5 Tf
+1 0 0 1 50 409.89 Tm
+(What we did:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 395.89 Tm
+(? Created a second PhpStan configuration: `phpstan.joboffer-application.neon`.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 381.89 Tm
+(? Analyzed `Joboffer`, `Application`, their controllers, forms, and related services.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 367.89 Tm
+(? Fixed the detected issues and reran PhpStan until the scope was clean.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 345.89 Tm
+(What we fixed:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 331.89 Tm
+(? Collection typing) Tj
+/F1 10.5 Tf
+1 0 0 1 50 317.89 Tm
+(? Mapping and type mismatches) Tj
+/F1 10.5 Tf
+1 0 0 1 50 303.89 Tm
+(? Safer authenticated-user checks in controllers) Tj
+/F1 10.5 Tf
+1 0 0 1 50 289.89 Tm
+(? Cleaner business-rule conditions) Tj
+/F1 10.5 Tf
+1 0 0 1 50 267.89 Tm
+(What to say:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 253.89 Tm
+(? For the second module, I used a separate PhpStan configuration so the analysis stayed) Tj
+/F1 10.5 Tf
+1 0 0 1 50 239.89 Tm
+(scoped to `Joboffer` and `Application`.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 225.89 Tm
+(? I followed the same workflow: before analysis, corrections, then clean after-analysis.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 203.89 Tm
+(Result:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 189.89 Tm
+(? Before optimization: multiple static issues were detected.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 175.89 Tm
+(? After optimization: PhpStan returned no errors on this scope as well.) Tj
+/F2 15 Tf
+1 0 0 1 50 153.89 Tm
+(Task 2 - Unit Tests) Tj
+/F2 12 Tf
+1 0 0 1 50 123.89 Tm
+(User / Role) Tj
+/F1 10.5 Tf
+1 0 0 1 50 105.89 Tm
+(Chosen entity:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 91.89 Tm
+(? `Users`) Tj
+/F1 10.5 Tf
+1 0 0 1 50 69.89 Tm
+(What we did:) Tj
+ET
+endstream
+endobj
+4 0 obj
+<< /Length 3407 >>
+stream
+BT
+/F1 10.5 Tf
+1 0 0 1 50 781.89 Tm
+(? Followed the workshop structure exactly.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 767.89 Tm
+(? Generated a test with `make:test TestCase UsersManagerTest`.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 753.89 Tm
+(? Created a business service: `UsersManager`.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 739.89 Tm
+(? Implemented workshop-style unit tests in `tests/Service/UsersManagerTest.php`.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 717.89 Tm
+(Business rules tested:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 703.89 Tm
+(? A local account must have a password.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 689.89 Tm
+(? A local account password must contain at least 6 characters.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 675.89 Tm
+(? An inactive role cannot be assigned.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 661.89 Tm
+(? A Google-linked user may skip a password.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 639.89 Tm
+(What to say:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 625.89 Tm
+(? For the unit-test workshop, I chose the `Users` entity, defined business rules,) Tj
+/F1 10.5 Tf
+1 0 0 1 50 611.89 Tm
+(created a small service, generated the test class with `make:test`, and implemented the) Tj
+/F1 10.5 Tf
+1 0 0 1 50 597.89 Tm
+(tests using `TestCase`.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 575.89 Tm
+(Result:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 561.89 Tm
+(? More than 6 tests were implemented for this module.) Tj
+/F2 12 Tf
+1 0 0 1 50 539.89 Tm
+(Joboffer / Application) Tj
+/F1 10.5 Tf
+1 0 0 1 50 521.89 Tm
+(Chosen entity:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 507.89 Tm
+(? `Application`) Tj
+/F1 10.5 Tf
+1 0 0 1 50 485.89 Tm
+(What we did:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 471.89 Tm
+(? Created a business service: `ApplicationManager`.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 457.89 Tm
+(? Implemented workshop-style tests in `tests/Service/ApplicationManagerTest.php`.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 435.89 Tm
+(Business rules tested:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 421.89 Tm
+(? Application email must match the candidate email.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 407.89 Tm
+(? Applications are only allowed for open job offers.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 393.89 Tm
+(? Candidate experience must meet the job-offer requirement.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 379.89 Tm
+(? Expected salary cannot be negative.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 365.89 Tm
+(? Portfolio URL must be valid.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 351.89 Tm
+(? Availability date cannot be before the application date.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 329.89 Tm
+(What to say:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 315.89 Tm
+(? For the second module, I chose the `Application` entity and followed the same workshop) Tj
+/F1 10.5 Tf
+1 0 0 1 50 301.89 Tm
+(approach: service plus `TestCase` tests around explicit business rules.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 279.89 Tm
+(Result:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 265.89 Tm
+(? More than 6 tests were implemented for this module too.) Tj
+/F2 15 Tf
+1 0 0 1 50 243.89 Tm
+(Task 3 - DoctrineDoctor) Tj
+/F2 12 Tf
+1 0 0 1 50 213.89 Tm
+(What we did) Tj
+/F1 10.5 Tf
+1 0 0 1 50 195.89 Tm
+(? Installed `ahmed-bhs/doctrine-doctor`.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 181.89 Tm
+(? Registered the bundle in `config/bundles.php`.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 167.89 Tm
+(? Added the configuration in `config/packages/doctrine_doctor.yaml`.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 153.89 Tm
+(? Opened the relevant pages in dev mode through the Symfony profiler.) Tj
+/F2 12 Tf
+1 0 0 1 50 131.89 Tm
+(User / Role) Tj
+/F1 10.5 Tf
+1 0 0 1 50 113.89 Tm
+(Pages used:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 99.89 Tm
+(? `/users`) Tj
+/F1 10.5 Tf
+1 0 0 1 50 85.89 Tm
+(? `/role`) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Length 3300 >>
+stream
+BT
+/F1 10.5 Tf
+1 0 0 1 50 781.89 Tm
+(What we fixed:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 767.89 Tm
+(? Removed `findAll\(\)`-style unbounded loading from the users listing flow.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 753.89 Tm
+(? Removed ordering without limit.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 739.89 Tm
+(? Reduced lazy-loading/repeated-entity-loading issues.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 725.89 Tm
+(? Initialized missing collections in safe entity constructors.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 711.89 Tm
+(? Added safe ORM cascade alignment in the owned scope.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 689.89 Tm
+(What to say:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 675.89 Tm
+(? I used DoctrineDoctor to detect runtime ORM and query issues on the admin pages, then) Tj
+/F1 10.5 Tf
+1 0 0 1 50 661.89 Tm
+(I fixed the safe page-relevant problems and rechecked the profiler.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 639.89 Tm
+(Result:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 625.89 Tm
+(? The `/users` page improved from several performance issues to a much smaller remaining) Tj
+/F1 10.5 Tf
+1 0 0 1 50 611.89 Tm
+(set.) Tj
+/F2 12 Tf
+1 0 0 1 50 589.89 Tm
+(Joboffer / Application) Tj
+/F1 10.5 Tf
+1 0 0 1 50 571.89 Tm
+(Pages used:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 557.89 Tm
+(? `/joboffer`) Tj
+/F1 10.5 Tf
+1 0 0 1 50 543.89 Tm
+(? `/application`) Tj
+/F1 10.5 Tf
+1 0 0 1 50 521.89 Tm
+(What we fixed:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 507.89 Tm
+(? Added result limits to sorted job-offer and application listings.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 493.89 Tm
+(? Reduced unbounded query behavior.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 479.89 Tm
+(? Initialized missing collections in safe entities.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 465.89 Tm
+(? Added safe ORM cascade alignment in the owned scope.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 443.89 Tm
+(What to say:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 429.89 Tm
+(? On the job-offer and application pages, DoctrineDoctor highlighted ordering and) Tj
+/F1 10.5 Tf
+1 0 0 1 50 415.89 Tm
+(loading issues. I applied low-risk optimizations that improved the listings without) Tj
+/F1 10.5 Tf
+1 0 0 1 50 401.89 Tm
+(requiring schema-wide refactors.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 379.89 Tm
+(Result:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 365.89 Tm
+(? The main page-level performance warnings on `/joboffer` and `/application` were) Tj
+/F1 10.5 Tf
+1 0 0 1 50 351.89 Tm
+(reduced.) Tj
+/F2 12 Tf
+1 0 0 1 50 329.89 Tm
+(Important justification) Tj
+/F1 10.5 Tf
+1 0 0 1 50 311.89 Tm
+(? I intentionally did not refactor all global architecture warnings, such as full) Tj
+/F1 10.5 Tf
+1 0 0 1 50 297.89 Tm
+(snake_case renaming, full money-type redesign, or global blameable-trait adoption,) Tj
+/F1 10.5 Tf
+1 0 0 1 50 283.89 Tm
+(because those changes affect unrelated modules and require larger database migrations.) Tj
+/F2 15 Tf
+1 0 0 1 50 261.89 Tm
+(Task 4 - Performance Report) Tj
+/F2 12 Tf
+1 0 0 1 50 231.89 Tm
+(What we measured) Tj
+/F1 10.5 Tf
+1 0 0 1 50 213.89 Tm
+(? Total execution time) Tj
+/F1 10.5 Tf
+1 0 0 1 50 199.89 Tm
+(? Peak memory usage) Tj
+/F1 10.5 Tf
+1 0 0 1 50 185.89 Tm
+(? DoctrineDoctor problem count before and after optimization) Tj
+/F2 12 Tf
+1 0 0 1 50 163.89 Tm
+(User / Role) Tj
+/F1 10.5 Tf
+1 0 0 1 50 145.89 Tm
+(Home page:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 131.89 Tm
+(? `/joboffer`) Tj
+/F1 10.5 Tf
+1 0 0 1 50 109.89 Tm
+(Main feature:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 95.89 Tm
+(? `/users`) Tj
+/F1 10.5 Tf
+1 0 0 1 50 73.89 Tm
+(What to say:) Tj
+ET
+endstream
+endobj
+6 0 obj
+<< /Length 3266 >>
+stream
+BT
+/F1 10.5 Tf
+1 0 0 1 50 781.89 Tm
+(? I used Symfony profiler for response time and memory usage, and DoctrineDoctor for) Tj
+/F1 10.5 Tf
+1 0 0 1 50 767.89 Tm
+(ORM/query issues.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 753.89 Tm
+(? I compared the same pages before and after optimization.) Tj
+/F2 12 Tf
+1 0 0 1 50 731.89 Tm
+(Joboffer / Application) Tj
+/F1 10.5 Tf
+1 0 0 1 50 713.89 Tm
+(Home page:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 699.89 Tm
+(? `/joboffer`) Tj
+/F1 10.5 Tf
+1 0 0 1 50 677.89 Tm
+(Main feature:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 663.89 Tm
+(? `/application`) Tj
+/F1 10.5 Tf
+1 0 0 1 50 641.89 Tm
+(What to say:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 627.89 Tm
+(? I used the application page as the main feature because it is the most representative) Tj
+/F1 10.5 Tf
+1 0 0 1 50 613.89 Tm
+(workflow in the module.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 599.89 Tm
+(? I compared before and after values for execution time, memory, and DoctrineDoctor) Tj
+/F1 10.5 Tf
+1 0 0 1 50 585.89 Tm
+(warnings.) Tj
+/F2 15 Tf
+1 0 0 1 50 563.89 Tm
+(Task 5 - Scenario and Test Data) Tj
+/F2 12 Tf
+1 0 0 1 50 533.89 Tm
+(User / Role) Tj
+/F1 10.5 Tf
+1 0 0 1 50 515.89 Tm
+(Chosen story:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 501.89 Tm
+(? As an admin, I want to manage users and roles so that the platform keeps correct) Tj
+/F1 10.5 Tf
+1 0 0 1 50 487.89 Tm
+(permissions and account states.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 465.89 Tm
+(Success case:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 451.89 Tm
+(? Admin creates or edits a user with a valid active role and valid credentials.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 429.89 Tm
+(Failure case:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 415.89 Tm
+(? Admin tries to create a local account without a valid password.) Tj
+/F2 12 Tf
+1 0 0 1 50 393.89 Tm
+(Joboffer / Application) Tj
+/F1 10.5 Tf
+1 0 0 1 50 375.89 Tm
+(Chosen story:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 361.89 Tm
+(? As a candidate, I want to apply to a job offer so that I can be considered by the) Tj
+/F1 10.5 Tf
+1 0 0 1 50 347.89 Tm
+(recruiter.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 325.89 Tm
+(Success case:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 311.89 Tm
+(? Candidate applies to an open offer with valid data.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 289.89 Tm
+(Failure case:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 275.89 Tm
+(? Candidate applies to a closed offer, or tries to apply again to the same offer.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 253.89 Tm
+(What to say:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 239.89 Tm
+(? For each module, I prepared one clear user story with realistic data, one success) Tj
+/F1 10.5 Tf
+1 0 0 1 50 225.89 Tm
+(case, and one failure case.) Tj
+/F2 15 Tf
+1 0 0 1 50 203.89 Tm
+(Task 6 - Subject Mastery and Justification) Tj
+/F1 10.5 Tf
+1 0 0 1 50 173.89 Tm
+(What to say:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 159.89 Tm
+(? I used Symfony validators because business rules should be enforced on the server) Tj
+/F1 10.5 Tf
+1 0 0 1 50 145.89 Tm
+(side.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 131.89 Tm
+(? I used PhpStan to secure the code before runtime.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 117.89 Tm
+(? I used workshop-style unit tests to validate business rules in isolation.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 103.89 Tm
+(? I used DoctrineDoctor to detect ORM and query problems at runtime.) Tj
+/F1 10.5 Tf
+1 0 0 1 50 89.89 Tm
+(? For DoctrineDoctor, I prioritized fixes that were safe, measurable, and directly) Tj
+/F1 10.5 Tf
+1 0 0 1 50 75.89 Tm
+(related to my modules.) Tj
+ET
+endstream
+endobj
+7 0 obj
+<< /Length 3107 >>
+stream
+BT
+/F2 15 Tf
+1 0 0 1 50 781.89 Tm
+(Task 7 - Quantity of Work and Added Value) Tj
+/F2 12 Tf
+1 0 0 1 50 751.89 Tm
+(User / Role) Tj
+/F1 10.5 Tf
+1 0 0 1 50 733.89 Tm
+(Added value:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 719.89 Tm
+(? AI user-role summary) Tj
+/F1 10.5 Tf
+1 0 0 1 50 705.89 Tm
+(? Google-linked account logic) Tj
+/F1 10.5 Tf
+1 0 0 1 50 691.89 Tm
+(? Face-recognition-related account handling) Tj
+/F1 10.5 Tf
+1 0 0 1 50 677.89 Tm
+(? QR contact export) Tj
+/F1 10.5 Tf
+1 0 0 1 50 663.89 Tm
+(? Role-based edit and back-navigation behavior) Tj
+/F1 10.5 Tf
+1 0 0 1 50 649.89 Tm
+(? Testing and Doctrine improvements) Tj
+/F2 12 Tf
+1 0 0 1 50 627.89 Tm
+(Joboffer / Application) Tj
+/F1 10.5 Tf
+1 0 0 1 50 609.89 Tm
+(Added value:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 595.89 Tm
+(? Live search and sort) Tj
+/F1 10.5 Tf
+1 0 0 1 50 581.89 Tm
+(? Card-based listing UI) Tj
+/F1 10.5 Tf
+1 0 0 1 50 567.89 Tm
+(? Map-based location selection) Tj
+/F1 10.5 Tf
+1 0 0 1 50 553.89 Tm
+(? Resume upload) Tj
+/F1 10.5 Tf
+1 0 0 1 50 539.89 Tm
+(? AI resume autofill) Tj
+/F1 10.5 Tf
+1 0 0 1 50 525.89 Tm
+(? AI recruiter review) Tj
+/F1 10.5 Tf
+1 0 0 1 50 511.89 Tm
+(? Recruiter score and review note) Tj
+/F1 10.5 Tf
+1 0 0 1 50 497.89 Tm
+(? Duplicate-application prevention) Tj
+/F1 10.5 Tf
+1 0 0 1 50 483.89 Tm
+(? Email notifications) Tj
+/F1 10.5 Tf
+1 0 0 1 50 469.89 Tm
+(? Candidate delete-pending flow) Tj
+/F1 10.5 Tf
+1 0 0 1 50 455.89 Tm
+(? Testing and Doctrine improvements) Tj
+/F1 10.5 Tf
+1 0 0 1 50 433.89 Tm
+(What to say:) Tj
+/F1 10.5 Tf
+1 0 0 1 50 419.89 Tm
+(? The work goes beyond basic CRUD. It includes testing, performance optimization,) Tj
+/F1 10.5 Tf
+1 0 0 1 50 405.89 Tm
+(validation, and advanced user-facing functionality.) Tj
+/F2 15 Tf
+1 0 0 1 50 383.89 Tm
+(Very Short Oral Version) Tj
+/F2 12 Tf
+1 0 0 1 50 353.89 Tm
+(Task 1) Tj
+/F1 10.5 Tf
+1 0 0 1 50 335.89 Tm
+(? I used PhpStan with a dedicated configuration for each module, captured the initial) Tj
+/F1 10.5 Tf
+1 0 0 1 50 321.89 Tm
+(errors, fixed them, and reran the analysis until it was clean.) Tj
+/F2 12 Tf
+1 0 0 1 50 299.89 Tm
+(Task 2) Tj
+/F1 10.5 Tf
+1 0 0 1 50 281.89 Tm
+(? I followed the workshop style exactly: one chosen entity, one business service, one) Tj
+/F1 10.5 Tf
+1 0 0 1 50 267.89 Tm
+(`TestCase`, and more than 6 tests per module.) Tj
+/F2 12 Tf
+1 0 0 1 50 245.89 Tm
+(Task 3) Tj
+/F1 10.5 Tf
+1 0 0 1 50 227.89 Tm
+(? I integrated DoctrineDoctor, captured the detected issues in the Symfony profiler,) Tj
+/F1 10.5 Tf
+1 0 0 1 50 213.89 Tm
+(fixed the safe page-relevant problems, cleared the cache, and rechecked the result.) Tj
+/F2 12 Tf
+1 0 0 1 50 191.89 Tm
+(Task 4) Tj
+/F1 10.5 Tf
+1 0 0 1 50 173.89 Tm
+(? I used Symfony profiler for execution time and memory, and DoctrineDoctor for ORM and) Tj
+/F1 10.5 Tf
+1 0 0 1 50 159.89 Tm
+(query issues, then compared the values before and after optimization.) Tj
+/F2 12 Tf
+1 0 0 1 50 137.89 Tm
+(Task 5) Tj
+/F1 10.5 Tf
+1 0 0 1 50 119.89 Tm
+(? I prepared one clear user story per module with logical test data, one valid case, and) Tj
+/F1 10.5 Tf
+1 0 0 1 50 105.89 Tm
+(one failure case.) Tj
+/F2 12 Tf
+1 0 0 1 50 83.89 Tm
+(Task 6) Tj
+ET
+endstream
+endobj
+8 0 obj
+<< /Length 476 >>
+stream
+BT
+/F1 10.5 Tf
+1 0 0 1 50 781.89 Tm
+(? I can justify the use of Symfony validators, PhpStan, unit tests, and DoctrineDoctor) Tj
+/F1 10.5 Tf
+1 0 0 1 50 767.89 Tm
+(according to correctness, maintainability, and performance.) Tj
+/F2 12 Tf
+1 0 0 1 50 745.89 Tm
+(Task 7) Tj
+/F1 10.5 Tf
+1 0 0 1 50 727.89 Tm
+(? The added value is that the work goes beyond CRUD through testing, optimization,) Tj
+/F1 10.5 Tf
+1 0 0 1 50 713.89 Tm
+(advanced workflows, and AI-assisted features.) Tj
+ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 15 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 3 0 R >>
+endobj
+10 0 obj
+<< /Type /Page /Parent 15 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 4 0 R >>
+endobj
+11 0 obj
+<< /Type /Page /Parent 15 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 5 0 R >>
+endobj
+12 0 obj
+<< /Type /Page /Parent 15 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 6 0 R >>
+endobj
+13 0 obj
+<< /Type /Page /Parent 15 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 7 0 R >>
+endobj
+14 0 obj
+<< /Type /Page /Parent 15 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 8 0 R >>
+endobj
+15 0 obj
+<< /Type /Pages /Kids [9 0 R 10 0 R 11 0 R 12 0 R 13 0 R 14 0 R] /Count 6 >>
+endobj
+16 0 obj
+<< /Type /Catalog /Pages 15 0 R >>
+endobj
+xref
+0 17
+0000000000 65535 f 
+0000000015 00000 n 
+0000000085 00000 n 
+0000000160 00000 n 
+0000003549 00000 n 
+0000007008 00000 n 
+0000010360 00000 n 
+0000013678 00000 n 
+0000016837 00000 n 
+0000017364 00000 n 
+0000017507 00000 n 
+0000017651 00000 n 
+0000017795 00000 n 
+0000017939 00000 n 
+0000018083 00000 n 
+0000018227 00000 n 
+0000018320 00000 n 
+trailer
+<< /Size 17 /Root 16 0 R >>
+startxref
+18371
+%%EOF
