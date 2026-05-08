@@ -1,0 +1,10 @@
+parameters:
+    level: 5
+    paths:
+        - src/Entity/Users.php
+        - src/Entity/Role.php
+        - src/Controller/UsersController.php
+        - src/Controller/RoleController.php
+        - src/Form/UsersType.php
+        - src/Form/RoleType.php
+        - src/Service/UserRoleSummaryService.php

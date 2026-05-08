@@ -43,7 +43,7 @@ private string $email;
 #[ORM\Column(name: "password", type: "string", length: 255)]
 private string $password;
 
-#[ORM\ManyToOne(targetEntity: Role::class, inversedBy: "userss")]
+#[ORM\ManyToOne(targetEntity: Role::class, inversedBy: "userss", fetch: "EAGER")]
 #[ORM\JoinColumn(name: "role_id", referencedColumnName: "role_id", onDelete: "CASCADE")]
 #[Assert\NotNull(message: "Role is required")]
 private ?Role $role = null;
@@ -186,21 +186,39 @@ public function eraseCredentials(): void
         $this->google_id = $value;
     }
 
+    /**
+     * @var Collection<int, Interviewee_profiles>
+     */
     #[ORM\OneToMany(mappedBy: "user_id", targetEntity: Interviewee_profiles::class)]
     private Collection $interviewee_profiless;
 
-    #[ORM\OneToMany(mappedBy: "user", targetEntity: Joboffer::class)]
+    /**
+     * @var Collection<int, Joboffer>
+     */
+    #[ORM\OneToMany(mappedBy: "user", targetEntity: Joboffer::class, cascade: ['remove'])]
     private Collection $joboffers;
 
+    /**
+     * @var Collection<int, Password_reset_otp>
+     */
     #[ORM\OneToMany(mappedBy: "user_id", targetEntity: Password_reset_otp::class)]
     private Collection $password_reset_otps;
 
+    /**
+     * @var Collection<int, Recruiter_profiles>
+     */
     #[ORM\OneToMany(mappedBy: "user_id", targetEntity: Recruiter_profiles::class)]
     private Collection $recruiter_profiless;
 
-    #[ORM\OneToMany(mappedBy: "user", targetEntity: Application::class)]
+    /**
+     * @var Collection<int, Application>
+     */
+    #[ORM\OneToMany(mappedBy: "user", targetEntity: Application::class, cascade: ['remove'])]
     private Collection $applications;
 
+    /**
+     * @var Collection<int, Interview_evaluations>
+     */
     #[ORM\OneToMany(mappedBy: "recruiter_id", targetEntity: Interview_evaluations::class)]
     private Collection $interview_evaluationss;
 
@@ -231,15 +249,26 @@ public function eraseCredentials(): void
             return $this;
         }
         
-    public function __construct()
+public function __construct()
 {
+    $this->interviewee_profiless = new ArrayCollection();
     $this->joboffers = new ArrayCollection();
+    $this->password_reset_otps = new ArrayCollection();
+    $this->recruiter_profiless = new ArrayCollection();
     $this->applications = new ArrayCollection();
+    $this->interview_evaluationss = new ArrayCollection();
     $this->notificationss = new ArrayCollection();
+    $this->interviewss = new ArrayCollection();
 }
+    /**
+     * @var Collection<int, Notifications>
+     */
     #[ORM\OneToMany(mappedBy: "user_id", targetEntity: Notifications::class)]
     private Collection $notificationss;
 
+    /**
+     * @var Collection<int, Interviews>
+     */
     #[ORM\OneToMany(mappedBy: "recruiter_id", targetEntity: Interviews::class)]
     private Collection $interviewss;
 }

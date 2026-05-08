@@ -20,8 +20,24 @@ final class UsersController extends AbstractController
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        $users = $entityManager->getRepository(Users::class)->findAll();
         $connection = $entityManager->getConnection();
+        $users = $connection->fetchAllAssociative(
+            'SELECT
+                u.user_id AS id,
+                u.first_name,
+                u.last_name,
+                u.email,
+                u.status,
+                u.profile_pic,
+                COALESCE(r.name, "N/A") AS role_name
+            FROM users u
+            LEFT JOIN role r ON r.role_id = u.role_id
+            ORDER BY u.first_name ASC, u.last_name ASC
+            LIMIT 50'
+        );
+
+        $totalUsers = (int) $connection->fetchOne('SELECT COUNT(*) FROM users');
+        $activeUsers = (int) $connection->fetchOne('SELECT COUNT(*) FROM users WHERE status = "active"');
 
         $groupedStats = $connection->fetchAllAssociative(
             'SELECT
@@ -31,7 +47,8 @@ final class UsersController extends AbstractController
             FROM users u
             LEFT JOIN role r ON r.role_id = u.role_id
             GROUP BY u.status, r.name
-            ORDER BY total DESC, roleName ASC'
+            ORDER BY total DESC, roleName ASC
+            LIMIT 10'
         );
 
         $googleLinkedUsers = (int) $connection->fetchOne(
@@ -50,13 +67,15 @@ final class UsersController extends AbstractController
                     'total' => (int) ($row['total'] ?? 0),
                 ];
             }, $groupedStats),
-            count($users),
+            $totalUsers,
             $googleLinkedUsers,
             $faceEnabledUsers
         );
 
         return $this->render('users/index.html.twig', [
             'users' => $users,
+            'total_users' => $totalUsers,
+            'active_users' => $activeUsers,
             'ai_user_summary' => $aiUserSummary,
             'google_linked_users' => $googleLinkedUsers,
             'face_enabled_users' => $faceEnabledUsers,
