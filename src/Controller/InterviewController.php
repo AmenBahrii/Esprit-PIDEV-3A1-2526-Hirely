@@ -28,9 +28,23 @@ final class InterviewController extends AbstractController
 
         if ($roleName === 'admin') {
             $interviews = $this->entityManager->getConnection()->fetchAllAssociative(
-                'SELECT i.*, a.*, it.type_name FROM interviews i
-                 LEFT JOIN application a ON i.application_id = a.applicationId
+                'SELECT
+                    i.interview_id,
+                    i.scheduled_date,
+                    i.status,
+                    i.interview_round,
+                    COALESCE(it.type_name, "N/A") AS interview_type_name,
+                    COALESCE(r.first_name, "") AS recruiter_first_name,
+                    COALESCE(r.last_name, "") AS recruiter_last_name,
+                    COALESCE(c.first_name, "") AS candidate_first_name,
+                    COALESCE(c.last_name, "") AS candidate_last_name,
+                    COALESCE(j.title, "N/A") AS job_title
+                 FROM interviews i
                  LEFT JOIN interview_types it ON i.interview_type_id = it.interview_type_id
+                 LEFT JOIN users r ON i.recruiter_id = r.user_id
+                 LEFT JOIN application a ON i.application_id = a.applicationId
+                 LEFT JOIN users c ON a.user_id = c.user_id
+                 LEFT JOIN joboffer j ON a.jobOfferId = j.jobOfferId
                  ORDER BY i.scheduled_date DESC'
             );
             return $this->render('admin/interview/index.html.twig', ['interviews' => $interviews]);
@@ -61,25 +75,36 @@ final class InterviewController extends AbstractController
         }
 
         if ($request->isMethod('POST')) {
-            $scheduledDate = new \DateTime($request->request->get('scheduled_date'));
-            $result = $this->interviewService->scheduleInterview(
-                $application,
-                $user,
-                (int)$request->request->get('interview_type_id'),
-                $scheduledDate,
-                $request->request->get('scheduled_time'),
-                (int)$request->request->get('duration_minutes'),
-                $request->request->get('location'),
-                $request->request->get('meeting_link'),
-                (int)$request->request->get('interview_round', 1)
-            );
+            $scheduledDateInput = (string) $request->request->get('scheduled_date', '');
 
-            if ($result['success']) {
-                $this->addFlash('success', $result['message']);
-                return $this->redirectToRoute('app_interview_show', ['interviewId' => $result['data']->getInterview_id()]);
+            if ($scheduledDateInput === '') {
+                $this->addFlash('error', 'Please choose a valid interview date.');
+            } else {
+                $scheduledDate = new \DateTime($scheduledDateInput);
+
+                if ($scheduledDate < new \DateTimeImmutable('today')) {
+                    $this->addFlash('error', 'Interview date cannot be earlier than today.');
+                } else {
+                    $result = $this->interviewService->scheduleInterview(
+                        $application,
+                        $user,
+                        (int)$request->request->get('interview_type_id'),
+                        $scheduledDate,
+                        $request->request->get('scheduled_time'),
+                        (int)$request->request->get('duration_minutes'),
+                        $request->request->get('location'),
+                        $request->request->get('meeting_link'),
+                        (int)$request->request->get('interview_round', 1)
+                    );
+
+                    if ($result['success']) {
+                        $this->addFlash('success', $result['message']);
+                        return $this->redirectToRoute('app_interview_show', ['interviewId' => $result['data']->getInterview_id()]);
+                    }
+
+                    $this->addFlash('error', $result['message']);
+                }
             }
-
-            $this->addFlash('error', $result['message']);
         }
 
         $interviewTypes = $this->entityManager->getRepository(Interview_types::class)->findAll();
@@ -125,27 +150,35 @@ final class InterviewController extends AbstractController
         }
 
         if ($request->isMethod('POST')) {
-            $scheduledDate = $request->request->get('scheduled_date') 
-                ? new \DateTime($request->request->get('scheduled_date')) 
-                : null;
+            $scheduledDateInput = (string) $request->request->get('scheduled_date', '');
 
-            $result = $this->interviewService->updateInterview(
-                $interview,
-                $request->request->get('interview_type_id') ? (int)$request->request->get('interview_type_id') : null,
-                $scheduledDate,
-                $request->request->get('scheduled_time'),
-                $request->request->get('duration_minutes') ? (int)$request->request->get('duration_minutes') : null,
-                $request->request->get('location'),
-                $request->request->get('meeting_link'),
-                $request->request->get('notes')
-            );
+            if ($scheduledDateInput === '') {
+                $this->addFlash('error', 'Please choose a valid interview date.');
+            } else {
+                $scheduledDate = new \DateTime($scheduledDateInput);
 
-            if ($result['success']) {
-                $this->addFlash('success', $result['message']);
-                return $this->redirectToRoute('app_interview_show', ['interviewId' => $interviewId]);
+                if ($scheduledDate < new \DateTimeImmutable('today')) {
+                    $this->addFlash('error', 'Interview date cannot be earlier than today.');
+                } else {
+                    $result = $this->interviewService->updateInterview(
+                        $interview,
+                        $request->request->get('interview_type_id') ? (int)$request->request->get('interview_type_id') : null,
+                        $scheduledDate,
+                        $request->request->get('scheduled_time'),
+                        $request->request->get('duration_minutes') ? (int)$request->request->get('duration_minutes') : null,
+                        $request->request->get('location'),
+                        $request->request->get('meeting_link'),
+                        $request->request->get('notes')
+                    );
+
+                    if ($result['success']) {
+                        $this->addFlash('success', $result['message']);
+                        return $this->redirectToRoute('app_interview_show', ['interviewId' => $interviewId]);
+                    }
+
+                    $this->addFlash('error', $result['message']);
+                }
             }
-
-            $this->addFlash('error', $result['message']);
         }
 
         $interviewTypes = $this->entityManager->getRepository(Interview_types::class)->findAll();

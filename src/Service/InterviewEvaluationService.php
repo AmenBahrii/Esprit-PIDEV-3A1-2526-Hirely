@@ -15,6 +15,23 @@ class InterviewEvaluationService
         private readonly EntityManagerInterface $entityManager,
     ) {}
 
+    private function calculateOverallRatingFromScores(array $scores): float
+    {
+        $scoreValues = [];
+
+        foreach ($scores as $scoreData) {
+            if (isset($scoreData['score']) && $scoreData['score'] !== '' && $scoreData['score'] !== null) {
+                $scoreValues[] = (float) $scoreData['score'];
+            }
+        }
+
+        if (count($scoreValues) === 0) {
+            return 0.0;
+        }
+
+        return round(array_sum($scoreValues) / count($scoreValues), 2);
+    }
+
     public function createEvaluation(
         Interviews $interview,
         Users $recruiter,
@@ -32,9 +49,12 @@ class InterviewEvaluationService
                 return ['success' => false, 'message' => 'Can only evaluate completed interviews', 'data' => null];
             }
 
+            $overallRating = $this->calculateOverallRatingFromScores($scores);
+
             $evaluation = new Interview_evaluations();
             $evaluation->setInterview_id($interview);
             $evaluation->setRecruiter_id($recruiter);
+            $evaluation->setOverall_rating($overallRating);
             $evaluation->setRecommendation($recommendation);
             $evaluation->setHire_decision($hireDecision);
             $evaluation->setStrengths($strengths);
@@ -49,7 +69,6 @@ class InterviewEvaluationService
             $this->entityManager->flush();
 
             // Add scores
-            $scoreValues = [];
             foreach ($scores as $criteriaId => $scoreData) {
                 $criteria = $this->entityManager->getRepository(Evaluation_criteria::class)->find($criteriaId);
                 if (!$criteria) continue;
@@ -61,12 +80,7 @@ class InterviewEvaluationService
                 $score->setComments($scoreData['comment'] ?? null);
 
                 $this->entityManager->persist($score);
-                $scoreValues[] = (float)$scoreData['score'];
             }
-
-            // Calculate overall rating
-            $overallRating = count($scoreValues) > 0 ? array_sum($scoreValues) / count($scoreValues) : 0;
-            $evaluation->setOverall_rating(round($overallRating, 2));
 
             $this->entityManager->flush();
 
@@ -91,6 +105,8 @@ class InterviewEvaluationService
                 return ['success' => false, 'message' => 'Cannot edit submitted evaluations', 'data' => null];
             }
 
+            $evaluation->setOverall_rating($this->calculateOverallRatingFromScores($scores));
+
             $evaluation->setRecommendation($recommendation);
             $evaluation->setHire_decision($hireDecision);
             $evaluation->setStrengths($strengths);
@@ -109,7 +125,6 @@ class InterviewEvaluationService
             $this->entityManager->flush();
 
             // Re-add scores
-            $scoreValues = [];
             foreach ($scores as $criteriaId => $scoreData) {
                 $criteria = $this->entityManager->getRepository(Evaluation_criteria::class)->find($criteriaId);
                 if (!$criteria) continue;
@@ -121,11 +136,7 @@ class InterviewEvaluationService
                 $score->setComments($scoreData['comment'] ?? null);
 
                 $this->entityManager->persist($score);
-                $scoreValues[] = (float)$scoreData['score'];
             }
-
-            $overallRating = count($scoreValues) > 0 ? array_sum($scoreValues) / count($scoreValues) : 0;
-            $evaluation->setOverall_rating(round($overallRating, 2));
 
             $this->entityManager->flush();
 

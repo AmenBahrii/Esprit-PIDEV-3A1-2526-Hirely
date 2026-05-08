@@ -5,12 +5,17 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 use App\Entity\Users;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use App\Entity\Evaluation_scores;
 
 #[ORM\Entity]
 class Interview_evaluations
 {
+    public function __construct()
+    {
+        $this->evaluation_scores = new ArrayCollection();
+    }
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -186,5 +191,15 @@ class Interview_evaluations
     }
 
     #[ORM\OneToMany(mappedBy: "evaluation_id", targetEntity: Evaluation_scores::class)]
-    private Collection $evaluation_scoress;
+    private Collection $evaluation_scores;
+
+    public function getEvaluation_scores()
+    {
+        return $this->evaluation_scores;
+    }
+
+    public function setEvaluation_scores($value)
+    {
+        $this->evaluation_scores = $value;
+    }
 }

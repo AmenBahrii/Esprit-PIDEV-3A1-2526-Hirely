@@ -5,12 +5,17 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 use App\Entity\Users;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use App\Entity\Interviews;
 
 #[ORM\Entity]
 class Interviewee_profiles
 {
+    public function __construct()
+    {
+        $this->interviewss = new ArrayCollection();
+    }
 
     #[ORM\Id]
     #[ORM\Column(type: "integer")]

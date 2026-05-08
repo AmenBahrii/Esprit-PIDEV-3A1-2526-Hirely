@@ -3,139 +3,220 @@
 {% block title %}Evaluate Interview - Hirely{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
+<div class="container my-5">
     <div class="row">
-        <div class="col-md-10 offset-md-1">
-            <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h3>Evaluate Interview</h3>
-                </div>
-                <div class="card-body">
-                    <div class="mb-4 p-3 bg-light rounded">
-                        <h6 class="text-muted">Interview Information</h6>
-                        <p>
-                            <strong>Candidate:</strong> 
-                            {% if interview.getApplication_id().getUser() %}
-                                {{ interview.getApplication_id().getUser().getFirstName() }} {{ interview.getApplication_id().getUser().getLastName() }}
-                            {% else %}
-                                N/A
-                            {% endif %}
-                        </p>
-                        <p>
-                            <strong>Job Offer:</strong> 
-                            {% if interview.getApplication_id().getJobOffer() %}
-                                {{ interview.getApplication_id().getJobOffer().title }}
-                            {% else %}
-                                N/A
-                            {% endif %}
-                        </p>
-                        <p>
-                            <strong>Interview Type:</strong> 
-                            {% if interview.getInterview_type_id() %}
-                                {{ interview.getInterview_type_id().getType_name() }}
-                            {% else %}
-                                N/A
-                            {% endif %}
-                        </p>
-                        <p>
-                            <strong>Interview Date:</strong> 
-                            {{ interview.getScheduled_date().format('F d, Y') }}
-                        </p>
-                    </div>
+        <div class="col-lg-9">
+            <!-- Header Section -->
+            <div class="mb-5">
+                <h1 class="display-5 fw-bold text-dark mb-2">Evaluate Interview</h1>
+                <p class="text-muted lead">Complete your assessment of the candidate's interview performance</p>
+            </div>
 
-                    <hr>
-
-                    <h5>Evaluation Criteria</h5>
-                    <div class="mb-4 p-3 bg-light rounded">
-                        {% if criteria is empty %}
-                            <p class="text-muted">No evaluation criteria available.</p>
-                        {% else %}
-                            {% for c in criteria %}
-                                <div class="mb-3">
-                                    <label class="form-label"><strong>{{ c.getCriteria_name() }}</strong></label>
-                                    {% if c.getDescription() %}
-                                        <p class="text-muted small">{{ c.getDescription() }}</p>
+            <!-- Interview Information Card -->
+            <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #e8f4f8 0%, #d1e7f0 100%);">
+                <div class="card-body p-4">
+                    <h6 class="text-uppercase fw-bold text-muted mb-3" style="font-size: 0.75rem; letter-spacing: 0.5px;">Interview Information</h6>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="detail-box">
+                                <span class="badge bg-secondary mb-2">Candidate</span>
+                                <p class="mb-0 fw-bold text-dark" style="font-size: 1rem;">
+                                    {% if interview.application_id.user %}
+                                        {{ interview.application_id.user.firstName }} {{ interview.application_id.user.lastName }}
+                                    {% else %}
+                                        N/A
                                     {% endif %}
-                                    <select name="criteria_{{ c.getCriteria_id() }}" class="form-control">
-                                        <option value="">-- Select Score --</option>
-                                        <option value="5">5 - Excellent</option>
-                                        <option value="4">4 - Very Good</option>
-                                        <option value="3">3 - Good</option>
-                                        <option value="2">2 - Fair</option>
-                                        <option value="1">1 - Poor</option>
-                                    </select>
-                                    <input type="text" name="comment_{{ c.getCriteria_id() }}" class="form-control mt-2" 
-                                        placeholder="Optional comment for this criterion">
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-box">
+                                <span class="badge bg-info mb-2">Position</span>
+                                <p class="mb-0 fw-bold text-dark" style="font-size: 1rem;">
+                                    {% if interview.application_id.jobOffer %}
+                                        {{ interview.application_id.jobOffer.title }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-box">
+                                <span class="badge bg-warning text-dark mb-2">Interview Type</span>
+                                <p class="mb-0 fw-bold text-dark" style="font-size: 1rem;">
+                                    {% if interview.interview_type_id %}
+                                        {{ interview.interview_type_id.type_name }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-box">
+                                <span class="badge bg-success mb-2">Date</span>
+                                <p class="mb-0 fw-bold text-dark" style="font-size: 1rem;">
+                                    {{ interview.scheduled_date.format('F d, Y') }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Evaluation Form Card -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form method="POST" novalidate>
+                        
+                        <!-- Evaluation Criteria Section -->
+                        <div class="mb-5">
+                            <h6 class="fw-bold text-dark mb-4">
+                                <i class="fas fa-star text-warning me-2"></i>Evaluation Criteria
+                            </h6>
+                            
+                            {% if criteria is empty %}
+                                <p class="text-muted">No evaluation criteria available.</p>
+                            {% else %}
+                                <div class="row g-3">
+                                    {% for c in criteria %}
+                                        <div class="col-12">
+                                            <div class="criteria-box p-3" style="background: #f8f9fa; border-radius: 8px; border-left: 4px solid #0d6efd;">
+                                                <label class="form-label fw-bold mb-2">{{ c.getCriteria_name() }}</label>
+                                                {% if c.getDescription() %}
+                                                    <p class="text-muted small mb-3">{{ c.getDescription() }}</p>
+                                                {% endif %}
+                                                <select name="criteria_{{ c.criteria_id }}" class="form-select form-select-sm mb-2" style="border-radius: 6px;">
+                                                    <option value="">-- Select Score --</option>
+                                                    <option value="10">10 - Excellent</option>
+                                                    <option value="9">9 - Outstanding</option>
+                                                    <option value="8">8 - Very Good</option>
+                                                    <option value="7">7 - Good</option>
+                                                    <option value="6">6 - Above Average</option>
+                                                    <option value="5">5 - Average</option>
+                                                    <option value="4">4 - Fair</option>
+                                                    <option value="3">3 - Weak</option>
+                                                    <option value="2">2 - Poor</option>
+                                                    <option value="1">1 - Very Poor</option>
+                                                    <option value="0">0 - No Evidence</option>
+                                                </select>
+                                                <input type="text" name="comment_{{ c.criteria_id }}" class="form-control form-control-sm" 
+                                                    placeholder="Optional comment for this criterion" style="border-radius: 6px;">
+                                            </div>
+                                        </div>
+                                    {% endfor %}
                                 </div>
-                            {% endfor %}
-                        {% endif %}
-                    </div>
+                            {% endif %}
+                        </div>
 
-                    <hr>
+                        <hr class="my-5">
 
-                    <h5>Overall Evaluation</h5>
+                        <!-- Overall Evaluation Section -->
+                        <div class="mb-5">
+                            <h6 class="fw-bold text-dark mb-4">
+                                <i class="fas fa-check-circle text-success me-2"></i>Overall Evaluation
+                            </h6>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="recommendation" class="form-label fw-bold">Recommendation</label>
+                                    <select name="recommendation" id="recommendation" class="form-select form-select-lg" required style="border-radius: 8px; border: 2px solid #e9ecef;">
+                                        <option value="">-- Select Recommendation --</option>
+                                        <option value="strong_yes">✅ Strong Yes</option>
+                                        <option value="yes">👍 Yes</option>
+                                        <option value="maybe">🤔 Maybe</option>
+                                        <option value="no">👎 No</option>
+                                        <option value="strong_no">❌ Strong No</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="hire_decision" class="form-label fw-bold">Hire Decision</label>
+                                    <select name="hire_decision" id="hire_decision" class="form-select form-select-lg" required style="border-radius: 8px; border: 2px solid #e9ecef;">
+                                        <option value="">-- Select Decision --</option>
+                                        <option value="hire">Hire</option>
+                                        <option value="no_hire">No Hire</option>
+                                        <option value="maybe">Maybe Later</option>
+                                        <option value="pending">Pending More Info</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
 
-                    <div class="mb-3">
-                        <label for="recommendation" class="form-label">Recommendation</label>
-                        <select name="recommendation" id="recommendation" class="form-control" required>
-                            <option value="">-- Select Recommendation --</option>
-                            <option value="strong_yes">Strong Yes</option>
-                            <option value="yes">Yes</option>
-                            <option value="maybe">Maybe</option>
-                            <option value="no">No</option>
-                            <option value="strong_no">Strong No</option>
-                        </select>
-                    </div>
+                        <!-- Assessment Section -->
+                        <div class="mb-5">
+                            <h6 class="fw-bold text-dark mb-4">
+                                <i class="fas fa-pen-fancy text-info me-2"></i>Assessment
+                            </h6>
+                            
+                            <div class="mb-3">
+                                <label for="strengths" class="form-label fw-bold">Strengths</label>
+                                <textarea name="strengths" id="strengths" class="form-control form-control-lg" rows="3" required placeholder="What were the candidate's key strengths?" style="border-radius: 8px; border: 1px solid #dee2e6;"></textarea>
+                            </div>
 
-                    <div class="mb-3">
-                        <label for="hire_decision" class="form-label">Hire Decision</label>
-                        <select name="hire_decision" id="hire_decision" class="form-control" required>
-                            <option value="">-- Select Decision --</option>
-                            <option value="hire">Hire</option>
-                            <option value="no_hire">No Hire</option>
-                            <option value="maybe">Maybe</option>
-                            <option value="pending">Pending</option>
-                        </select>
-                    </div>
+                            <div class="mb-3">
+                                <label for="weaknesses" class="form-label fw-bold">Weaknesses</label>
+                                <textarea name="weaknesses" id="weaknesses" class="form-control form-control-lg" rows="3" required placeholder="What areas could be improved?" style="border-radius: 8px; border: 1px solid #dee2e6;"></textarea>
+                            </div>
 
-                    <div class="mb-3">
-                        <label for="strengths" class="form-label">Strengths</label>
-                        <textarea name="strengths" id="strengths" class="form-control" rows="3" required></textarea>
-                    </div>
+                            <div class="mb-3">
+                                <label for="general_comments" class="form-label fw-bold">General Comments</label>
+                                <textarea name="general_comments" id="general_comments" class="form-control form-control-lg" rows="3" placeholder="Any additional observations or notes" style="border-radius: 8px; border: 1px solid #dee2e6;"></textarea>
+                            </div>
 
-                    <div class="mb-3">
-                        <label for="weaknesses" class="form-label">Weaknesses</label>
-                        <textarea name="weaknesses" id="weaknesses" class="form-control" rows="3" required></textarea>
-                    </div>
+                            <div>
+                                <label for="next_steps" class="form-label fw-bold">Next Steps</label>
+                                <textarea name="next_steps" id="next_steps" class="form-control form-control-lg" rows="2" placeholder="What should happen next?" style="border-radius: 8px; border: 1px solid #dee2e6;"></textarea>
+                            </div>
+                        </div>
 
-                    <div class="mb-3">
-                        <label for="general_comments" class="form-label">General Comments</label>
-                        <textarea name="general_comments" id="general_comments" class="form-control" rows="3"></textarea>
-                    </div>
+                        <!-- Draft Option -->
+                        <div class="mb-4 p-3" style="background: #f0f7ff; border-radius: 8px; border-left: 4px solid #0d6efd;">
+                            <div class="form-check">
+                                <input type="checkbox" name="is_draft" id="is_draft" class="form-check-input" value="1">
+                                <label class="form-check-label" for="is_draft">
+                                    <strong>Save as Draft</strong> - You can edit and finalize this evaluation later
+                                </label>
+                            </div>
+                        </div>
 
-                    <div class="mb-3">
-                        <label for="next_steps" class="form-label">Next Steps</label>
-                        <textarea name="next_steps" id="next_steps" class="form-control" rows="2"></textarea>
-                    </div>
-
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" name="is_draft" id="is_draft" class="form-check-input" value="1">
-                        <label class="form-check-label" for="is_draft">
-                            Save as Draft (you can edit later)
-                        </label>
-                    </div>
-
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-success">
-                            <i class="fas fa-save"></i> Save Evaluation
-                        </button>
-                        <a href="{{ path('app_interview_show', {'interviewId': interview.getInterview_id()}) }}" class="btn btn-secondary">
-                            <i class="fas fa-times"></i> Cancel
-                        </a>
-                    </div>
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-3 pt-3">
+                            <button type="submit" class="btn btn-lg btn-success" style="border-radius: 8px; padding: 0.75rem 2rem;">
+                                <i class="fas fa-save me-2"></i>Save Evaluation
+                            </button>
+                            <a href="{{ path('app_interview_show', {'interviewId': interview.interview_id}) }}" class="btn btn-lg btn-outline-secondary" style="border-radius: 8px; padding: 0.75rem 2rem;">
+                                <i class="fas fa-arrow-left me-2"></i>Back
+                            </a>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .detail-box {
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 8px;
+        border-left: 4px solid #0d6efd;
+    }
+    
+    .criteria-box {
+        transition: all 0.3s ease;
+    }
+    
+    .criteria-box:hover {
+        background: #ffffff !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .form-select-lg, .form-control-lg {
+        font-size: 1rem;
+        padding: 0.75rem 1rem;
+    }
+</style>
 {% endblock %}

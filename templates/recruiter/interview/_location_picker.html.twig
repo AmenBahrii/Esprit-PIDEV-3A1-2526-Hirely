@@ -1,0 +1,490 @@
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+
+<style>
+    .interview-location-picker {
+        border: 1px solid #e9ecef;
+        border-radius: 16px;
+        background: linear-gradient(180deg, #ffffff 0%, #fafbff 100%);
+        padding: 1rem;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+    }
+
+    .interview-location-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-top: 0.75rem;
+    }
+
+    .interview-location-map-trigger {
+        white-space: nowrap;
+    }
+
+    .interview-location-hint {
+        margin-top: 0.75rem;
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .interview-map-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 1600;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+        background: rgba(15, 23, 42, 0.55);
+    }
+
+    .interview-map-modal.is-open {
+        display: flex;
+    }
+
+    .interview-map-card {
+        width: min(100%, 980px);
+        max-height: calc(100vh - 3rem);
+        overflow: hidden;
+        display: grid;
+        grid-template-rows: auto auto auto auto 1fr auto;
+        border-radius: 20px;
+        background: #fff;
+        box-shadow: 0 30px 80px rgba(15, 23, 42, 0.25);
+    }
+
+    .interview-map-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid #eef2f7;
+    }
+
+    .interview-map-title {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: #1f2340;
+    }
+
+    .interview-map-close {
+        border: none;
+        background: transparent;
+        font-size: 1.75rem;
+        line-height: 1;
+        color: #6c757d;
+        cursor: pointer;
+    }
+
+    .interview-map-toolbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        gap: 0.75rem;
+        padding: 1rem 1.25rem 0.75rem;
+    }
+
+    .interview-map-results {
+        display: none;
+        margin: 0 1.25rem 0.75rem;
+        padding: 0;
+        list-style: none;
+        border: 1px solid #e9ecef;
+        border-radius: 14px;
+        overflow: hidden;
+        background: #fff;
+        max-height: 220px;
+        overflow-y: auto;
+    }
+
+    .interview-map-results.has-results {
+        display: block;
+    }
+
+    .interview-map-results button {
+        width: 100%;
+        border: none;
+        border-bottom: 1px solid #eef2f7;
+        background: #fff;
+        text-align: left;
+        padding: 0.85rem 1rem;
+        color: #1f2340;
+    }
+
+    .interview-map-results li:last-child button {
+        border-bottom: none;
+    }
+
+    .interview-map-results button:hover {
+        background: #f8fbff;
+    }
+
+    .interview-map-status {
+        padding: 0 1.25rem 0.75rem;
+        color: #6c757d;
+        font-size: 0.92rem;
+        min-height: 1.25rem;
+    }
+
+    .interview-map-preview {
+        margin: 0 1.25rem 0.9rem;
+        padding: 0.75rem 0.9rem;
+        border-radius: 14px;
+        background: #f8fbff;
+        color: #1f2340;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    .interview-map-canvas {
+        min-height: 440px;
+        border-top: 1px solid #eef2f7;
+        border-bottom: 1px solid #eef2f7;
+    }
+
+    .interview-map-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        padding: 1rem 1.25rem;
+        background: #fff;
+    }
+
+    @media (max-width: 768px) {
+        .interview-map-toolbar {
+            grid-template-columns: 1fr;
+        }
+
+        .interview-map-card {
+            max-height: calc(100vh - 1.5rem);
+        }
+
+        .interview-map-canvas {
+            min-height: 320px;
+        }
+    }
+</style>
+
+<div class="interview-location-picker">
+    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap">
+        <div>
+            <label for="location" class="form-label fw-bold mb-0">
+                <i class="fas fa-map-marker-alt text-primary me-2"></i>Location <span class="text-muted">(Optional)</span>
+            </label>
+            <div class="interview-location-hint">Pick an exact address on the map or use your current position.</div>
+        </div>
+        <button type="button" class="btn btn-outline-primary interview-location-map-trigger" id="openInterviewLocationMap">
+            <i class="fas fa-map me-2"></i>Open Map
+        </button>
+    </div>
+
+    <input type="text" name="location" id="location" class="form-control form-control-lg mt-3" placeholder="Search or choose an exact interview location" style="border-radius: 12px; border: 1px solid #dee2e6;">
+
+    <div class="interview-location-actions">
+        <button type="button" class="btn btn-outline-secondary" id="useCurrentInterviewLocation">
+            <i class="fas fa-location-arrow me-2"></i>Use Current Location
+        </button>
+        <button type="button" class="btn btn-light" id="clearInterviewLocation">
+            Clear
+        </button>
+    </div>
+</div>
+
+<div class="interview-map-modal" id="interviewMapModal" aria-hidden="true">
+    <div class="interview-map-card" role="dialog" aria-modal="true" aria-labelledby="interviewMapTitle">
+        <div class="interview-map-header">
+            <h3 class="interview-map-title" id="interviewMapTitle">Select Interview Location</h3>
+            <button type="button" class="interview-map-close" id="closeInterviewLocationMap" aria-label="Close map">&times;</button>
+        </div>
+
+        <div class="interview-map-toolbar">
+            <input type="text" id="interviewMapSearch" class="form-control" placeholder="Search a place, address, or room">
+            <button type="button" class="btn btn-primary" id="interviewMapSearchButton">Search</button>
+            <button type="button" class="btn btn-outline-secondary" id="interviewMapCurrentButton">Current Position</button>
+        </div>
+
+        <ul class="interview-map-results" id="interviewMapResults"></ul>
+        <div class="interview-map-status" id="interviewMapStatus">Search for a location or click directly on the map.</div>
+        <div class="interview-map-preview" id="interviewMapPreview">No location selected yet.</div>
+        <div class="interview-map-canvas" id="interviewMapCanvas"></div>
+
+        <div class="interview-map-footer">
+            <button type="button" class="btn btn-lg btn-success" id="applyInterviewLocation">Use this location</button>
+            <button type="button" class="btn btn-lg btn-outline-secondary" id="cancelInterviewLocation">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+(function () {
+    const locationInput = document.getElementById('location');
+    const modal = document.getElementById('interviewMapModal');
+    const openButton = document.getElementById('openInterviewLocationMap');
+    const closeButton = document.getElementById('closeInterviewLocationMap');
+    const cancelButton = document.getElementById('cancelInterviewLocation');
+    const applyButton = document.getElementById('applyInterviewLocation');
+    const currentLocationButton = document.getElementById('useCurrentInterviewLocation');
+    const mapCurrentButton = document.getElementById('interviewMapCurrentButton');
+    const searchButton = document.getElementById('interviewMapSearchButton');
+    const searchInput = document.getElementById('interviewMapSearch');
+    const searchResults = document.getElementById('interviewMapResults');
+    const status = document.getElementById('interviewMapStatus');
+    const preview = document.getElementById('interviewMapPreview');
+    const mapCanvas = document.getElementById('interviewMapCanvas');
+    const clearButton = document.getElementById('clearInterviewLocation');
+
+    if (!locationInput || !modal || !openButton || !mapCanvas || typeof L === 'undefined') {
+        return;
+    }
+
+    const defaultCoords = [20, 0];
+    let map = null;
+    let marker = null;
+    let selectedLocation = {
+        label: locationInput.value.trim(),
+        lat: null,
+        lon: null
+    };
+
+    function setStatus(message, isError = false) {
+        status.textContent = message;
+        status.style.color = isError ? '#dc3545' : '#6c757d';
+    }
+
+    function updatePreview() {
+        if (selectedLocation.label) {
+            preview.textContent = selectedLocation.lat !== null && selectedLocation.lon !== null
+                ? selectedLocation.label + ' (' + selectedLocation.lat.toFixed(5) + ', ' + selectedLocation.lon.toFixed(5) + ')'
+                : selectedLocation.label;
+            return;
+        }
+
+        preview.textContent = 'No location selected yet.';
+    }
+
+    function ensureMap() {
+        if (map) {
+            map.invalidateSize();
+            return;
+        }
+
+        map = L.map(mapCanvas).setView(defaultCoords, 2);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        map.on('click', function (event) {
+            selectCoordinates(event.latlng.lat, event.latlng.lng);
+        });
+    }
+
+    function placeMarker(lat, lon) {
+        if (!map) {
+            return;
+        }
+
+        if (!marker) {
+            marker = L.marker([lat, lon]).addTo(map);
+        } else {
+            marker.setLatLng([lat, lon]);
+        }
+
+        map.setView([lat, lon], 15);
+    }
+
+    function clearSearchResults() {
+        searchResults.innerHTML = '';
+        searchResults.classList.remove('has-results');
+    }
+
+    async function reverseGeocode(lat, lon) {
+        const url = new URL('https://nominatim.openstreetmap.org/reverse');
+        url.searchParams.set('format', 'jsonv2');
+        url.searchParams.set('lat', lat);
+        url.searchParams.set('lon', lon);
+        url.searchParams.set('zoom', '18');
+        url.searchParams.set('addressdetails', '1');
+
+        const response = await fetch(url.toString(), {
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Could not retrieve the address for that location.');
+        }
+
+        return response.json();
+    }
+
+    async function searchLocation(query) {
+        const url = new URL('https://nominatim.openstreetmap.org/search');
+        url.searchParams.set('format', 'jsonv2');
+        url.searchParams.set('q', query);
+        url.searchParams.set('limit', '5');
+
+        const response = await fetch(url.toString(), {
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Could not search for that location.');
+        }
+
+        return response.json();
+    }
+
+    async function selectCoordinates(lat, lon) {
+        placeMarker(lat, lon);
+        setStatus('Resolving address from the map...');
+
+        try {
+            const result = await reverseGeocode(lat, lon);
+            selectedLocation = {
+                label: result.display_name || (lat.toFixed(5) + ', ' + lon.toFixed(5)),
+                lat: lat,
+                lon: lon
+            };
+            locationInput.value = selectedLocation.label;
+            updatePreview();
+            setStatus('Location selected.');
+        } catch (error) {
+            selectedLocation = {
+                label: lat.toFixed(5) + ', ' + lon.toFixed(5),
+                lat: lat,
+                lon: lon
+            };
+            locationInput.value = selectedLocation.label;
+            updatePreview();
+            setStatus(error.message, true);
+        }
+    }
+
+    async function handleSearch() {
+        const query = searchInput.value.trim();
+
+        if (!query) {
+            setStatus('Type a location to search first.', true);
+            clearSearchResults();
+            return;
+        }
+
+        setStatus('Searching for locations...');
+        clearSearchResults();
+
+        try {
+            const results = await searchLocation(query);
+
+            if (!Array.isArray(results) || results.length === 0) {
+                setStatus('No matching places were found.', true);
+                return;
+            }
+
+            searchResults.classList.add('has-results');
+
+            results.forEach(function (result) {
+                const item = document.createElement('li');
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.textContent = result.display_name;
+                button.addEventListener('click', function () {
+                    selectCoordinates(parseFloat(result.lat), parseFloat(result.lon));
+                    clearSearchResults();
+                    setStatus('Location found. You can keep it or click somewhere else on the map.');
+                });
+                item.appendChild(button);
+                searchResults.appendChild(item);
+            });
+        } catch (error) {
+            setStatus(error.message, true);
+        }
+    }
+
+    function openModal() {
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        ensureMap();
+        updatePreview();
+        setStatus('Search for a location, use your current position, or click on the map.');
+
+        if (locationInput.value.trim() !== '') {
+            searchInput.value = locationInput.value.trim();
+        }
+    }
+
+    function closeModal() {
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        clearSearchResults();
+    }
+
+    openButton.addEventListener('click', openModal);
+    closeButton.addEventListener('click', closeModal);
+    cancelButton.addEventListener('click', closeModal);
+
+    modal.addEventListener('click', function (event) {
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+
+    applyButton.addEventListener('click', function () {
+        if (!locationInput.value.trim()) {
+            setStatus('Pick a location from the map or search first.', true);
+            return;
+        }
+
+        closeModal();
+    });
+
+    currentLocationButton.addEventListener('click', function () {
+        if (!navigator.geolocation) {
+            setStatus('Your browser does not support location access.', true);
+            return;
+        }
+
+        setStatus('Getting your current location...');
+        navigator.geolocation.getCurrentPosition(function (position) {
+            selectCoordinates(position.coords.latitude, position.coords.longitude);
+        }, function () {
+            setStatus('Could not get your current location.', true);
+        });
+    });
+
+    mapCurrentButton.addEventListener('click', function () {
+        currentLocationButton.click();
+    });
+
+    searchButton.addEventListener('click', handleSearch);
+    searchInput.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            handleSearch();
+        }
+    });
+
+    clearButton.addEventListener('click', function () {
+        locationInput.value = '';
+        selectedLocation = { label: '', lat: null, lon: null };
+        updatePreview();
+        clearSearchResults();
+        setStatus('Location cleared.');
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && modal.classList.contains('is-open')) {
+            closeModal();
+        }
+    });
+
+    updatePreview();
+})();
+</script>

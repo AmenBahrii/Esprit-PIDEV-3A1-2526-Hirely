@@ -5,12 +5,18 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 use App\Entity\Interview_types;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use App\Entity\Notifications;
 
 #[ORM\Entity]
 class Interviews
 {
+    public function __construct()
+    {
+        $this->interview_evaluationss = new ArrayCollection();
+        $this->notificationss = new ArrayCollection();
+    }
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

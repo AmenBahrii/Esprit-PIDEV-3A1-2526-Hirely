@@ -36,7 +36,7 @@ class InterviewService
             $interview->setRecruiter_id($recruiter);
             $interview->setInterview_type_id($interviewType);
             $interview->setScheduled_date($scheduledDate);
-            $interview->setScheduled_time($scheduledTime ? new \DateTime($scheduledTime) : null);
+            $interview->setScheduled_time($scheduledTime !== null && $scheduledTime !== '' ? $scheduledTime : null);
             $interview->setDuration_minutes($durationMinutes);
             $interview->setLocation($location);
             $interview->setMeeting_link($meetingLink);
@@ -78,7 +78,7 @@ class InterviewService
             }
 
             if ($scheduledTime !== null) {
-                $interview->setScheduled_time(new \DateTime($scheduledTime));
+                $interview->setScheduled_time($scheduledTime !== '' ? $scheduledTime : null);
             }
 
             if ($durationMinutes !== null) {

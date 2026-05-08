@@ -30,45 +30,45 @@
                             {% for interview in interviews %}
                                 <tr>
                                     <td>
-                                        {% if interview.getRecruiter_id() %}
-                                            {{ interview.getRecruiter_id().getFirstName() }} {{ interview.getRecruiter_id().getLastName() }}
+                                        {% if interview.recruiter_id %}
+                                            {{ interview.recruiter_id.firstName }} {{ interview.recruiter_id.lastName }}
                                         {% else %}
                                             N/A
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if interview.getApplication_id().getJobOffer() %}
-                                            {{ interview.getApplication_id().getJobOffer().title }}
+                                        {% if interview.application_id.jobOffer %}
+                                            {{ interview.application_id.jobOffer.title }}
                                         {% else %}
                                             N/A
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if interview.getInterview_type_id() %}
-                                            {{ interview.getInterview_type_id().getType_name() }}
+                                        {% if interview.interview_type_id %}
+                                            {{ interview.interview_type_id.type_name }}
                                         {% else %}
                                             N/A
                                         {% endif %}
                                     </td>
-                                    <td>{{ interview.getScheduled_date().format('M d, Y') }}</td>
+                                    <td>{{ interview.scheduled_date.format('M d, Y') }}</td>
                                     <td>
-                                        {% if interview.getScheduled_time() %}
-                                            {{ interview.getScheduled_time().format('H:i') }}
+                                        {% if interview.scheduled_time %}
+                                            {{ interview.scheduled_time }}
                                         {% else %}
                                             Not set
                                         {% endif %}
                                     </td>
                                     <td>
                                         <span class="badge 
-                                            {% if interview.getStatus() == 'scheduled' %}bg-warning
-                                            {% elseif interview.getStatus() == 'completed' %}bg-success
-                                            {% elseif interview.getStatus() == 'cancelled' %}bg-danger
+                                            {% if interview.status == 'scheduled' %}bg-warning
+                                            {% elseif interview.status == 'completed' %}bg-success
+                                            {% elseif interview.status == 'cancelled' %}bg-danger
                                             {% endif %}">
-                                            {{ interview.getStatus()|capitalize }}
+                                            {{ interview.status|capitalize }}
                                         </span>
                                     </td>
                                     <td>
-                                        <a href="{{ path('app_interview_show', {'interviewId': interview.getInterview_id()}) }}" class="btn btn-sm btn-info">
+                                        <a href="{{ path('app_interview_show', {'interviewId': interview.interview_id}) }}" class="btn btn-sm btn-info">
                                             <i class="fas fa-eye"></i> View
                                         </a>
                                     </td>

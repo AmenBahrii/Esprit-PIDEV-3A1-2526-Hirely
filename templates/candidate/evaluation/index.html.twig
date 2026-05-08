@@ -30,38 +30,38 @@
                             {% for evaluation in evaluations %}
                                 <tr>
                                     <td>
-                                        {% if evaluation.getRecruiter_id() %}
-                                            {{ evaluation.getRecruiter_id().getFirstName() }} {{ evaluation.getRecruiter_id().getLastName() }}
+                                        {% if evaluation.recruiter_id %}
+                                            {{ evaluation.recruiter_id.firstName }} {{ evaluation.recruiter_id.lastName }}
                                         {% else %}
                                             N/A
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if evaluation.getInterview_id().getApplication_id().getJobOffer() %}
-                                            {{ evaluation.getInterview_id().getApplication_id().getJobOffer().title }}
+                                        {% if evaluation.interview_id.application_id.jobOffer %}
+                                            {{ evaluation.interview_id.application_id.jobOffer.title }}
                                         {% else %}
                                             N/A
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <strong>{{ evaluation.getOverall_rating() }}/5</strong>
+                                        <strong>{{ evaluation.overall_rating }}/5</strong>
                                     </td>
                                     <td>
-                                        <span class="badge bg-info">{{ evaluation.getRecommendation()|capitalize }}</span>
+                                        <span class="badge bg-info">{{ evaluation.recommendation|capitalize }}</span>
                                     </td>
                                     <td>
                                         <span class="badge 
-                                            {% if evaluation.getHire_decision() == 'hire' %}bg-success
-                                            {% elseif evaluation.getHire_decision() == 'no_hire' %}bg-danger
-                                            {% elseif evaluation.getHire_decision() == 'maybe' %}bg-warning
+                                            {% if evaluation.hire_decision == 'hire' %}bg-success
+                                            {% elseif evaluation.hire_decision == 'no_hire' %}bg-danger
+                                            {% elseif evaluation.hire_decision == 'maybe' %}bg-warning
                                             {% else %}bg-secondary
                                             {% endif %}">
-                                            {{ evaluation.getHire_decision()|capitalize }}
+                                            {{ evaluation.hire_decision|capitalize }}
                                         </span>
                                     </td>
-                                    <td>{{ evaluation.getEvaluated_at().format('M d, Y') }}</td>
+                                    <td>{{ evaluation.evaluated_at.format('M d, Y') }}</td>
                                     <td>
-                                        <a href="{{ path('app_evaluation_show', {'evaluationId': evaluation.getEvaluation_id()}) }}" class="btn btn-sm btn-info">
+                                        <a href="{{ path('app_evaluation_show', {'evaluationId': evaluation.evaluation_id}) }}" class="btn btn-sm btn-info">
                                             <i class="fas fa-eye"></i> View
                                         </a>
                                     </td>
