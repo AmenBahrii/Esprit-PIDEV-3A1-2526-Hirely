@@ -1,0 +1,13 @@
+parameters:
+    level: 5
+    paths:
+        - src/Entity/Joboffer.php
+        - src/Entity/Application.php
+        - src/Controller/JobofferController.php
+        - src/Controller/ApplicationController.php
+        - src/Form/JobofferType.php
+        - src/Form/ApplicationType.php
+        - src/Form/ApplicationReviewType.php
+        - src/Service/ApplicationNotificationMailer.php
+        - src/Service/ResumeAutofillService.php
+        - src/Service/ApplicationReviewAssistantService.php

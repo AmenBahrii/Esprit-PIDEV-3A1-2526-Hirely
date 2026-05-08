@@ -25,12 +25,11 @@ final class ApplicationController extends AbstractController
     #[Route('/{applicationId}/accept', name: 'app_application_accept')]
     public function accept(Application $application, EntityManagerInterface $em, ApplicationNotificationMailer $notificationMailer): Response
     {
-        /** @var Users $user */
-        $user = $this->getUser();
-
-        if (!$user) {
+        $currentUser = $this->getUser();
+        if (!$currentUser instanceof Users) {
             return $this->redirectToRoute('app_login');
         }
+        $user = $currentUser;
 
         if (!$this->canRecruiterManageApplication($user, $application)) {
             return $this->redirectToRoute('app_application_index');
@@ -53,12 +52,11 @@ final class ApplicationController extends AbstractController
     #[Route('/{applicationId}/reject', name: 'app_application_reject')]
     public function reject(Application $application, EntityManagerInterface $em, ApplicationNotificationMailer $notificationMailer): Response
     {
-        /** @var Users $user */
-        $user = $this->getUser();
-
-        if (!$user) {
+        $currentUser = $this->getUser();
+        if (!$currentUser instanceof Users) {
             return $this->redirectToRoute('app_login');
         }
+        $user = $currentUser;
 
         if (!$this->canRecruiterManageApplication($user, $application)) {
             return $this->redirectToRoute('app_application_index');
@@ -77,12 +75,11 @@ final class ApplicationController extends AbstractController
     #[Route(name: 'app_application_index', methods: ['GET'])]
     public function index(EntityManagerInterface $em): Response
     {
-        /** @var Users $user */
-        $user = $this->getUser();
-
-        if (!$user) {
+        $currentUser = $this->getUser();
+        if (!$currentUser instanceof Users) {
             return $this->redirectToRoute('app_login');
         }
+        $user = $currentUser;
 
         $roleName = strtolower($user->getRole()?->getName() ?? '');
         $connection = $em->getConnection();
@@ -103,7 +100,8 @@ final class ApplicationController extends AbstractController
                     j.title AS jobOfferTitle
                 FROM `application` a
                 LEFT JOIN joboffer j ON j.jobOfferId = a.jobOfferId
-                ORDER BY a.applicationId DESC'
+                ORDER BY a.applicationId DESC
+                LIMIT 50'
             );
 
             return $this->render('admin/application/index.html.twig', [
@@ -128,7 +126,8 @@ final class ApplicationController extends AbstractController
                 FROM `application` a
                 LEFT JOIN joboffer j ON j.jobOfferId = a.jobOfferId
                 WHERE j.user_id = :userId
-                ORDER BY a.applicationId DESC',
+                ORDER BY a.applicationId DESC
+                LIMIT 50',
                 ['userId' => $user->getId()]
             );
 
@@ -153,7 +152,8 @@ final class ApplicationController extends AbstractController
             FROM `application` a
             LEFT JOIN joboffer j ON j.jobOfferId = a.jobOfferId
             WHERE a.user_id = :userId
-            ORDER BY a.applicationId DESC',
+            ORDER BY a.applicationId DESC
+            LIMIT 50',
             ['userId' => $user->getId()]
         );
 
@@ -169,12 +169,11 @@ final class ApplicationController extends AbstractController
             throw $this->createAccessDeniedException();
         }
 
-        /** @var Users $user */
-        $user = $this->getUser();
-
-        if (!$user) {
+        $currentUser = $this->getUser();
+        if (!$currentUser instanceof Users) {
             return $this->redirectToRoute('app_login');
         }
+        $user = $currentUser;
 
         $jobOffer = $em->getRepository(Joboffer::class)->find($jobOfferId);
 
@@ -243,15 +242,14 @@ final class ApplicationController extends AbstractController
             ], Response::HTTP_FORBIDDEN);
         }
 
-        /** @var Users $user */
-        $user = $this->getUser();
-
-        if (!$user) {
+        $currentUser = $this->getUser();
+        if (!$currentUser instanceof Users) {
             return $this->json([
                 'success' => false,
                 'message' => 'Please sign in again before using resume autofill.',
             ], Response::HTTP_UNAUTHORIZED);
         }
+        $user = $currentUser;
 
         $jobOffer = $em->getRepository(Joboffer::class)->find($jobOfferId);
 
@@ -295,12 +293,11 @@ final class ApplicationController extends AbstractController
     #[Route('/{applicationId}', name: 'app_application_show', methods: ['GET'])]
     public function show(Application $application): Response
     {
-        /** @var Users $user */
-        $user = $this->getUser();
-
-        if (!$user) {
+        $currentUser = $this->getUser();
+        if (!$currentUser instanceof Users) {
             return $this->redirectToRoute('app_login');
         }
+        $user = $currentUser;
 
         $roleName = strtolower($user->getRole()?->getName() ?? '');
 
@@ -363,12 +360,11 @@ final class ApplicationController extends AbstractController
     #[Route('/{applicationId}', name: 'app_application_delete', methods: ['POST'])]
     public function delete(Request $request, Application $application, EntityManagerInterface $entityManager): Response
     {
-        /** @var Users $user */
-        $user = $this->getUser();
-
-        if (!$user) {
+        $currentUser = $this->getUser();
+        if (!$currentUser instanceof Users) {
             return $this->redirectToRoute('app_login');
         }
+        $user = $currentUser;
 
         $isAdmin = $this->isGranted('ROLE_ADMIN');
         $canCandidateDelete = $this->canCandidateDeleteApplication($user, $application);
@@ -390,12 +386,11 @@ final class ApplicationController extends AbstractController
     #[Route('/{applicationId}/review', name: 'app_application_review', methods: ['POST'])]
     public function review(Request $request, Application $application, EntityManagerInterface $em): Response
     {
-        /** @var Users $user */
-        $user = $this->getUser();
-
-        if (!$user) {
+        $currentUser = $this->getUser();
+        if (!$currentUser instanceof Users) {
             return $this->redirectToRoute('app_login');
         }
+        $user = $currentUser;
 
         if (!$this->canRecruiterManageApplication($user, $application)) {
             return $this->redirectToRoute('app_application_index');
@@ -426,15 +421,14 @@ final class ApplicationController extends AbstractController
         Application $application,
         ApplicationReviewAssistantService $reviewAssistantService
     ): JsonResponse {
-        /** @var Users $user */
-        $user = $this->getUser();
-
-        if (!$user) {
+        $currentUser = $this->getUser();
+        if (!$currentUser instanceof Users) {
             return $this->json([
                 'success' => false,
                 'message' => 'Please sign in again before using AI review.',
             ], Response::HTTP_UNAUTHORIZED);
         }
+        $user = $currentUser;
 
         if (!$this->canRecruiterManageApplication($user, $application)) {
             return $this->json([

@@ -170,8 +170,11 @@ public function setUser(?Users $user): self
 
     
 
+    /**
+     * @var Collection<int, Application>
+     */
     #[ORM\OneToMany(mappedBy: 'jobOffer', targetEntity: Application::class)]
-private Collection $applications;
+    private Collection $applications;
 
         public function getApplications(): Collection
         {

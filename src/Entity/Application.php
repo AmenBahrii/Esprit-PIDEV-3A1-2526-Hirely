@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 use App\Entity\Joboffer;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use App\Entity\Interviews;
 use Symfony\Component\HttpFoundation\File\File;
@@ -18,6 +19,11 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
 #[Vich\Uploadable]
 class Application
 {
+    public function __construct()
+    {
+        $this->availabilityDate = new \DateTimeImmutable();
+        $this->interviewss = new ArrayCollection();
+    }
 
     #[ORM\Id]
 #[ORM\GeneratedValue]
@@ -78,7 +84,7 @@ private float $expectedSalary;
 #[ORM\Column(name: "availabilityDate", type: "date")]
 #[Assert\NotBlank(message: "Availability date is required")]
 #[Assert\GreaterThanOrEqual("today", message: "Date cannot be in the past")]
-private ?\DateTimeInterface $availabilityDate = null;
+private \DateTimeInterface $availabilityDate;
 
 #[ORM\Column(name: "phone", type: "string", length: 50)]
 #[Assert\NotBlank(message: "Phone is required")]
@@ -288,7 +294,10 @@ public function setJobOffer(?Joboffer $jobOffer): self
         $this->reviewNote = $value;
     }
 
-    #[ORM\OneToMany(mappedBy: "application_id", targetEntity: Interviews::class)]
+    /**
+     * @var Collection<int, Interviews>
+     */
+    #[ORM\OneToMany(mappedBy: "application_id", targetEntity: Interviews::class, cascade: ['remove'])]
     private Collection $interviewss;
 
         public function getInterviewss(): Collection
@@ -327,20 +336,16 @@ public function setJobOffer(?Joboffer $jobOffer): self
                 ->addViolation();
         }
 
-        if ($this->availabilityDate !== null && $this->applicationDate instanceof \DateTimeInterface) {
-            if ($this->availabilityDate < $this->applicationDate) {
-                $context->buildViolation('Availability date cannot be before the application date.')
-                    ->atPath('availabilityDate')
-                    ->addViolation();
-            }
+        if ($this->availabilityDate < $this->applicationDate) {
+            $context->buildViolation('Availability date cannot be before the application date.')
+                ->atPath('availabilityDate')
+                ->addViolation();
         }
 
-        if ($this->availabilityDate !== null && $this->jobOffer?->getPublicationDate() instanceof \DateTimeInterface) {
-            if ($this->availabilityDate < $this->jobOffer->getPublicationDate()) {
-                $context->buildViolation('Availability date cannot be before the publication date of the selected job offer.')
-                    ->atPath('availabilityDate')
-                    ->addViolation();
-            }
+        if ($this->jobOffer instanceof Joboffer && $this->availabilityDate < $this->jobOffer->getPublicationDate()) {
+            $context->buildViolation('Availability date cannot be before the publication date of the selected job offer.')
+                ->atPath('availabilityDate')
+                ->addViolation();
         }
 
         if ($this->jobOffer instanceof Joboffer) {
@@ -357,7 +362,7 @@ public function setJobOffer(?Joboffer $jobOffer): self
             }
         }
 
-        if ($this->user instanceof Users && $this->email !== null && strcasecmp($this->email, $this->user->getEmail()) !== 0) {
+        if ($this->user instanceof Users && strcasecmp($this->email, $this->user->getEmail()) !== 0) {
             $context->buildViolation('Application email must match the email of the logged-in candidate.')
                 ->atPath('email')
                 ->addViolation();

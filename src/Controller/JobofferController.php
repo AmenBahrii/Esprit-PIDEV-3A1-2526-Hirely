@@ -18,30 +18,34 @@ final class JobofferController extends AbstractController
     public function index(Request $request, EntityManagerInterface $em): Response
     {
         $repo = $em->getRepository(Joboffer::class);
-
-        /** @var Users $user */
-        $user = $this->getUser();
-
-        if (!$user) {
+        $currentUser = $this->getUser();
+        if (!$currentUser instanceof Users) {
             return $this->redirectToRoute('app_login');
         }
+        $user = $currentUser;
 
         $roleName = strtolower($user->getRole()?->getName() ?? '');
         $search = $request->query->get('search');
         $sort = $request->query->get('sort');
 
         $qb = $repo->createQueryBuilder('j');
+        $expr = $qb->expr();
 
         if ($roleName === 'recruiter') {
-            $qb->andWhere('j.user = :user')
+            $qb->andWhere($expr->eq('j.user', ':user'))
                 ->setParameter('user', $user);
         } elseif ($roleName !== 'admin') {
-            $qb->andWhere('j.status = :status')
+            $qb->andWhere($expr->eq('j.status', ':status'))
                 ->setParameter('status', 'Open');
         }
 
         if ($search) {
-            $qb->andWhere('j.title LIKE :search OR j.location LIKE :search')
+            $qb->andWhere(
+                $expr->orX(
+                    $expr->like('j.title', ':search'),
+                    $expr->like('j.location', ':search')
+                )
+            )
                 ->setParameter('search', '%' . $search . '%');
         }
 
@@ -62,6 +66,8 @@ final class JobofferController extends AbstractController
                 $qb->orderBy('j.id', 'DESC');
         }
 
+        $qb->setMaxResults(50);
+
         $joboffers = $qb->getQuery()->getResult();
 
         return $this->render($roleName . '/joboffer/index.html.twig', [
@@ -75,12 +81,11 @@ final class JobofferController extends AbstractController
     #[Route('/new', name: 'app_joboffer_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $em): Response
     {
-        /** @var Users $user */
-        $user = $this->getUser();
-
-        if (!$user) {
+        $currentUser = $this->getUser();
+        if (!$currentUser instanceof Users) {
             return $this->redirectToRoute('app_login');
         }
+        $user = $currentUser;
 
         $roleName = strtolower($user->getRole()?->getName() ?? '');
 
@@ -113,12 +118,11 @@ final class JobofferController extends AbstractController
     #[Route('/{id}', name: 'app_joboffer_show', methods: ['GET'])]
     public function show(Joboffer $joboffer): Response
     {
-        /** @var Users $user */
-        $user = $this->getUser();
-
-        if (!$user) {
+        $currentUser = $this->getUser();
+        if (!$currentUser instanceof Users) {
             return $this->redirectToRoute('app_login');
         }
+        $user = $currentUser;
 
         $roleName = strtolower($user->getRole()?->getName() ?? '');
 
@@ -150,12 +154,11 @@ final class JobofferController extends AbstractController
     #[Route('/{id}/edit', name: 'app_joboffer_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Joboffer $joboffer, EntityManagerInterface $em): Response
     {
-        /** @var Users $user */
-        $user = $this->getUser();
-
-        if (!$user) {
+        $currentUser = $this->getUser();
+        if (!$currentUser instanceof Users) {
             return $this->redirectToRoute('app_login');
         }
+        $user = $currentUser;
 
         $roleName = strtolower($user->getRole()?->getName() ?? '');
 
@@ -181,12 +184,11 @@ final class JobofferController extends AbstractController
     #[Route('/{id}', name: 'app_joboffer_delete', methods: ['POST'])]
     public function delete(Request $request, Joboffer $joboffer, EntityManagerInterface $em): Response
     {
-        /** @var Users $user */
-        $user = $this->getUser();
-
-        if (!$user) {
+        $currentUser = $this->getUser();
+        if (!$currentUser instanceof Users) {
             return $this->redirectToRoute('app_login');
         }
+        $user = $currentUser;
 
         $roleName = strtolower($user->getRole()?->getName() ?? '');
 
